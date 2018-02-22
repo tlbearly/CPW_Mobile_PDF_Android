@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:context="com.example.tammy.mapviewer.LoadFileActivity">
+
+    <TextView
+        android:id="@+id/DownloadsLabel"
+        style="@style/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="#efefef"
+        android:padding="10dp"
+        android:text="@string/Downloads"
+        android:textAppearance="@style/TextAppearance.AppCompat.Caption" />
+
+    <ListView
+        android:id="@+id/lv2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="50dp"
+        android:background="@android:color/white"
+        android:foregroundTint="@color/colorAccent"
+        android:visibility="visible"></ListView>
+   </FrameLayout>

@@ -1,0 +1,54 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
+    defaultConfig {
+        applicationId "com.example.tammy.pdfsample"
+        minSdkVersion 17
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            // ProGuard shrinks the size of the APK file and removes unused code.
+            // shrinkResource as removes unused code from libraries
+            // set to true for release, will slow down build time so should not be used on debug version.
+            shrinkResources false
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // use next line for even more code shrinking
+            //proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    // Google Play Services for Location
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+
+    // add pdfbox (NOT USED)
+    //compile files('libs/pdfbox-2.0.7.jar')
+
+    // Google Play Location Services
+    compile 'com.google.android.gms:play-services-location:11.0.4'
+    compile 'com.android.support:appcompat-v7:26.+'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.android.support:design:26.+'
+
+    // Use lib from https://github.com/barteksc/AndroidPdfViewer
+    compile 'com.github.barteksc:android-pdf-viewer:2.8.0'
+
+    // for thumbnails
+    compile 'com.github.barteksc:pdfium-android:1.7.1'
+
+    // for file list
+    compile 'com.android.support:cardview-v7:26.+'
+    compile 'com.android.support:support-v4:26.+'
+    testCompile 'junit:junit:4.12'
+}

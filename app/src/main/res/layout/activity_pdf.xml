@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.tammy.mapviewer.MainActivity">
+
+    <com.github.barteksc.pdfviewer.PDFView
+        android:id="@+id/pdfView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+        <!--android:layout_toLeftOf="@+id/scrollBar"/>
+    <com.github.barteksc.pdfviewer.ScrollBar
+        android:id="@+id/scrollBar"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" /-->
+
+    <!-- Debug Window -->
+    <!-- Must have width and height set to wrap_content or it will not show up on top -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        android:background="@color/white"
+        android:layout_alignParentTop="true"
+        android:id="@+id/debug"
+        />
+</RelativeLayout>

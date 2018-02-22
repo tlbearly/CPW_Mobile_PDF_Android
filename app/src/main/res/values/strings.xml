@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">PDF Map Viewer</string>
+    <string name="action_quality">Use best quality map (uses more memory)</string>
+    <string name="name">Name</string>
+    <string name="pdfimg">Image of PDF</string>
+    <string name="open_pdf">Open a new pdf file</string>
+
+    <string name="title_activity_load_file">Import a PDF Map</string>
+    <string name="getmore_help">From a CPW Website</string>
+    <string name="ready_made">Download Ready Made Maps</string>
+    <string name="web_download">Download a map from the CPW Maps Library, the Hunting Atlas, or the Fishing Atlas.</string>
+    <string name="ready_made_help">Once downloaded, import it with the Import Map button below. Make sure to download a GeoPDF file format.</string>
+    <string name="custom">Download Custom Maps</string>
+    <string name="custom_help">Create a custom map then select Download from the menu.</string>
+    <string name="get_more">Get More</string>
+    <string name="CPW">CPW Maps Library</string>
+    <string name="Fishing">Fishing Atlas</string>
+    <string name="Hunting">Hunting Atlas</string>
+    <string name="device_storage_help">List PDF files that you downloaded.</string>
+    <string name="DownloadDir">Import Map</string>
+    <string name="Downloads">Downloads Directory</string>
+    <string name="DownloadMap">Get More Maps</string>
+    <string name="title_activity_get_more">Get More Maps</string>
+    <string name="deleteAllDBrecords">Delete All Imported Maps</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="rename">Rename</string>
+</resources>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.tammy.mapviewer">
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name="com.example.tammy.mapviewer.MainActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.example.tammy.mapviewer.PDFActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:parentActivityName="com.example.tammy.mapviewer.MainActivity"> <!-- This adds a back button -->
+        </activity>
+        <activity
+            android:name="com.example.tammy.mapviewer.LoadFileActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_load_file"
+            android:parentActivityName="com.example.tammy.mapviewer.MainActivity"
+            android:theme="@style/FullscreenTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.tammy.mapviewer.GetMoreActivity" />
+        </activity>
+        <activity
+            android:name="com.example.tammy.mapviewer.GetMoreActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_get_more"
+            android:parentActivityName="com.example.tammy.mapviewer.MainActivity"
+            android:theme="@style/FullscreenTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.tammy.mapviewer.MainActivity" />
+        </activity>
+        <activity
+            android:name="com.example.tammy.mapviewer.WebActivity"
+            android:label="@string/title_activity_get_more"
+            android:parentActivityName="com.example.tammy.mapviewer.LoadFileActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.tammy.mapviewer.GetMoreActivity" />
+        </activity>
+    </application>
+
+</manifest>
