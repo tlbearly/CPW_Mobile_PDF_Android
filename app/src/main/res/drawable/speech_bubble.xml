@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" >
+
+    <item
+        android:left="165dp"
+        android:top="150dp"
+        tools:height="50dp"
+        tools:width="50dp">
+        <rotate
+            android:fromDegrees="-45"
+            android:pivotX="0%"
+            android:pivotY="0%"
+            android:toDegrees="0">
+            <shape android:shape="rectangle">
+                <solid android:color="#f00" />
+            </shape>
+        </rotate>
+    </item>
+    <item
+        android:left="50dp"
+        android:right="50dp"
+        android:top="50dp"
+        tools:height="100dp"
+        tools:width="300dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#CCC" />
+
+            <corners android:radius="5dp" />
+        </shape>
+    </item>
+
+</layer-list>

@@ -1,31 +1,51 @@
 package com.example.tammy.mapviewer;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.database.SQLException;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+import android.provider.Settings;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.github.barteksc.pdfviewer.PDFView;
 import com.github.barteksc.pdfviewer.listener.OnDrawListener;
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
+import com.github.barteksc.pdfviewer.listener.OnTapListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -36,19 +56,25 @@ import java.io.File;
 
 import static android.graphics.Color.argb;
 
+/* show the map */
 public class PDFActivity extends AppCompatActivity implements SensorEventListener {
     PDFView pdfView;
-    private static final String TAG = PDFActivity.class.getSimpleName();
+    //private static final String TAG = PDFActivity.class.getSimpleName();
+    private Menu mapMenu;
+    private static final int COURSE_PERMISSION_CODE = 100;
+    private static final int FINE_PERMISSION_CODE = 101;
+    private static final int LOCATION_PERMISSION_CODE = 200;
     // Color and style of current location point
-    Paint cyan = new Paint(Paint.ANTI_ALIAS_FLAG);
-    Paint cyanTrans = new Paint(Paint.ANTI_ALIAS_FLAG);
-    Paint red = new Paint(Paint.ANTI_ALIAS_FLAG);
-    Paint white = new Paint(Paint.ANTI_ALIAS_FLAG);
-    Paint black = new Paint(Paint.ANTI_ALIAS_FLAG);
-    Paint outline = new Paint();
+    Paint cyan;
+    Paint cyanTrans;
+    Paint red;
+    Paint white;
+    Paint black;
+    Paint outline;
+    Paint blue;
     // current screen location adjusted by zoom level
-    double currentLocationX = 0; // start offscreen
-    double currentLocationY = 0;
+    double currentLocationX; // start offscreen
+    double currentLocationY;
     double latNow;
     double longNow;
     float accuracy;
@@ -73,7 +99,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     double mediaBoxHeight;
     double marginXworld; // marginLeft+marginRight
     double marginYworld; // marginTop+marginBottom
-    boolean bestQuality = false;
 
     private FusedLocationProviderClient mFusedLocationClient;
     //private Location mCurrentLocation;
@@ -83,48 +108,112 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
     // Screen Sensor X rotation
     private int adjust; // adjust for landscape or portrait. Sensor reports north for top of portrait screen. For landscape add 90 degrees.
-    private boolean landscape=false;
+    private boolean landscape;
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private Sensor mMagnetometer;
-    private float[] mLastAccelerometer = new float[3];
-    private float[] mLastMagnetometer = new float[3];
-    private boolean mLastAccelerometerSet = false;
-    private boolean mLastMagnetometerSet = false;
-    private float[] mR = new float[9];
-    private float[] mOrientation = new float[3];
-    private float mCurrentDegree = 0f;
-
-
+    private float[] mLastAccelerometer;
+    private float[] mLastMagnetometer;
+    private boolean mLastAccelerometerSet;
+    private boolean mLastMagnetometerSet;
+    private float[] mR;
+    private float[] mOrientation;
+    //private float mCurrentDegree = 0f;
+    private WayPts wayPts;
+    private String mapName;
+    private DBWayPtHandler db;
+    //private DBHandler db2;
+    private Boolean markCurrent;
+    private int clickedWP; // index of way point that was clicked on
+    private Boolean newWP; // if added a new way point show balloon too
+    private TextPaint txtCol; // text color for way pt balloon popup
+    private int txtSize; // text size of way pt balloon popup
+    private int marg; // text margins in way pt balloon popup
+    private int boxHt; // height of way point balloon popup
+    private float pin_radius; // radius of way pt pin
+    private float pin_ht; // length of pin stem from point to center of pin head (circle)
+    private int startY; // bottom of the way pt balloon popup
+    private int margX; // distance on each side of way pt to register user click
+    private int margTop; // distance above way pt to register user click
+    private int margBottom; // distance below way pt to register user click
+    private StaticLayout lsLayout; // arrow right in way point balloon popup
+    private String path;
+    private String bounds,strBounds;
+    private String viewPort,strViewPort;
+    private String mediaBox,strMediaBox;
+    private RelativeLayout wait; // indeterminate progress bar
+    private Boolean showAllWayPtLabels = false;
+    private Boolean showAllWayPts = true;
 
     // Set global value bestQuality
-    public void setPDFQuality(String quality){
+    /*public void setPDFQuality(String quality){
         if (quality.equals("best")) bestQuality = true;
         else bestQuality = false;
-    }
+    }*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+       // final RelativeLayout wait; // indeterminate progress bar
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pdf);
+        wait = findViewById(R.id.loadingPanel);
+        wait.setVisibility(View.VISIBLE);
+
+        // current screen location adjusted by zoom level
+        currentLocationX = 0; // start offscreen
+        currentLocationY = 0;
+        landscape=false;
+        mLastAccelerometer = new float[3];
+        mLastMagnetometer = new float[3];
+        mLastAccelerometerSet = false;
+        mLastMagnetometerSet = false;
+        mR = new float[9];
+        mOrientation = new float[3];
+        //mCurrentDegree = 0f;
+        wayPts = null;
+        mapName = "";
+        db = DBWayPtHandler.getInstance(this);
+        //db2 = DBHandler.getInstance(this);
+        markCurrent = false;
+        clickedWP = -1; // index of way point that was clicked on
+        newWP = false; // if added a new way point show balloon too
+        txtCol = new TextPaint(); // text color for way pt balloon popup
+        txtSize = Math.round(getResources().getDimension(R.dimen.balloon_txt_size)); // text size of way pt balloon popup ( used to be 30 pixels)
+        marg = Math.round(getResources().getDimension(R.dimen.balloon_margin)); // text margins in way pt balloon popup used to be 20pixels
+        boxHt = txtSize+(marg*2); // height of way point balloon popup
+        pin_radius = getResources().getDimension(R.dimen.pin_radius);
+        pin_ht = getResources().getDimension(R.dimen.pin_height); // length of pin stem from point to center of pin head (circle)
+        startY = Math.round(pin_ht + pin_radius)+12; // bottom of the way pt balloon popup
+        margX = Math.round(getResources().getDimension(R.dimen.wayPtXmarg));
+        margTop = Math.round(getResources().getDimension(R.dimen.wayPtTmarg));
+        margBottom = Math.round(getResources().getDimension(R.dimen.wayPtBmarg));
 
         // keep app from timing out and going to screen saver
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         // UNPACK OUR DATA FROM INTENT
-        String path=null;
-        String bounds=null;
-        String viewPort=null;
-        String mediaBox = null;
+        path = null;
+        bounds = null;
+        viewPort=null;
+        mediaBox=null;
+
         Intent i = this.getIntent();
 
         //  GET LAT LONG BOUNDS, CONVERT FROM STRING "LAT1 LONG1 LAT2 LONG1 LAT2 LONG2 LAT1 LONG2" TO FLOATS
         try {
-            bestQuality = i.getExtras().getBoolean("BEST_QUALITY");
+            //bestQuality = i.getExtras().getBoolean("BEST_QUALITY");
             path = i.getExtras().getString("PATH");
+
+            // Display Map Name
+            mapName = i.getExtras().getString("NAME");
+            this.setTitle(mapName);
+            wayPts = db.getWayPts(mapName);
+            wayPts.SortPts();
+
             // GET LAT/LONG
             bounds = i.getExtras().getString("BOUNDS"); // lat1 long1 lat2 long1 lat2 long2 lat1 long2
             bounds = bounds.trim(); // remove leading and trailing spaces
+            strBounds = bounds;
             //Toast.makeText(PDFActivity.this, bounds, Toast.LENGTH_LONG).show();
             int pos = bounds.indexOf(" ");
             lat1 = Double.valueOf(bounds.substring(0, pos));
@@ -149,18 +238,19 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             // FIND X1
             mediaBox = i.getExtras().getString("MEDIABOX");
             mediaBox = mediaBox.trim(); // remove leading and trailing spaces
+            strMediaBox = mediaBox;
             int pos = mediaBox.indexOf(" ");
             mediaBoxX1 = Double.valueOf(mediaBox.substring(0, pos));
             // FIND Y1
-            mediaBox = mediaBox.substring(pos + 1); // string off 'X1 '
+            mediaBox = mediaBox.substring(pos + 1); // strip off 'X1 '
             pos = mediaBox.indexOf(" ");
             mediaBoxY1 = Double.valueOf(mediaBox.substring(0, pos));
             // FIND X2
-            mediaBox = mediaBox.substring(pos + 1); // string off 'Y1 '
+            mediaBox = mediaBox.substring(pos + 1); // strip off 'Y1 '
             pos = mediaBox.indexOf(" ");
             mediaBoxX2 = Double.valueOf(mediaBox.substring(0, pos));
             // FIND Y2
-            mediaBox = mediaBox.substring(pos + 1); // string off 'X2 '
+            mediaBox = mediaBox.substring(pos + 1); // strip off 'X2 '
             pos = mediaBox.indexOf(" ");
             mediaBoxY2 = Double.valueOf(mediaBox.substring(pos + 1));
         }
@@ -171,19 +261,20 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             // GET MARGINS - origin is at bottom left. BBox[23 570 768 48]
             viewPort = i.getExtras().getString("VIEWPORT");
             viewPort = viewPort.trim();
+            strViewPort = viewPort;
             // FIND bBoxX1
             int pos = viewPort.indexOf(" ");
             bBoxX1 = Double.valueOf(viewPort.substring(0, pos));
             // FIND bBoxY1
-            viewPort = viewPort.substring(pos + 1); // string off 'bBoxX1 '
+            viewPort = viewPort.substring(pos + 1); // strip off 'bBoxX1 '
             pos = viewPort.indexOf(" ");
             bBoxY1 = Double.valueOf(viewPort.substring(0, pos));
             // FIND bBoxX2
-            viewPort = viewPort.substring(pos + 1); // string off 'bBoxY1 '
+            viewPort = viewPort.substring(pos + 1); // strip off 'bBoxY1 '
             pos = viewPort.indexOf(" ");
             bBoxX2 = Double.valueOf(viewPort.substring(0, pos));
             // FIND bBoxY2
-            viewPort = viewPort.substring(pos + 1); // string off 'bBoxX2 '
+            viewPort = viewPort.substring(pos + 1); // strip off 'bBoxX2 '
             pos = viewPort.indexOf(" ");
             bBoxY2 = Double.valueOf(viewPort.substring(pos + 1));
 
@@ -196,19 +287,34 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             mediaBoxHeight = mediaBoxY2 - mediaBoxY1;
             marginXworld = marginLeft+marginRight;
             marginYworld = marginTop+marginBottom;
-        }
-        catch (Exception e) {
+        }catch (Exception e) {
             Toast.makeText(PDFActivity.this, "Trouble reading viewPort margins from Geo PDF. Read: "+viewPort, Toast.LENGTH_LONG).show();
         }
 
+        // Edit Way Point Activity needs to have these
+        /*i.removeExtra("PATH");
+        i.removeExtra("BOUNDS");
+        i.removeExtra("NAME");
+        i.removeExtra("MEDIABOX");
+        i.removeExtra("VIEWPORT");
+        */
+
         // Setup Screen Sensor for X Axis rotation (flat)
-        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-
-
-
+        try {
+            mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+            mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        }catch(NullPointerException e){
+            Toast.makeText(PDFActivity.this, "Trouble reading phone orientation", Toast.LENGTH_LONG).show();
+        }
         // Set color and fill of the current location point
+        cyan = new Paint(Paint.ANTI_ALIAS_FLAG);
+        cyanTrans = new Paint(Paint.ANTI_ALIAS_FLAG);
+        red = new Paint(Paint.ANTI_ALIAS_FLAG);
+        white = new Paint(Paint.ANTI_ALIAS_FLAG);
+        black = new Paint(Paint.ANTI_ALIAS_FLAG);
+        outline = new Paint();
+        blue = new Paint(Paint.ANTI_ALIAS_FLAG);
         cyan.setAntiAlias(true);
         cyan.setColor(Color.CYAN);
         cyan.setStyle(Paint.Style.FILL);
@@ -222,94 +328,275 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         black.setStyle(Paint.Style.FILL);
         cyanTrans.setColor(argb(40,0, 255,255));
         cyanTrans.setStyle(Paint.Style.FILL);
+        blue.setAntiAlias(true);
+        blue.setColor(Color.BLUE);
+        blue.setStyle(Paint.Style.FILL);
+        // Way point popup text
+        txtCol.setStyle(Paint.Style.FILL);
+        txtCol.setColor(Color.BLACK);
+        txtCol.setTextSize(txtSize);
+        final int emoji_width = Math.round(getResources().getDimension(R.dimen.emoji_width));
+        TextPaint txtPaint = new TextPaint(); // Size of the emoji arrow in push pin balloon
+        txtPaint.setTextSize(emoji_width);
+        // Way point popup text arrow emoji
+        //Initialise the layout & add a TextView with the emoji in it
+        String emoji = new String(Character.toChars(0x27b2)); //0x1F369)); //Doughnut
+        // StaticLayout was deprecated in API level 28 use StaticLayout.Builder
+        lsLayout = new StaticLayout(emoji, txtPaint, emoji_width, Layout.Alignment.ALIGN_CENTER, 1, 1, true);
 
         //PDFVIEW WILL DISPLAY OUR PDFS
-        pdfView = (PDFView) findViewById(R.id.pdfView);
+        pdfView = findViewById(R.id.pdfView);
 
         // SACRIFICE MEMORY FOR QUALITY
-        pdfView.useBestQuality(bestQuality);
+       // pdfView.useBestQuality(bestQuality);
 
         pdfView.enableAntialiasing(true); // improve rendering a little bit on low-res screens
 
 
         // SET UP LOCATION SERVICES
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
-            ActivityCompat.requestPermissions(PDFActivity.this, permissions, 1);
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-
-            // I tured location off on my phone and did not hit this error message?????????????
-            Toast.makeText(PDFActivity.this, "location services are off.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-       /* mFusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        // Got last known location. In some rare situations this can be null.
-                        if (location != null) {
-                            currentLocationX = location.getLatitude();
-                            currentLocationY = location.getLongitude();
-                            //Toast.makeText(PDFActivity.this, "Lat/Long " + location.getLatitude() + " / " + location.getLongitude(), Toast.LENGTH_LONG).show();
+        final String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+        if ((ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) ||
+            (ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)){
+            if (ActivityCompat.shouldShowRequestPermissionRationale(PDFActivity.this,Manifest.permission_group.LOCATION)){
+                new AlertDialog.Builder(PDFActivity.this)
+                    .setTitle("Permission Needed")
+                    .setMessage("Location permission is needed to show your current location on the map.")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // User clicked OK button. Ask again
+                            ActivityCompat.requestPermissions(PDFActivity.this, permissions, LOCATION_PERMISSION_CODE);
                         }
+                    })
+                    .setNegativeButton("Cancel",new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // User clicked Cancel button. Hide dialog.
+                            dialog.dismiss();
+                        }
+                }).create().show();
+            }else {
+                ActivityCompat.requestPermissions(PDFActivity.this, permissions, LOCATION_PERMISSION_CODE);
+            }
+        }
+        else{
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+            // UPDATE CURRENT POSITION
+            mLocationCallback = new LocationCallback() {
+                @Override
+                public void onLocationResult(LocationResult locationResult) {
+                    for (Location location : locationResult.getLocations()) {
+                        // Update UI with location data
+                        //GeomagneticField geoField;
+
+                        latNow = location.getLatitude();
+                        longNow = location.getLongitude(); // make it positive
+                        //bearing = location.getBearing(); // 0-360 degrees 0 at North
+                        accuracy = location.getAccuracy();
+                        // Makes top of map (north) off
+                /*geoField = new GeomagneticField(
+                        Double.valueOf(latNow).floatValue(),
+                        Double.valueOf(longNow).floatValue(),
+                        Double.valueOf(location.getAltitude()).floatValue(),
+                        System.currentTimeMillis()
+                );*/
+                        //bearing += geoField.getDeclination(); // Adjust for declination - difference between magnetic north and true north. Phone returns magnetic north.
+                        //bearing -= 90; // Adjust by 90 degrees. Canvas needs 0 at East, this returns 0 at North
+                        //if (bearing<0) bearing = 360 + bearing;
+
+                        // debug
+                        //TextView bTxt = (TextView)findViewById(R.id.debug);
+                        //bTxt.setText(Float.toString(bearing)+"  adjust: "+Float.toString((geoField.getDeclination()))+ "  bear: "+Float.toString(location.getBearing()));
+
+                        // Redraw the current location point
+                        pdfView.invalidate();
                     }
-                });*/
-
-       // UPDATE CURRENT POSITION
-        mLocationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                for (Location location : locationResult.getLocations()) {
-                    // Update UI with location data
-                    GeomagneticField geoField;
-
-                    latNow = location.getLatitude();
-                    longNow = location.getLongitude(); // make it positive
-                    //bearing = location.getBearing(); // 0-360 degrees 0 at North
-                    accuracy = location.getAccuracy();
-                    // Makes top of map (north) off
-                    /*geoField = new GeomagneticField(
-                            Double.valueOf(latNow).floatValue(),
-                            Double.valueOf(longNow).floatValue(),
-                            Double.valueOf(location.getAltitude()).floatValue(),
-                            System.currentTimeMillis()
-                    );*/
-                    //bearing += geoField.getDeclination(); // Adjust for declination - difference between magnetic north and true north. Phone returns magnetic north.
-                    //bearing -= 90; // Adjust by 90 degrees. Canvas needs 0 at East, this returns 0 at North
-                    //if (bearing<0) bearing = 360 + bearing;
-
-                    // debug
-                    //TextView bTxt = (TextView)findViewById(R.id.debug);
-                    //bTxt.setText(Float.toString(bearing)+"  adjust: "+Float.toString((geoField.getDeclination()))+ "  bear: "+Float.toString(location.getBearing()));
-
-                    // Redraw the current location point
-                    pdfView.invalidate();
                 }
             };
-        };
-
-
-
-
-
-
-
-
+        }
 
         // GET THE PDF FILE
         File file = new File(path);
         if (file.canRead()) {
             // LOAD IT, load only first page
-            pdfView.fromFile(file).defaultPage(0).pages(0).onDraw(new OnDrawListener() {
+            pdfView.fromFile(file).defaultPage(0).pages(0).onTap(new OnTapListener() {
+                //
+                // LISTEN FOR TAP TO ADD WAY POINT OR DISPLAY PT DATA
+                //
+                @Override
+                public boolean onTap(MotionEvent e) {
+                    // if no way points are show return
+                    if (!showAllWayPts) return false;
+                    // show wait icon
+                    wait.setVisibility(View.VISIBLE);
+                    boolean found = false;
+                    newWP = false; // if added a new way point show balloon too
+                    float x,y;
+                    float zoom = pdfView.getZoom();
+                    double toScreenCordX = (pdfView.getOptimalPageWidth() * zoom) / mediaBoxWidth;
+                    double toScreenCordY = (pdfView.getOptimalPageHeight() * zoom) / mediaBoxHeight;
+                    double marginL = toScreenCordX * marginLeft;
+                    double marginT = toScreenCordY * marginTop;
+                    double marginx = toScreenCordX * marginXworld;
+                    double marginy = toScreenCordY * marginYworld;
+                    x = (e.getX() - pdfView.getCurrentXOffset());
+                    y = (e.getY() - pdfView.getCurrentYOffset());
+                    double wayPtX, wayPtY;
+                    //
+                    // Check if clicked on way pt popup balloon of the single way point that is showing the balloon
+                    //
+                    if (clickedWP != -1){
+                        wayPtX = (((wayPts.get(clickedWP).getX()+180) - (long1+180))  / longDiff) * ((double)(pdfView.getOptimalPageWidth()* zoom)-marginx) + marginL;
+                        wayPtY = ((((90-wayPts.get(clickedWP).getY()) - (90-lat2)) / latDiff) * ((double)(pdfView.getOptimalPageHeight()* zoom)-marginy)) + marginT;
+                        String desc = wayPts.get(clickedWP).getDesc();
+                        if (desc.length() > 13) desc = desc.substring(0,12);
+                        float textWidth = txtCol.measureText(desc);
+                        int emoji_width = Math.round(getResources().getDimension(R.dimen.emoji_width));//used to be 80
+                        int marg = Math.round(getResources().getDimension(R.dimen.ten_dp));//10
+                        // Test for balloon popup going off right side of screen
+                        int offsetBox;
+                        offsetBox = (int) Math.round((pdfView.getOptimalPageWidth()* zoom) - (wayPtX + (textWidth/2)+marg+emoji_width));
+                        // Test for balloon popup going off the left side of screen
+                        if (offsetBox >= 0){
+                            offsetBox = 0;
+                            if ((wayPtX-(textWidth/2)-marg) < 0)
+                                offsetBox = (int) (-1 * Math.round(wayPtX-(textWidth/2)-marg));
+                        }
+                        if ( x > ((wayPtX-(textWidth/2)-marg)+offsetBox) && x < ((wayPtX+(textWidth/2)+marg+emoji_width)+offsetBox) &&
+                                y < (wayPtY-startY+marg) && y >= (wayPtY-startY-boxHt-marg) ){
+                            Intent i = new Intent(PDFActivity.this, EditWayPointActivity.class);
+                            //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            i.putExtra("CLICKED", clickedWP);
+                            i.putExtra("NAME", mapName);
+                            i.putExtra("PATH",path);
+                            i.putExtra("BOUNDS", strBounds);
+                            i.putExtra("MEDIABOX", strMediaBox);
+                            i.putExtra("VIEWPORT", strViewPort);
+                            startActivity(i);
+                            // hide wait icon
+                            wait.setVisibility(View.GONE);
+                            return false;
+                        }
+                        //else {
+                            //clickedWP = -1;
+                            //return false;
+                        //}
+                    }
+
+                    // check if clicked on any balloon when all way points are showing their labels
+                    if (showAllWayPtLabels) {
+                        for (int j = 0; j < wayPts.size(); j++) {
+                            wayPtX = (((wayPts.get(j).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
+                            wayPtY = ((((90 - wayPts.get(j).getY()) - (90 - lat2)) / latDiff) * ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
+                            String desc = wayPts.get(j).getDesc();
+                            if (desc.length() > 13) desc = desc.substring(0, 12);
+                            float textWidth = txtCol.measureText(desc);
+                            int emoji_width = Math.round(getResources().getDimension(R.dimen.emoji_width));//used to be 80
+                            int marg = Math.round(getResources().getDimension(R.dimen.ten_dp));//10
+                            // Test for balloon popup going off right side of screen
+                            int offsetBox;
+                            offsetBox = (int) Math.round((pdfView.getOptimalPageWidth() * zoom) - (wayPtX + (textWidth / 2) + marg + emoji_width));
+                            // Test for balloon popup going off the left side of screen
+                            if (offsetBox >= 0) {
+                                offsetBox = 0;
+                                if ((wayPtX - (textWidth / 2) - marg) < 0)
+                                    offsetBox = (int) (-1 * Math.round(wayPtX - (textWidth / 2) - marg));
+                            }
+                            if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width) + offsetBox) &&
+                                    y < (wayPtY - startY + marg) && y >= (wayPtY - startY - boxHt - marg)) {
+                                Intent i = new Intent(PDFActivity.this, EditWayPointActivity.class);
+                                //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                i.putExtra("CLICKED", j);
+                                i.putExtra("NAME", mapName);
+                                i.putExtra("PATH", path);
+                                i.putExtra("BOUNDS", strBounds);
+                                i.putExtra("MEDIABOX", strMediaBox);
+                                i.putExtra("VIEWPORT", strViewPort);
+                                startActivity(i);
+                                // hide wait icon
+                                wait.setVisibility(View.GONE);
+                                return false;
+                            }
+                        }
+                    }
+
+                    //
+                    // Check if clicked on existing way pt
+                    //
+                    double longitude = (((x - marginL)/ ((double)(pdfView.getOptimalPageWidth()* zoom)-marginx)) * longDiff) + (long1+180) -180;
+                    double latitude = ((((y - marginT)/ ((double)(pdfView.getOptimalPageHeight()* zoom)-marginy)) * latDiff) + (90-lat2) -90) * -1;
+
+                    // If showing all balloons, and click to add new point it should add it and not hide the currently selected balloon.
+                    if (showAllWayPtLabels) clickedWP = -1;
+
+                    //TextView bTxt = (TextView)findViewById(R.id.debug);
+                    //bTxt.setTextColor(Color.WHITE);
+                    //bTxt.setText("X offset: "+pdfView.getCurrentXOffset()+" Tap at: " +x+", "+y+" Long: "+String.format("%.4f",longitude)+ " Lat: "+String.format("%.4f",latitude));
+
+                    // If clicked on existing way point show balloon with name
+                    for (int i = wayPts.size() - 1; i > -1; i--) {
+                        // convert this way pt lat, long to screen coordinates
+                        wayPtX = (((wayPts.get(i).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
+                        wayPtY = ((((90 - wayPts.get(i).getY()) - (90 - lat2)) / latDiff) * ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
+
+                        if (x > (wayPtX - margX) && x < (wayPtX + margX) &&
+                                y < (wayPtY + margBottom) && y >= (wayPtY - margTop)) {
+                            clickedWP = i;
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    // Add new way pt
+                    if ( clickedWP == -1 && !found) {
+                        // Make sure user click is not off the map!
+                        if (!(latitude > lat1 && latitude < lat2 && longitude > long1 && longitude < long2)){
+                            Toast.makeText(PDFActivity.this, " Off Map.", Toast.LENGTH_SHORT).show();
+                            clickedWP = -1;
+                        }
+                        // Check if clicked too close to edge, Warn user
+                        /*else if (!(latitude > lat1 && latitude < (lat2-.01) && longitude > long1 && longitude < long2)){
+                            Toast.makeText(PDFActivity.this, " Too close to edge.", Toast.LENGTH_SHORT).show();
+                            clickedWP = -1;
+                        }*/
+                        else {
+                            newWP = true;
+                            String location = String.format("%.5f", latitude) + ", " + String.format("%.5f", longitude);
+                            WayPt wayPt = wayPts.add(mapName, "Way Point " + wayPts.size(), (float) longitude, (float) latitude, "blue", location);
+                            String desc = wayPt.getDesc();
+                            wayPts.SortPts();
+                            try {
+                                db.addWayPt(wayPt);
+                            }catch(SQLException exc){
+                                Toast.makeText(PDFActivity.this, "Failed to add pt to database.", Toast.LENGTH_LONG).show();
+                            }
+                            for (int i = 0; i < wayPts.size(); i++) {
+                                if (wayPts.get(i).getDesc().equals(desc)) {
+                                    clickedWP = i;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    // hide old balloon
+                    else if (!found)
+                        clickedWP = -1;
+                    return false;
+                }
+            }).onDraw(new OnDrawListener() {
                 @Override
                 public void onLayerDrawn(Canvas canvas, float pageWidth, float pageHeight, int displayedPage) {
+
+                    // Display current lat/long position
+                    TextView pTxt = (TextView)findViewById(R.id.cur_pos);
+                    pTxt.setTextColor(Color.WHITE);
+                    String str;
+                    if (latNow >= lat1 && latNow <= lat2 && longNow >= long1 && longNow <= long2) {
+                        str = getString(R.string.CurPos) + String.format("%.05f", latNow) + ", " + String.format("%.05f", longNow);
+                        pTxt.setText(str);
+                    }else {
+                        str = getString(R.string.CurPos) + "Not on Map";
+                        pTxt.setText(str);
+                    }
 
                     // -------------------------------------
                     //   Draw current location
@@ -325,16 +612,16 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
 
                     // debug:  place black dots at page width/height
-                    //canvas.translate(0, 0);
-                    //canvas.drawCircle(0, 0, 10f, black);
-                    //canvas.drawCircle((float) (pdfView.getOptimalPageWidth()*zoom), (float) (pdfView.getOptimalPageHeight()*zoom), 10f, black);
+                    canvas.translate(0, 0);
+                    canvas.drawCircle(0, 0, 5f, black);
+                    canvas.drawCircle((float) (pdfView.getOptimalPageWidth()*zoom), (float) (pdfView.getOptimalPageHeight()*zoom), 5f, black);
 
                     // debug: red dots at page margins
-                    //canvas.drawCircle((float)marginL, (float)marginT, 10f, red);
+                    canvas.drawCircle((float)marginL, (float)marginT, 5f, red);
                    // Toast.makeText(PDFActivity.this, "xRatio="+xRatio+"  left=" + x1+"  top="+y1+"  width="+pdfView.getOptimalPageWidth(), Toast.LENGTH_SHORT).show();
-                    //double x1=((pdfView.getOptimalPageWidth() *zoom) - (toScreenCordX * marginRight));
-                    //double y1=((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * marginBottom));
-                    //canvas.drawCircle((float)x1, (float)y1, 10f, red);
+                    double x1=((pdfView.getOptimalPageWidth() *zoom) - (toScreenCordX * marginRight));
+                    double y1=((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * marginBottom));
+                    canvas.drawCircle((float)x1, (float)y1, 5f, red);
 
                     // count++;
                    // Log.d("border","zoom="+zoom);
@@ -342,15 +629,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                     // Draw the current location as a point on the map. Color of the point is defined in paint & outline above.
                     //  CONVERT LAT LONG TO SCREEN COORDINATES
-
-
-
-
-                    // convert lat/long to screen coordinates
-                    currentLocationX = (((longNow+180) - (long1+180))  / longDiff) * (((double)(pdfView.getOptimalPageWidth()* zoom)-marginx)) + marginL;
+                    currentLocationX = (((longNow+180) - (long1+180))  / longDiff) * ((double)(pdfView.getOptimalPageWidth()* zoom)-marginx) + marginL;
                     currentLocationY = ((((90-latNow) - (90-lat2)) / latDiff) * ((double)(pdfView.getOptimalPageHeight()* zoom)-marginy)) + marginT;
                     canvas.translate((float) currentLocationX, (float) currentLocationY);
-
 
                     // Transparent Arc showing bearing (top of user screen)
                     // drawArc (RecF(left,top,right,bottom), starting arc in degrees (drawn clockwise, 0=3 o'clock,90=6 o'clock, 180=9 o'clock), finish arc in degrees, use center? paint)
@@ -362,7 +643,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     else {
                         RectF rec = new RectF(-45f, -45f, 45f, 45f);
                         int arcSize = 90;
-                        float startArc=bearing-arcSize/2;
+                        float startArc=bearing-45;
                         if (startArc < 0) startArc = 360 + startArc;
                         canvas.drawArc(rec, startArc, arcSize, true, cyanTrans); // transparent blue arc
                         //TextView bTxt = (TextView)findViewById(R.id.debug);
@@ -377,6 +658,132 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     canvas.drawCircle(0, 0, 15f, cyan); // blue center
 
 
+                    // Add way point at current location
+                    if (markCurrent){
+                        markCurrent=false;
+                        String location = String.format("%.5f",latNow) + ", " + String.format("%.5f",longNow);
+                        WayPt wayPt = wayPts.add(mapName,"Way Point "+wayPts.size(), (float)longNow, (float)latNow, "red", location);
+                        wayPts.SortPts();
+                        try {
+                            db.addWayPt(wayPt);
+                        }catch(SQLException exc){
+                            Toast.makeText(PDFActivity.this, "Failed to add pt to database.", Toast.LENGTH_LONG).show();
+                        }
+
+                    }
+                    // Draw Way Points
+                    if (showAllWayPts) {
+                        canvas.translate((float) -currentLocationX, (float) -currentLocationY);
+                        for (int i = 0; i < wayPts.size(); i++) {
+                            double xLong = (double) wayPts.get(i).getX();//*(float)zoom;
+                            double yLat = (double) wayPts.get(i).getY();//*(float)zoom;
+                            // convert lat, long to screen coordinates
+                            float x = (float) ((((xLong + 180) - (long1 + 180)) / longDiff) * (((pdfView.getOptimalPageWidth() * zoom) - marginx)) + marginL);
+                            float y = (float) ((((90 - yLat) - (90 - lat2)) / latDiff) * (((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT);
+
+                            float inner_radius = getResources().getDimension(R.dimen.pin_inner_radius);
+                            float pin_stem = pin_ht - pin_radius;
+                            float cl_offset = getResources().getDimension(R.dimen.pin_cl_offset); // catch light offset
+                            float cl_radius = getResources().getDimension(R.dimen.pin_cl_radius);
+                            float pt_radius = getResources().getDimension(R.dimen.pin_pt_radius);
+                            canvas.drawCircle(x, y - pin_ht, pin_radius, white); // white outline
+                            Paint color = blue;
+                            if (wayPts.get(i).getColorName().equals("cyan")) color = cyan;
+                            else if (wayPts.get(i).getColorName().equals("red")) color = red;
+
+                            // xy point oval
+                            RectF pt_rect = new RectF(x - (pt_radius * 2), y - pt_radius, x + (pt_radius * 2), y + pt_radius);
+                            canvas.drawOval(pt_rect, black); // point
+                            canvas.drawCircle(x, y - pin_ht, inner_radius, color); // center color
+                            canvas.drawCircle(x - cl_offset, y - pin_ht - cl_offset, cl_radius, white); // catch light
+                            // Draw 5 pixel wide pin stem
+                            canvas.drawLine(x - 3, y - pin_stem, x - 3, y, black);
+                            canvas.drawLine(x - 2, y - pin_stem, x - 2, y, white);
+                            canvas.drawLine(x - 1, y - pin_stem, x - 1, y, white);
+                            canvas.drawLine(x, y - pin_stem, x, y, white);
+                            canvas.drawLine(x + 1, y - pin_stem, x + 1, y, white);
+                            canvas.drawLine(x + 2, y - pin_stem, x + 2, y, white);
+
+
+                            // Show all Way Point Labels
+                            if (showAllWayPtLabels) {
+                                String desc = wayPts.get(i).getDesc();
+                                if (desc.length() > 13) desc = desc.substring(0, 12);
+
+                                float textWidth = txtCol.measureText(desc);
+                                // Test for balloon popup going off right side of screen
+                                int offsetBox = (int) Math.round((pdfView.getOptimalPageWidth() * zoom) - (x + (textWidth / 2) + marg + emoji_width));
+                                // Test for balloon popup going off the left side of screen
+                                if (offsetBox >= 0) {
+                                    offsetBox = 0;
+                                    if ((x - (textWidth / 2) - marg) < 0)
+                                        offsetBox = -1 * Math.round(x - (textWidth / 2) - marg);
+                                }
+                                // black border
+                                Paint recCol = new Paint();
+                                recCol.setColor(Color.BLACK);
+                                recCol.setStrokeWidth(3);
+                                canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y - startY, recCol);
+                                // white rectangle
+                                recCol.setColor(Color.WHITE);
+                                recCol.setStrokeWidth(0); // solid fill
+
+                                canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y - startY - 3, white);
+
+                                canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y - startY - (boxHt / 2) - 5 + (txtSize / 2), txtCol);
+                                drawTriangle(canvas, recCol, (int) (x), (int) (y - startY - 3), marg);
+                                // add right arrow emoji in lsLayout defined above
+                                //canvas.translate((x+(textWidth/2))+offsetBox,y-startY-boxHt-12);
+                                //lsLayout.draw(canvas);
+
+                                //canvas.translate((float) -currentLocationX, (float) -currentLocationY);
+                            }
+                        }
+                    }
+
+                    // Draw popup if way point was clicked on
+                    if ((newWP || clickedWP != -1) && !showAllWayPtLabels){
+                        int i = clickedWP;
+                        double xLong=(double)wayPts.get(i).getX();//*(float)zoom;
+                        double yLat=(double)wayPts.get(i).getY();//*(float)zoom;
+
+                        // convert lat, long to screen coordinates
+                        float x = (float)((((xLong+180) - (long1+180))  / longDiff) * (((pdfView.getOptimalPageWidth()* zoom)-marginx)) + marginL);
+                        float y = (float)((((90-yLat) - (90-lat2)) / latDiff) * (((pdfView.getOptimalPageHeight()* zoom)-marginy)) + marginT);
+                        String desc = wayPts.get(i).getDesc();
+                        if (desc.length() > 13) desc = desc.substring(0,12);
+
+                        float textWidth = txtCol.measureText(desc);
+                        // Test for balloon popup going off right side of screen
+                        int offsetBox = (int) Math.round((pdfView.getOptimalPageWidth()* zoom) - (x + (textWidth/2)+marg+emoji_width));
+                        // Test for balloon popup going off the left side of screen
+                        if (offsetBox >= 0){
+                            offsetBox = 0;
+                            if ((x-(textWidth/2)-marg) < 0)
+                                offsetBox = -1 * Math.round( x-(textWidth/2)-marg );
+                        }
+                        // black border
+                        Paint recCol = new Paint();
+                        recCol.setColor(Color.BLACK);
+                        recCol.setStrokeWidth(3);
+                        canvas.drawRect((x-(textWidth/2)-marg-3)+offsetBox,y-startY-boxHt,(x+(textWidth/2)+marg+emoji_width+3)+offsetBox,y-startY,recCol);
+                        // white rectangle
+                        recCol.setColor(Color.WHITE);
+                        recCol.setStrokeWidth(0); // solid fill
+
+                        canvas.drawRect((x-(textWidth/2)-marg)+offsetBox,y-startY-boxHt+3,(x+(textWidth/2)+marg+emoji_width)+offsetBox,y-startY-3,white);
+
+                        canvas.drawText(desc, (x-(textWidth/2))+offsetBox,y-startY-(boxHt/2)-5+(txtSize/2), txtCol);
+                        drawTriangle(canvas,recCol,(int)(x),(int)(y-startY-3),marg);
+                        // add right arrow emoji in lsLayout defined above
+                        canvas.translate((x+(textWidth/2))+offsetBox,y-startY-boxHt-12);
+                        lsLayout.draw(canvas);
+                        canvas.save();
+                        canvas.restore();
+                    }
+
+                    // hide wait icon
+                    wait.setVisibility(View.GONE);
                     // debug: offset
                     //canvas.translate(0,0);
                     //canvas.drawCircle(pdfView.getCurrentXOffset()-(float)currentLocationX,pdfView.getCurrentYOffset()-(float)currentLocationY,20f, red);
@@ -387,6 +794,44 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 @Override
                 public void loadComplete(int nbPages) {
                     pdfView.fitToWidth();
+                    // Do not rotate pdf when they rotate the screen. It loses their location! pdfView cannot zoom to a point on the screen.
+                    // Lock current screen rotation
+                    if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT){
+                        action_landscape.setChecked(false);
+                        action_portrait.setChecked(true);
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+                        landscape = false;
+                    }
+                    else {
+                        action_landscape.setChecked(true);
+                        action_portrait.setChecked(false);
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+                        landscape = true;
+                    }
+                    /*String orient = db2.getMapOrient(); // get user preference on map orientation, but landscape does not rotate correctly. Moved over to left!!!!!
+                    if (orient.equals("portrait")){
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+                        landscape = false;
+                    }
+                    else {
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+                        landscape = true;
+                    }*/
+
+                    // SET LEVELS TO ZOOM TO WHEN DOUBLE CLICK, 34x44=3168, 22x34=2448
+                    if (mediaBoxWidth > 1500) {
+                        pdfView.setMaxZoom(20f);// used to be 3.0f, 7, 20
+                        pdfView.setMidZoom(7f);// used to be 1.75f 3.5
+                    }
+                    else{
+                        pdfView.setMaxZoom(10f);// used to be 3.0f, 7, 20
+                        pdfView.setMidZoom(3.5f);// used to be 1.75f 3.5
+                    }
+                    pdfView.setMinZoom(1f); // default is 1 (full document, no zoom)
                     //Toast.makeText(PDFActivity.this,String.valueOf(nbPages), Toast.LENGTH_LONG).show();
                     //Toast.makeText(PDFActivity.this,"Loaded file ", Toast.LENGTH_SHORT).show();
 
@@ -400,6 +845,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     Log.d(TAG, "producer = " + meta.getProducer());
                     Log.d(TAG, "creationDate = " + meta.getCreationDate());
                     Log.d(TAG, "modDate = " + meta.getModDate());*/
+
+                    // hide wait icon
+                    wait.setVisibility(View.GONE);
                 }
             }).load();
         } else {
@@ -407,18 +855,132 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         }
 
 
-
-        // SET LEVELS TO ZOOM TO WHEN DOUBLE CLICK
-        pdfView.setMaxZoom(7.0f);// used to be 3.0f
-        pdfView.setMidZoom(3.5f);// used to be 1.75f
-        pdfView.setMinZoom(1f); // default is 1 (full document, no zoom)
     }
 
+    // This function is called when user accepts or declines the permission.
+    // Request Code is used to check which permission called this function.
+    // This request code is provided when user is prompt for permission.
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
+        super.onRequestPermissionsResult(requestCode,
+                permissions,
+                grantResults);
+        AlertDialog.Builder builder;
+        if (requestCode == LOCATION_PERMISSION_CODE) {
+            // Checking whether user granted the permission or not.
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // user granted permissions
+                Toast.makeText(PDFActivity.this,"Permission Granted",Toast.LENGTH_SHORT).show();
+            }
+            else {
+                // permission is denied (this is the first time, when "never ask again" is not checked)
+                // so ask again explaining the usage of permission
+                if (ActivityCompat.shouldShowRequestPermissionRationale(PDFActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    // show dialog of explanation
+                    builder = new AlertDialog.Builder(PDFActivity.this);
+                    builder.setTitle("Permission Needed");
+                    builder.setMessage("Location permissions are needed for this app to work properly.")
+                        .setPositiveButton("Yes, Grant permissions", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int i) {
+                                // User clicked OK button. show dialog again.
+
+                                //TODO add dialog here!!!!!!!!
+
+
+
+
+
+
+
+
+                            }
+                        })
+                        .setNegativeButton("No, Exit app", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int i) {
+                                dialog.dismiss();
+                                finish();
+                            }
+                        }).create().show();
+                }
+                // permission is denied (and "never ask again" is checked)
+                // shouldShowRequestPermissionRationale will return false
+                else {
+                    // Ask user to go to setting and manually allow permissions
+                    builder = new AlertDialog.Builder(PDFActivity.this);
+                    builder.setTitle("Permissions Needed");
+                    builder.setMessage("You have denied some permissions. Allow all permissions at [Setting] > [Permissions]")
+                            .setPositiveButton("Go to Settings", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    // User clicked OK button. Hide dialog. Ask again
+                                    dialog.dismiss();
+                                    // Go to app settings
+                                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                            Uri.fromParts("package",getPackageName(), null));
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(intent);
+                                    if (Build.VERSION.SDK_INT >= 21) {
+                                        finishAndRemoveTask();
+                                    } else {
+                                        finish();
+                                    }
+                                }
+                            })
+                            .setNegativeButton("No, Exit App", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int i) {
+                                    dialog.dismiss();
+                                    if (Build.VERSION.SDK_INT >= 21) {
+                                        finishAndRemoveTask();
+                                    } else {
+                                        finish();
+                                    }
+                                }
+                            }).create().show();
+                }
+            }
+        }
+    }
+
+    public static float px2dp(Resources resource, float px)  {
+        // Convert pixels to dp (device independent)
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, px,resource.getDisplayMetrics());
+    }
+
+    public void drawTriangle(Canvas canvas, Paint paint, int x, int y, int width) {
+        // ----  White triangle with black v. For way point balloon.
+        // \  /
+        //  \/
+        int halfWidth = width / 2;
+
+        Path path = new Path();
+        path.moveTo(x - halfWidth, y); // Top left
+        path.lineTo(x, y + halfWidth); //  Bottom
+        path.lineTo(x + halfWidth, y); // Top right
+        path.lineTo(x- halfWidth, y ); // Back to Top left
+        path.close();
+
+        canvas.drawPath(path, paint);
+        Paint outline = new Paint();
+        outline.setColor(Color.BLACK);
+        outline.setStrokeWidth(3);
+        canvas.drawLine(x-halfWidth,y+3,x,y+halfWidth,outline);
+        canvas.drawLine(x+halfWidth,y+3,x,y+halfWidth,outline);
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
-        startLocationUpdates();
+        if ((ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+            (ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+            startLocationUpdates();
+        }
+        // Update Way Points
+        wayPts = db.getWayPts(mapName);
+        wayPts.SortPts();
+        clickedWP = -1; // hide balloon
         // Start Screen Sensor Listener
         mSensorManager.registerListener(this, mAccelerometer,SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(this, mMagnetometer,SensorManager.SENSOR_DELAY_UI);
@@ -427,7 +989,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     @Override
     protected void onPause(){
         super.onPause();
-        stopLocationUpdates();
+        if ((ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+            (ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+            stopLocationUpdates();
+        }
         // Stop Screen Sensor Listener
         mSensorManager.unregisterListener(this,mAccelerometer);
         mSensorManager.unregisterListener(this,mMagnetometer);
@@ -436,23 +1001,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
     //  LOCATION UPDATES
     private void startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            Toast.makeText(PDFActivity.this,"Please turn on Location Services.", Toast.LENGTH_SHORT).show();
-            return;
-        }
         LocationRequest mLocationRequest;
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(1000); //update location every 1 seconds
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
         mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null /*looper*/);
     }
 
@@ -461,79 +1013,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     }
 
 
-
-
-
-
-
-
-
     // -------------------------------------------------
     //    Screen Orientation or Screen Rotate Event
     // -------------------------------------------------
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-       // float currentZoom = pdfView.getZoom();
-        //Toast.makeText(PDFActivity.this,"Before: xoffset="+pdfView.getCurrentXOffset()+"  height= "+pdfView.getHeight()+" w= "+pdfView.getWidth(), Toast.LENGTH_SHORT).show();
         super.onConfigurationChanged(newConfig);
-        //mFusedLocationClient.getLastLocation();
-        //PointF pt = new PointF((currentLocationX+pdfView.getCurrentXOffset())*pdfView.getZoom(),(currentLocationY+pdfView.getCurrentYOffset())*pdfView.getZoom());
-        // shift to center point
-       // PointF pt = new PointF(currentLocationX,currentLocationY);
-        //pdfView.zoomCenteredTo(pdfView.getZoom(),pt);
-
-        PointF pt = new PointF((float)currentLocationX/pdfView.getZoom(),(float)currentLocationY/pdfView.getZoom());
-        //PointF pt = new PointF((float)currentLocationX,(float)currentLocationY);
-
-        //pdfView.setLeft((int)pt.x);
-        //pdfView.setTop((int)(pt.y*pdfView.getZoom()));
-
-        //pdfView.setTranslationX(pt.x); //moves the canvas right leaving white space!!!
-        //pdfView.setTranslationY(pt.y); //moves the canvas down leaving white space!!!
-        //float zoom=pdfView.getZoom();
-        //pdfView.zoomTo(1);
-        //pdfView.zoomCenteredTo(zoom,pt);
-        //pdfView.zoomCenteredRelativeTo(pdfView.getZoom(),pt);
-        //pdfView.zoomCenteredRelativeTo(1,pt);
-        //pdfView.getPaddingLeft();
-        //float baseX=pdfView.getCurrentXOffset();
-        //float baseY=pdfView.getCurrentYOffset();
-        //baseX -= pt.x;
-        //baseY += pdfView.getOptimalPageHeight() - pt.y;
-       // pdfView.moveTo(baseX,baseY);
-        //pdfView.loadPages();
-
-        // load page and center at same spot
-        int cPos=0;
-        int centerPos=pdfView.getPageAtPositionOffset(cPos);
-        float pageHt = pdfView.getOptimalPageHeight();
-        float viewHt = pdfView.getHeight();
-        pdfView.zoomTo(viewHt / pageHt);
-        pdfView.setPositionOffset(centerPos);
-        pdfView.jumpTo(0);
-        pdfView.loadPages();
-
-
-        //Log.d(TAG, "onConfigurationChanged: x="+pdfView.getX()+" y="+pdfView.getY());
-
-        // DEBUG MESSAGE TO SCREEN
-        //TextView bTxt = (TextView)findViewById(R.id.debug);
-        //bTxt.setText("X="+(int)pt.x+"  Y="+(int)pt.y);
-        //bTxt.setText("Left="+pdfView.getCurrentXOffset()+" Top="+pdfView.getCurrentYOffset());
-        //bTxt.setText("Left="+baseX+" Top="+baseY);
-        //bTxt.setText("center Y="+centerPos);
-
-
-
-
-        //pdfView.moveTo((float)currentLocationX,(float)currentLocationY);
-        //pdfView.moveTo(pdfView.getCurrentXOffset(),pdfView.getCurrentYOffset());
-
-        // debug
-
-        //bTxt.setText("x="+(int)currentLocationX+"  y="+(int)currentLocationY);
-       // Toast.makeText(this, "Move to "+currentLocationX*pdfView.getZoom()+" "+currentLocationY*pdfView.getZoom(), Toast.LENGTH_LONG).show();
-
 
         // Checks the orientation of the screen for landscape and portrait
          if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE)  {
@@ -544,7 +1029,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     }
 
     public void zoomToCurrentLocation(float x,float y){
-        PointF pivot = (PointF) new  PointF(x,y);
+        PointF pivot = new  PointF(x,y);
         pdfView.zoomCenteredTo(3,pivot);
     }
 
@@ -571,19 +1056,32 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             // mOrentation[0] is azimuth, mOrientation[1] is pitch, and mOrientation[2] is roll
             // if the roll is positive you're in reverse landscape (landscape right)
             // and if the roll is negative you're in landscape (landscape left).
+            // -12 to correct for magnetic north versus true north
             if (landscape) {
-                if (mOrientation[2] < 0)
+                // landscape left
+                if (mOrientation[2] < 0) {
                     adjust = 90;
-                else
+                }
+                // landscape right
+                else {
                     adjust = 270;
-                bearing = azimuthInDegress + adjust - 90; // Adjust for landscape. Subtract 90 degrees because canvas needs 0 at the East, this returns 0 at the North.
+                }
+                bearing = azimuthInDegress +12 + adjust - 90; // Adjust for landscape. Subtract 90 degrees because canvas needs 0 at the East, this returns 0 at the North.
             }
             else
-                bearing = azimuthInDegress - 90;
+                bearing = azimuthInDegress +12 - 90;
             if (bearing < 0) bearing = 360 + bearing;
             if (bearing > 360) bearing = bearing - 360;
             //TextView bTxt = (TextView)findViewById(R.id.debug);
             //bTxt.setText("bearing="+(int)bearing+"  Z="+(int)mOrientation[2] );
+            // Debug
+            //TextView bTxt = (TextView)findViewById(R.id.debug);
+            //if (landscape && mOrientation[2] < 0)
+            //    bTxt.setText("azimuthInDegrees="+(int)azimuthInDegress+"  landscape-left   Bearing: "+(int)bearing);
+            //else if (landscape)
+            //    bTxt.setText("azimuthInDegrees="+(int)azimuthInDegress+"  landscape-right   Bearing: "+(int)bearing);
+            //else
+            //    bTxt.setText("azimuthInDegrees="+(int)azimuthInDegress+"  portrait   Bearing: "+(int)bearing);
         }
     }
 
@@ -596,11 +1094,42 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     // -------------
     //   ... Menu
     // -------------
+    MenuItem action_portrait, action_landscape, action_showAll, action_showWayPts;
+    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which){
+                case DialogInterface.BUTTON_POSITIVE:
+                    // Lock LANDSCAPE
+                    action_landscape.setChecked(true);
+                    action_portrait.setChecked(false);
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+                    landscape = true;
+                    break;
+
+                case DialogInterface.BUTTON_NEGATIVE:
+                    // Lock PORTRAIT
+                    action_landscape.setChecked(false);
+                    action_portrait.setChecked(true);
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+                    landscape = false;
+                    break;
+            }
+        }
+    };
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        mapMenu = menu;
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        menu.findItem(R.id.action_quality).setChecked(bestQuality);
+        getMenuInflater().inflate(R.menu.map_menu, menu);
+        //menu.findItem(R.id.action_quality).setChecked(bestQuality);
+        //Lock in the current orientation
+        action_portrait = menu.findItem(R.id.action_portrait);
+        action_landscape = menu.findItem(R.id.action_landscape);
+        action_showAll = menu.findItem(R.id.action_showAll);
+        action_showWayPts = menu.findItem(R.id.action_showWayPts);
         return true;
     }
 
@@ -612,7 +1141,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_quality) {
+        /*if (id == R.id.action_quality) {
             if (item.isChecked()) {
                 item.setChecked(false);
                 setPDFQuality("normal");
@@ -624,11 +1153,69 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 pdfView.useBestQuality(true);
             }
             return true;
+        }*/
+        if (id == R.id.action_markCurrent){
+            markCurrent = true;
         }
         else if (id == R.id.action_open){
             Intent i = new Intent(PDFActivity.this,MainActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(i);
+            return true;
+        }
+        else if (id == R.id.action_deleteAll){
+            try {
+                db.deleteWayPts(mapName);
+                wayPts.removeAll();
+            }catch (SQLException e){
+                Toast.makeText(PDFActivity.this,"Problem deleting "+mapName, Toast.LENGTH_LONG).show();
+            }
+        }
+        else if (id == R.id.action_showAll){
+            // isChecked() returns the state before the user clicked on it
+            if (action_showAll.isChecked()){
+                action_showAll.setChecked(false);
+                showAllWayPtLabels = false;
+            }
+            else{
+                action_showAll.setChecked(true);
+                showAllWayPtLabels = true;
+                action_showWayPts.setChecked(true);
+                showAllWayPts = true;
+            }
+        }
+        else if (id == R.id.action_showWayPts){
+            // isChecked() returns the state before the user clicked on it
+            if (action_showWayPts.isChecked()){
+                action_showWayPts.setChecked(false);
+                showAllWayPts = false;
+            }
+            else{
+                action_showWayPts.setChecked(true);
+                showAllWayPts = true;
+            }
+        }
+        else if (id == R.id.action_portrait){
+            action_portrait.setChecked(true);
+            action_landscape.setChecked(false);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+            //db2.setMapOrient("portrait"); // update user preference
+            landscape = false;
+        }
+        else if (id == R.id.action_landscape){
+            action_portrait.setChecked(false);
+            action_landscape.setChecked(true);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+            //db2.setMapOrient("landscape"); // update user preference
+            landscape = true;
+        }
+        else if (id == R.id.action_lock_orient){
+            AlertDialog.Builder builder = new AlertDialog.Builder(PDFActivity.this);
+            builder.setTitle("Lock Orientation:");
+            builder.setMessage("Lock map orientation in which mode?").setPositiveButton("LANDSCAPE", dialogClickListener)
+                        .setNegativeButton("PORTRAIT", dialogClickListener).show();
             return true;
         }
 

@@ -1,15 +1,17 @@
 apply plugin: 'com.android.application'
 
+// To use Vector Drawables add "vectorDrawables.useSupportLibrary = true" to defaultConfig. VectorDrawables is available at sdk 21 but can use
+// appcompat to use VectorDrawableCompat for backward compatible. Allows SVG graphics.
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.2"
+    compileSdkVersion 29
+    buildToolsVersion "29"
     defaultConfig {
         applicationId "com.example.tammy.pdfsample"
-        minSdkVersion 17
-        targetSdkVersion 26
+        minSdkVersion 18
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -26,9 +28,11 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    // compile fileTree(include: ['*.jar'], dir: 'libs') // now deprecated use api or implementation
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     // Google Play Services for Location
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    // androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', { // now deprecated
+    androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
@@ -36,19 +40,28 @@ dependencies {
     //compile files('libs/pdfbox-2.0.7.jar')
 
     // Google Play Location Services
-    compile 'com.google.android.gms:play-services-location:11.0.4'
-    compile 'com.android.support:appcompat-v7:26.+'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:design:26.+'
+    // compile is deprecated use api or implementation. Must have SDK version 28.0.0
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'com.google.android.material:material:1.0.0'
 
     // Use lib from https://github.com/barteksc/AndroidPdfViewer
-    compile 'com.github.barteksc:android-pdf-viewer:2.8.0'
+    implementation 'com.github.barteksc:android-pdf-viewer:2.8.2'
 
     // for thumbnails
-    compile 'com.github.barteksc:pdfium-android:1.7.1'
+    implementation 'com.github.barteksc:pdfium-android:1.7.1'
+
+    // iText for reading PDFs
+    // itext7 only works with Android level 24 or higher Nougat (requires a license)
+    // iText cannot be directly used on Android in most cases. We've made a port with Android and App Engine specific changes. One of these changes is the use of SpongyCastle instead of BouncyCastle.
+    //You can download a trial version here: http://demo.itextsupport.com/newslicense/
+    //compile group: 'com.itextpdf', name: 'itextg', version: '5.5.13' fails with API < 24, targeting 17
+    implementation group: 'com.itextpdf', name: 'itextg', version: '5.5.10'
+
 
     // for file list
-    compile 'com.android.support:cardview-v7:26.+'
-    compile 'com.android.support:support-v4:26.+'
-    testCompile 'junit:junit:4.12'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    testImplementation 'junit:junit:4.12'
 }

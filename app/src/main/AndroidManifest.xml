@@ -5,56 +5,126 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.example.tammy.mapviewer.MainActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name=".StartActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_start"
+            android:theme="@style/FullscreenTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="*" />
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/pdf"/>
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="*"/>
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:pathPattern=".*\\.pdf" />
+            </intent-filter>
         </activity>
         <activity
-            android:name="com.example.tammy.mapviewer.PDFActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:parentActivityName="com.example.tammy.mapviewer.MainActivity"> <!-- This adds a back button -->
-        </activity>
-        <activity
-            android:name="com.example.tammy.mapviewer.LoadFileActivity"
+            android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_load_file"
-            android:parentActivityName="com.example.tammy.mapviewer.MainActivity"
-            android:theme="@style/FullscreenTheme">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.tammy.mapviewer.GetMoreActivity" />
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+        <!-- force map to always be in portrait mode -->
+        <activity
+            android:name=".PDFActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:parentActivityName=".MainActivity"> <!-- This adds a back button -->
         </activity>
         <activity
-            android:name="com.example.tammy.mapviewer.GetMoreActivity"
+            android:name=".GetMoreActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_get_more"
-            android:parentActivityName="com.example.tammy.mapviewer.MainActivity"
+            android:parentActivityName=".MainActivity"
             android:theme="@style/FullscreenTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.tammy.mapviewer.MainActivity" />
         </activity>
         <activity
-            android:name="com.example.tammy.mapviewer.WebActivity"
-            android:label="@string/title_activity_get_more"
-            android:parentActivityName="com.example.tammy.mapviewer.LoadFileActivity">
+            android:name=".WebActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_web"
+            android:parentActivityName=".GetMoreActivity">
+            <!-- Listen for file download and handle it in web activity -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="*" />
+                <data android:mimeType="application/pdf" />
+            </intent-filter>
+
+            <!-- handle https requests without mimetypes -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.OPENABLE"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="https" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.pdf" />
+            </intent-filter>
+            <!-- handle intent from a file browser app -->
+            <!--data android:pathPattern=".*\\.pdf" /-->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:pathPattern="*.pdf" />
+            </intent-filter>
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.tammy.mapviewer.GetMoreActivity" />
+        </activity>
+        <activity
+            android:name=".EditMapNameActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label= "@string/title_activity_edit_map_name"
+            android:theme="@style/FullscreenTheme"
+            android:parentActivityName="com.example.tammy.mapviewer.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.tammy.mapviewer.MainActivity" />
+        </activity>
+        <activity
+            android:name=".EditWayPointActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label= "@string/title_activity_edit_way_pt"
+            android:theme="@style/FullscreenTheme"
+            android:parentActivityName=".PDFActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".PDFActivity" />
         </activity>
     </application>
 
