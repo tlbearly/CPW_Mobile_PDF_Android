@@ -19,10 +19,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
@@ -36,10 +33,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.github.barteksc.pdfviewer.PDFView;
@@ -61,9 +56,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     PDFView pdfView;
     //private static final String TAG = PDFActivity.class.getSimpleName();
     private Menu mapMenu;
-    private static final int COURSE_PERMISSION_CODE = 100;
-    private static final int FINE_PERMISSION_CODE = 101;
-    private static final int LOCATION_PERMISSION_CODE = 200;
     // Color and style of current location point
     Paint cyan;
     Paint cyanTrans;
@@ -259,8 +251,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         }
         try {
             // GET MARGINS - origin is at bottom left. BBox[23 570 768 48]
-            viewPort = i.getExtras().getString("VIEWPORT");
-            viewPort = viewPort.trim();
+            try{
+                viewPort = i.getExtras().getString("VIEWPORT");
+                viewPort = viewPort.trim();
+            }catch(NullPointerException e){
+                Toast.makeText(PDFActivity.this, "Trouble reading viewport from Geo PDF.", Toast.LENGTH_LONG).show();
+            }
             strViewPort = viewPort;
             // FIND bBoxX1
             int pos = viewPort.indexOf(" ");
@@ -354,65 +350,40 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
 
         // SET UP LOCATION SERVICES
-        final String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
-        if ((ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) ||
-            (ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)){
-            if (ActivityCompat.shouldShowRequestPermissionRationale(PDFActivity.this,Manifest.permission_group.LOCATION)){
-                new AlertDialog.Builder(PDFActivity.this)
-                    .setTitle("Permission Needed")
-                    .setMessage("Location permission is needed to show your current location on the map.")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            // User clicked OK button. Ask again
-                            ActivityCompat.requestPermissions(PDFActivity.this, permissions, LOCATION_PERMISSION_CODE);
-                        }
-                    })
-                    .setNegativeButton("Cancel",new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            // User clicked Cancel button. Hide dialog.
-                            dialog.dismiss();
-                        }
-                }).create().show();
-            }else {
-                ActivityCompat.requestPermissions(PDFActivity.this, permissions, LOCATION_PERMISSION_CODE);
-            }
-        }
-        else{
-            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-            // UPDATE CURRENT POSITION
-            mLocationCallback = new LocationCallback() {
-                @Override
-                public void onLocationResult(LocationResult locationResult) {
-                    for (Location location : locationResult.getLocations()) {
-                        // Update UI with location data
-                        //GeomagneticField geoField;
+        // UPDATE CURRENT POSITION
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                for (Location location : locationResult.getLocations()) {
+                    // Update UI with location data
+                    //GeomagneticField geoField;
 
-                        latNow = location.getLatitude();
-                        longNow = location.getLongitude(); // make it positive
-                        //bearing = location.getBearing(); // 0-360 degrees 0 at North
-                        accuracy = location.getAccuracy();
-                        // Makes top of map (north) off
-                /*geoField = new GeomagneticField(
-                        Double.valueOf(latNow).floatValue(),
-                        Double.valueOf(longNow).floatValue(),
-                        Double.valueOf(location.getAltitude()).floatValue(),
-                        System.currentTimeMillis()
-                );*/
-                        //bearing += geoField.getDeclination(); // Adjust for declination - difference between magnetic north and true north. Phone returns magnetic north.
-                        //bearing -= 90; // Adjust by 90 degrees. Canvas needs 0 at East, this returns 0 at North
-                        //if (bearing<0) bearing = 360 + bearing;
+                    latNow = location.getLatitude();
+                    longNow = location.getLongitude(); // make it positive
+                    //bearing = location.getBearing(); // 0-360 degrees 0 at North
+                    accuracy = location.getAccuracy();
+                    // Makes top of map (north) off
+            /*geoField = new GeomagneticField(
+                    Double.valueOf(latNow).floatValue(),
+                    Double.valueOf(longNow).floatValue(),
+                    Double.valueOf(location.getAltitude()).floatValue(),
+                    System.currentTimeMillis()
+            );*/
+                    //bearing += geoField.getDeclination(); // Adjust for declination - difference between magnetic north and true north. Phone returns magnetic north.
+                    //bearing -= 90; // Adjust by 90 degrees. Canvas needs 0 at East, this returns 0 at North
+                    //if (bearing<0) bearing = 360 + bearing;
 
-                        // debug
-                        //TextView bTxt = (TextView)findViewById(R.id.debug);
-                        //bTxt.setText(Float.toString(bearing)+"  adjust: "+Float.toString((geoField.getDeclination()))+ "  bear: "+Float.toString(location.getBearing()));
+                    // debug
+                    //TextView bTxt = (TextView)findViewById(R.id.debug);
+                    //bTxt.setText(Float.toString(bearing)+"  adjust: "+Float.toString((geoField.getDeclination()))+ "  bear: "+Float.toString(location.getBearing()));
 
-                        // Redraw the current location point
-                        pdfView.invalidate();
-                    }
+                    // Redraw the current location point
+                    pdfView.invalidate();
                 }
-            };
-        }
+            }
+        };
 
         // GET THE PDF FILE
         File file = new File(path);
@@ -587,7 +558,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 public void onLayerDrawn(Canvas canvas, float pageWidth, float pageHeight, int displayedPage) {
 
                     // Display current lat/long position
-                    TextView pTxt = (TextView)findViewById(R.id.cur_pos);
+                    TextView pTxt = findViewById(R.id.cur_pos);
                     pTxt.setTextColor(Color.WHITE);
                     String str;
                     if (latNow >= lat1 && latNow <= lat2 && longNow >= long1 && longNow <= long2) {
@@ -629,8 +600,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                     // Draw the current location as a point on the map. Color of the point is defined in paint & outline above.
                     //  CONVERT LAT LONG TO SCREEN COORDINATES
-                    currentLocationX = (((longNow+180) - (long1+180))  / longDiff) * ((double)(pdfView.getOptimalPageWidth()* zoom)-marginx) + marginL;
-                    currentLocationY = ((((90-latNow) - (90-lat2)) / latDiff) * ((double)(pdfView.getOptimalPageHeight()* zoom)-marginy)) + marginT;
+                    currentLocationX = (((longNow+180) - (long1+180))  / longDiff) * ((pdfView.getOptimalPageWidth()* zoom)-marginx) + marginL;
+                    currentLocationY = ((((90-latNow) - (90-lat2)) / latDiff) * ((pdfView.getOptimalPageHeight()* zoom)-marginy)) + marginT;
                     canvas.translate((float) currentLocationX, (float) currentLocationY);
 
                     // Transparent Arc showing bearing (top of user screen)
@@ -730,7 +701,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                                 canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y - startY - 3, white);
 
-                                canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y - startY - (boxHt / 2) - 5 + (txtSize / 2), txtCol);
+                                canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
                                 drawTriangle(canvas, recCol, (int) (x), (int) (y - startY - 3), marg);
                                 // add right arrow emoji in lsLayout defined above
                                 //canvas.translate((x+(textWidth/2))+offsetBox,y-startY-boxHt-12);
@@ -773,7 +744,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                         canvas.drawRect((x-(textWidth/2)-marg)+offsetBox,y-startY-boxHt+3,(x+(textWidth/2)+marg+emoji_width)+offsetBox,y-startY-3,white);
 
-                        canvas.drawText(desc, (x-(textWidth/2))+offsetBox,y-startY-(boxHt/2)-5+(txtSize/2), txtCol);
+                        canvas.drawText(desc, (x-(textWidth/2))+offsetBox,y-startY-(boxHt/2.0f)-5+(txtSize/2.0f), txtCol);
                         drawTriangle(canvas,recCol,(int)(x),(int)(y-startY-3),marg);
                         // add right arrow emoji in lsLayout defined above
                         canvas.translate((x+(textWidth/2))+offsetBox,y-startY-boxHt-12);
@@ -855,93 +826,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         }
 
 
-    }
-
-    // This function is called when user accepts or declines the permission.
-    // Request Code is used to check which permission called this function.
-    // This request code is provided when user is prompt for permission.
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
-        super.onRequestPermissionsResult(requestCode,
-                permissions,
-                grantResults);
-        AlertDialog.Builder builder;
-        if (requestCode == LOCATION_PERMISSION_CODE) {
-            // Checking whether user granted the permission or not.
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // user granted permissions
-                Toast.makeText(PDFActivity.this,"Permission Granted",Toast.LENGTH_SHORT).show();
-            }
-            else {
-                // permission is denied (this is the first time, when "never ask again" is not checked)
-                // so ask again explaining the usage of permission
-                if (ActivityCompat.shouldShowRequestPermissionRationale(PDFActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                    // show dialog of explanation
-                    builder = new AlertDialog.Builder(PDFActivity.this);
-                    builder.setTitle("Permission Needed");
-                    builder.setMessage("Location permissions are needed for this app to work properly.")
-                        .setPositiveButton("Yes, Grant permissions", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int i) {
-                                // User clicked OK button. show dialog again.
-
-                                //TODO add dialog here!!!!!!!!
-
-
-
-
-
-
-
-
-                            }
-                        })
-                        .setNegativeButton("No, Exit app", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int i) {
-                                dialog.dismiss();
-                                finish();
-                            }
-                        }).create().show();
-                }
-                // permission is denied (and "never ask again" is checked)
-                // shouldShowRequestPermissionRationale will return false
-                else {
-                    // Ask user to go to setting and manually allow permissions
-                    builder = new AlertDialog.Builder(PDFActivity.this);
-                    builder.setTitle("Permissions Needed");
-                    builder.setMessage("You have denied some permissions. Allow all permissions at [Setting] > [Permissions]")
-                            .setPositiveButton("Go to Settings", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    // User clicked OK button. Hide dialog. Ask again
-                                    dialog.dismiss();
-                                    // Go to app settings
-                                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                            Uri.fromParts("package",getPackageName(), null));
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    startActivity(intent);
-                                    if (Build.VERSION.SDK_INT >= 21) {
-                                        finishAndRemoveTask();
-                                    } else {
-                                        finish();
-                                    }
-                                }
-                            })
-                            .setNegativeButton("No, Exit App", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int i) {
-                                    dialog.dismiss();
-                                    if (Build.VERSION.SDK_INT >= 21) {
-                                        finishAndRemoveTask();
-                                    } else {
-                                        finish();
-                                    }
-                                }
-                            }).create().show();
-                }
-            }
-        }
     }
 
     public static float px2dp(Resources resource, float px)  {
