@@ -17,7 +17,7 @@
         android:layout_alignParentTop="true"
         android:background="#efefef"
         android:padding="10dp"
-        android:text="Imported Maps" />
+        android:text="@string/importedmaps" />
 
     <ListView
         android:id="@+id/lv"

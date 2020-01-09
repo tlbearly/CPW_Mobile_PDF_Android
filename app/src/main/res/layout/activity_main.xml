@@ -18,7 +18,6 @@
             android:layout_height="wrap_content"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
             <!--android:background="?attr/colorPrimary"-->
-
     </com.google.android.material.appbar.AppBarLayout>
 
     <include layout="@layout/content_main" />

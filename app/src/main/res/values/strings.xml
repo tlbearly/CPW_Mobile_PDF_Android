@@ -20,13 +20,14 @@
     <string name="title_activity_load_file">Import a PDF Map</string>
     <string name="getmore_title1">From a Website</string>
     <string name="getmore_title2">From a Folder</string>
-    <string name="getmore_help">Next Options Require Data Connection</string>
+    <string name="data_conection">(Requires Data Connection)</string>
     <string name="ready_made">Download Ready Made Maps</string>
     <string name="web_download">Download a map from the CPW Maps Library, the Hunting Atlas, or the Fishing Atlas.</string>
     <string name="ready_made_help">For CPW Maps: Select the GeoPDF file format.</string>
     <string name="ready_made_help2">For USGS Topo: Select \'US Topo\' for the Dataset.</string>
     <string name="custom">Download Custom Maps</string>
     <string name="custom_help">Create a custom map then press the download icon.</string>
+    <string name="importedmaps">Imported Maps</string>
 
     <string name="get_more">Get More</string>
     <string name="CPW">CPW Maps</string>
