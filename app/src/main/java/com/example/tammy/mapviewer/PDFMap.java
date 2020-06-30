@@ -9,22 +9,24 @@ import java.util.Comparator;
  */
 
 public class PDFMap {
-    private String path, bounds, mediabox, viewport, name;
+    private String path, bounds, mediabox, viewport, name, fileSize, distToMap;
     private int id;
     private String thumbnail; // image filename
 
     public  PDFMap(){}
 
-    public PDFMap(String path, String bounds, String mediabox, String viewport, String thumbnail, String name){
+    public PDFMap(String path, String bounds, String mediabox, String viewport, String thumbnail, String name, String fileSize, String distToMap){
         this.path = path;
         this.bounds = bounds;
         this.mediabox = mediabox;
         this.viewport = viewport;
         this.thumbnail = thumbnail;
         this.name = name;
+        this.fileSize = fileSize;
+        this.distToMap = distToMap;
     }
 
-    public PDFMap(int id, String path,String bounds,String mediabox,String viewport, String thumbnail, String name){
+    public PDFMap(int id, String path,String bounds,String mediabox,String viewport, String thumbnail, String name, String fileSize, String distToMap){
         this.id = id;
         this.path = path;
         this.bounds = bounds;
@@ -32,6 +34,8 @@ public class PDFMap {
         this.viewport = viewport;
         this.thumbnail = thumbnail;
         this.name = name;
+        this.fileSize = fileSize;
+        this.distToMap = distToMap;
     }
 
     public String getThumbnail() {
@@ -82,12 +86,22 @@ public class PDFMap {
         this.viewport = viewport;
     }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getFileSize() { return fileSize; }
+
+    public void setFileSize(String fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public String getDistToMap() { return distToMap; }
+
+    public void setDistToMap(String distToMap) {
+        this.distToMap = distToMap;
     }
 
     // Sort arraylist of PDFMaps by pdf file name

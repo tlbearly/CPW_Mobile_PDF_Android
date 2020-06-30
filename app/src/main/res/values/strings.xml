@@ -2,6 +2,9 @@
     <string name="app_name">PDF Map Viewer</string>
     <string name="action_quality">Use best quality map (uses more memory)</string>
     <string name="name">Name</string>
+    <string name="file_size_placeholder">File Size</string>
+    <string name="distToMap_placeholder">Distance to Map</string>
+    <string name="onMap">On Map?</string>
     <string name="pdfimg">Image of PDF</string>
     <string name="markCurrent">Mark current location as way pt.</string>
     <string name="open_pdf">Open a new map</string>

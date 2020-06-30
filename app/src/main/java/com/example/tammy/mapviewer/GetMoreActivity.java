@@ -7,10 +7,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.FileObserver;
 import android.provider.OpenableColumns;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -60,8 +61,8 @@ public class GetMoreActivity extends AppCompatActivity {
                 //Intent browser3 = new Intent(ACTION_VIEW, Uri.parse("https://ndismaps.nrel.colostate.edu/indexM.html?app=FishingAtlas")); // start up Chrome
                 // Open a web page inside this app (using a WebView)
                 Intent browser3 = new Intent(GetMoreActivity.this,WebActivity.class);
-                browser3.putExtra("URL","https://ndis-flex-2.nrel.colostate.edu/debug/indexM.html?app=FishingAtlas");
-                //browser3.putExtra("URL","https://ndismaps.nrel.colostate.edu/indexM.html?app=FishingAtlas");
+                //browser3.putExtra("URL","https://ndis-flex-2.nrel.colostate.edu/debug/indexM.html?app=FishingAtlas");
+                browser3.putExtra("URL","https://ndismaps.nrel.colostate.edu/indexM.html?app=FishingAtlas");
                 browser3.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(browser3);
             }
@@ -170,7 +171,7 @@ public class GetMoreActivity extends AppCompatActivity {
                     is.close();
                     newPath =  outFile.getPath();
 
-                    PDFMap map = new PDFMap(newPath, "", "", "", null, "Loading...");
+                    PDFMap map = new PDFMap(newPath, "", "", "", null, "Loading...", "", "");
                     DBHandler db = new DBHandler(GetMoreActivity.this);
                     db.addMap(map);
 

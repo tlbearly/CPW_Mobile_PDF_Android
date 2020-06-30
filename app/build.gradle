@@ -64,4 +64,7 @@ dependencies {
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     testImplementation 'junit:junit:4.12'
+
+    // for location near me icon
+    android.defaultConfig.vectorDrawables.useSupportLibrary = true
 }

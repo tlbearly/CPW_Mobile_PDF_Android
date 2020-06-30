@@ -247,7 +247,7 @@ public class WebActivity extends AppCompatActivity {
                     }
                 }
 
-                PDFMap map = new PDFMap(newPath, "", "", "", null, "Loading...");
+                PDFMap map = new PDFMap(newPath, "", "", "", null, "Loading...", "", "");
                 DBHandler db = new DBHandler(WebActivity.this);
                 db.addMap(map);
 

@@ -48,6 +48,8 @@ public class CustomAdapter extends BaseAdapter {
     private int vis, hide;
     // EditText renameTxt;
     TextView nameTxt;
+    TextView fileSizeTxt;
+    TextView distToMapTxt;
     static String viewport, mediabox, bounds;
 
 
@@ -403,8 +405,19 @@ public class CustomAdapter extends BaseAdapter {
                 String name = file.getName();
                 publishProgress(80);
 
+                // Get File Size
+                String fileSize = "";
+                long size = file.length() / 1024; // Get size and convert bytes into Kb.
+                if (size >= 1024) {
+                    Double sizeDbl = new Double(size);
+                    fileSize = String.format("%.1f", (sizeDbl / 1024)) + " Mb";
+                } else {
+                    fileSize = size + " Kb";
+                }
+
                 // IMPORT INTO the DATABASE
                 pdfMap.setName(name);
+                pdfMap.setFileSize(fileSize);
                 //pdfMap.setThumbnail(thumbnail);
                 pdfMap.setViewport(viewport);
                 pdfMap.setMediabox(mediabox);
@@ -655,6 +668,8 @@ public class CustomAdapter extends BaseAdapter {
         vis = View.VISIBLE;
         hide = View.GONE;
         nameTxt = (TextView) view.findViewById(R.id.nameTxt);
+        fileSizeTxt = (TextView) view.findViewById(R.id.fileSizeTxt);
+        distToMapTxt = (TextView) view.findViewById(R.id.distToMapTxt);
         ImageView img = view.findViewById(R.id.pdfImage);
         ProgressBar pb = view.findViewById(R.id.loadProgress);
         pb.setVisibility(View.GONE);
@@ -686,6 +701,8 @@ public class CustomAdapter extends BaseAdapter {
             importMap.execute();
         } else {
             nameTxt.setText(pdfMap.getName());
+            fileSizeTxt.setText(pdfMap.getFileSize());
+            distToMapTxt.setText(pdfMap.getDistToMap());
         }
 
         // VIEW ITEM CLICK

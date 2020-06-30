@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -31,6 +32,10 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String KEY_VIEWPORT = "viewport";
     private static final String KEY_THUMBNAIL = "thumbnail";
     private static final String KEY_NAME = "name";
+    private static final String KEY_FILESIZE = "filesize";
+    private static final String KEY_DISTTOMAP = "disttomap";
+
+
     //private Context context;
     // Settings table name. Store user preferred settings here
     private static final String TABLE_SETTINGS = "settings";
@@ -60,7 +65,9 @@ public class DBHandler extends SQLiteOpenHelper {
             String CREATE_MAPS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MAPS + "("
                     + KEY_ID + " INTEGER PRIMARY KEY," + KEY_PATH + " TEXT,"
                     + KEY_BOUNDS + " TEXT," + KEY_MEDIABOX + " TEXT,"
-                    + KEY_VIEWPORT + " TEXT, " + KEY_THUMBNAIL + " BLOB," + KEY_NAME + " TEXT" + ")";
+                    + KEY_VIEWPORT + " TEXT, " + KEY_THUMBNAIL + " BLOB,"
+                    + KEY_NAME + " TEXT," + KEY_FILESIZE + " TEXT,"
+                    + KEY_DISTTOMAP + " TEXT" + ")";
             db.execSQL(CREATE_MAPS_TABLE);
 
             // Create User Settings Table
@@ -108,6 +115,8 @@ public class DBHandler extends SQLiteOpenHelper {
             values.put(KEY_VIEWPORT, map.getViewport()); // Margins
             values.put(KEY_THUMBNAIL, map.getThumbnail()); // Thumbnail image
             values.put(KEY_NAME, map.getName()); // Map name without path
+            values.put(KEY_FILESIZE, map.getFileSize()); // Map pdf file size 267 Kb
+            values.put(KEY_DISTTOMAP, map.getDistToMap()); // Current distance to map
             // Inserting Row
             db.insert(TABLE_MAPS, null, values);
             //db.close(); // Closing database connection
@@ -123,7 +132,7 @@ public class DBHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(TABLE_MAPS, new String[]{KEY_ID,
-            KEY_PATH, KEY_BOUNDS, KEY_MEDIABOX, KEY_VIEWPORT, KEY_THUMBNAIL, KEY_NAME}, KEY_ID + "=?",
+            KEY_PATH, KEY_BOUNDS, KEY_MEDIABOX, KEY_VIEWPORT, KEY_THUMBNAIL, KEY_NAME, KEY_FILESIZE, KEY_DISTTOMAP}, KEY_ID + "=?",
             new String[]{String.valueOf(id)}, null, null, null, null);
         if (cursor != null)
             cursor.moveToFirst();
@@ -131,7 +140,7 @@ public class DBHandler extends SQLiteOpenHelper {
         try {
             PDFMap map = new PDFMap(Integer.parseInt(cursor.getString(0)),
                     cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4),
-                    cursor.getString(5), cursor.getString(6));
+                    cursor.getString(5), cursor.getString(6), cursor.getString (7), cursor.getString(8));
             cursor.close();
             // return geo pdf map
             return map;
@@ -161,6 +170,25 @@ public class DBHandler extends SQLiteOpenHelper {
                 // thumbnail was saved to a file, get the path
                 map.setThumbnail(cursor.getString(5));
                 map.setName(cursor.getString(6));
+                if (cursor.getColumnCount() == 9) {
+                    map.setFileSize(cursor.getString(7));
+                    map.setDistToMap(cursor.getString(8));
+                }
+                else {
+                    // Get File Size
+                    File file = new File(map.getPath());
+                    String fileSize = "";
+                    long size = file.length() / 1024; // Get size and convert bytes into Kb.
+                    if (size >= 1024) {
+                        Double sizeDbl = new Double(size);
+                        fileSize = String.format("%.1f", (sizeDbl / 1024)) + " Mb";
+                       // fileSize = (size / 1024) + " Mb";
+                    } else {
+                        fileSize = size + " Kb";
+                    }
+                    map.setFileSize(fileSize);
+                    map.setDistToMap("");
+                }
                 // Adding map to list
                 mapList.add(map);
             } while (cursor.moveToNext());
@@ -181,6 +209,8 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(KEY_VIEWPORT, map.getViewport());
         values.put(KEY_THUMBNAIL, map.getThumbnail());
         values.put(KEY_NAME, map.getName());
+        values.put(KEY_FILESIZE, map.getFileSize());
+        values.put(KEY_DISTTOMAP, map.getDistToMap());
 
         // updating row
         return db.update(TABLE_MAPS, values, KEY_ID + " = ?",

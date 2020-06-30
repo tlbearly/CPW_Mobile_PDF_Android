@@ -93,7 +93,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     double marginYworld; // marginTop+marginBottom
 
     private FusedLocationProviderClient mFusedLocationClient;
-    //private Location mCurrentLocation;
     private LocationCallback mLocationCallback;
     //private int count=0;
     private double lat1, long1, lat2, long2, latDiff, longDiff;
