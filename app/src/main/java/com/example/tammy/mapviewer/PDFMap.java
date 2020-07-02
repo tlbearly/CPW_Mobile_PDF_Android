@@ -13,7 +13,7 @@ public class PDFMap {
     private int id;
     private String thumbnail; // image filename
 
-    public  PDFMap(){}
+    public PDFMap(){}
 
     public PDFMap(String path, String bounds, String mediabox, String viewport, String thumbnail, String name, String fileSize, String distToMap){
         this.path = path;
@@ -26,7 +26,7 @@ public class PDFMap {
         this.distToMap = distToMap;
     }
 
-    public PDFMap(int id, String path,String bounds,String mediabox,String viewport, String thumbnail, String name, String fileSize, String distToMap){
+    public PDFMap(int id, String path, String bounds, String mediabox, String viewport, String thumbnail, String name, String fileSize, String distToMap){
         this.id = id;
         this.path = path;
         this.bounds = bounds;

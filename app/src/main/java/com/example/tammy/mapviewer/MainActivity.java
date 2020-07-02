@@ -183,9 +183,10 @@ public class MainActivity extends AppCompatActivity {
             //View cell = lv.getChildAt(i);
             View cell = lv.getChildAt(i - lv.getFirstVisiblePosition());
 
-            if (cell == null)
+            if (cell == null || map == null || map.getBounds() == null)
                 continue;
             String bounds = map.getBounds(); // lat1 long1 lat2 long1 lat2 long2 lat1 long2
+            if (bounds == null || bounds.length() == 0) continue; // it will be 0 length if is importing
             bounds = bounds.trim(); // remove leading and trailing spaces
             int pos = bounds.indexOf(" ");
             Double lat1 = Double.valueOf(bounds.substring(0, pos));
@@ -289,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(DialogInterface dialog, int which) {
             switch (which){
                 case DialogInterface.BUTTON_POSITIVE:
-                    //DELETE all imported maps clicked
+                    //DELETE all imported maps clicked and recreate the database *****
                     //db.deleteTable(MainActivity.this); // this removes the database table. Do this if added/removed fields to/from the database
                     myAdapter.removeAll();
                     // Display note if no records found
