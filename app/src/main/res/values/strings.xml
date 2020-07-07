@@ -20,7 +20,15 @@
     <string name="blue">Blue</string>
     <string name="cyan">Cyan</string>
 
-    <string name="title_activity_load_file">Import a PDF Map</string>
+    <string name="title_activity_main">Imported Maps</string>
+    <string name="sort_by">Sort By:</string>
+    <string-array name="sortByItems">
+        <item>Name</item>
+        <item>Date</item>
+        <item>Size</item>
+    </string-array>
+
+    <string name="title_activity_load_file">CPW Map Viewer</string>
     <string name="getmore_title1">From a Website</string>
     <string name="getmore_title2">From a Folder</string>
     <string name="data_conection">(Requires Data Connection)</string>
@@ -39,15 +47,15 @@
     <string name="Hunting">Hunting Atlas</string>
     <string name="device_storage_help">Select PDF files that you downloaded.</string>
     <string name="DownloadDir">File Picker</string>
-    <string name="DownloadMap">Get More Maps</string>
-    <string name="title_activity_get_more">Get More Maps</string>
+    <string name="DownloadMap">Add Map</string>
+    <string name="title_activity_get_more">Add Map</string>
     <string name="title_activity_web">Import Map</string>
     <string name="deleteAllDBrecords">Delete All Imported Maps</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="rename">Rename</string>
     <string name="ok">OK</string>
-    <string name="title_activity_start">PDF Map Viewer</string>
+    <string name="title_activity_start">CPW Map Viewer</string>
     <string name="splash">Colorado Parks and Wildlife</string>
     <string name="splash_info">Take this app out in the field to display your current location on PDFs from the HuntingAtlas, FishingAtlas, CPW Maps Library, or any geo-referenced PDF. No need for internet or data connection! Plus use this app to download PDF maps (requires data connection).</string>
     <string name="contBtn">Continue</string>

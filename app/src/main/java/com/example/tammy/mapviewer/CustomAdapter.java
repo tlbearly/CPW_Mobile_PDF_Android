@@ -68,6 +68,11 @@ public class CustomAdapter extends BaseAdapter {
         Collections.sort((this.pdfMaps), PDFMap.DateComparator);
     }
 
+    public void SortBySize(){
+        // Sort array list pdfMaps of objects of type pdfMap file size.
+        Collections.sort((this.pdfMaps), PDFMap.SizeComparator);
+    }
+
     public class ImportMapTask extends AsyncTask<Integer, Integer, String> {
         ProgressBar progressBar;
         String path;

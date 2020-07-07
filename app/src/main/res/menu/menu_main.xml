@@ -2,22 +2,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.tammy.mapviewer.PDFActivity">
-    <item
+    <!--item
        android:id="@+id/action_sort_by_name"
        android:icon="@android:drawable/ic_input_add"
        android:title="@string/sort_by_name"
        android:visible="true"
         android:checkable="true"
         android:checked="false"
-       app:showAsAction="never" />
-    <item
+       app:showAsAction="never" /-->
+    <!--item
         android:id="@+id/action_sort_by_date"
         android:icon="@android:drawable/ic_input_add"
         android:title="@string/sort_by_date"
         android:visible="true"
         android:checkable="true"
         android:checked="true"
-        app:showAsAction="never" />
+        app:showAsAction="never" /-->
     <item
         android:id="@+id/action_deleteAll"
         android:icon="@android:drawable/ic_input_add"

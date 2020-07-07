@@ -12,7 +12,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.PointF;
 import android.graphics.RectF;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -335,7 +334,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         txtPaint.setTextSize(emoji_width);
         // Way point popup text arrow emoji
         //Initialise the layout & add a TextView with the emoji in it
-        String emoji = new String(Character.toChars(0x27b2)); //0x1F369)); //Doughnut
+        String emoji = new String(Character.toChars(0x279d)); // 0x279c arrow right //0x27b2)); //0x1F369)); //Doughnut
         // StaticLayout was deprecated in API level 28 use StaticLayout.Builder
         lsLayout = new StaticLayout(emoji, txtPaint, emoji_width, Layout.Alignment.ALIGN_CENTER, 1, 1, true);
 
@@ -457,7 +456,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         for (int j = 0; j < wayPts.size(); j++) {
                             wayPtX = (((wayPts.get(j).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
                             wayPtY = ((((90 - wayPts.get(j).getY()) - (90 - lat2)) / latDiff) * ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
-                            String desc = wayPts.get(j).getDesc();
+                            String desc;
+                            desc = wayPts.get(j).getDesc();
                             if (desc.length() > 13) desc = desc.substring(0, 12);
                             float textWidth = txtCol.measureText(desc);
                             int emoji_width = Math.round(getResources().getDimension(R.dimen.emoji_width));//used to be 80
@@ -746,7 +746,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         canvas.drawText(desc, (x-(textWidth/2))+offsetBox,y-startY-(boxHt/2.0f)-5+(txtSize/2.0f), txtCol);
                         drawTriangle(canvas,recCol,(int)(x),(int)(y-startY-3),marg);
                         // add right arrow emoji in lsLayout defined above
-                        canvas.translate((x+(textWidth/2))+offsetBox,y-startY-boxHt-12);
+                        canvas.translate((x+(textWidth/2))+offsetBox+10,y-startY-boxHt-12);
                         lsLayout.draw(canvas);
                         canvas.save();
                         canvas.restore();
@@ -881,7 +881,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         mSensorManager.unregisterListener(this,mMagnetometer);
     }
 
-
     //  LOCATION UPDATES
     private void startLocationUpdates() {
         LocationRequest mLocationRequest;
@@ -911,10 +910,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         }
     }
 
-    public void zoomToCurrentLocation(float x,float y){
+    /*public void zoomToCurrentLocation(float x,float y){
         PointF pivot = new  PointF(x,y);
         pdfView.zoomCenteredTo(3,pivot);
-    }
+    }*/
 
 
     // -------------------------------------------------

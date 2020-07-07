@@ -10,8 +10,11 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,7 +30,7 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener{
 // Displays list of imported pdf maps and an add more button. When an item is clicked, it loads the map.
     private ListView lv;
     private CustomAdapter myAdapter; // list of imported pdf maps
@@ -51,6 +54,24 @@ public class MainActivity extends AppCompatActivity {
         // top menu with ... button
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        // Fill Sort By Options
+        Spinner sortByDropdown = findViewById(R.id.sortBy);
+        //create an adapter to describe how the items are displayed, adapters are used in several places in android.
+        //There are multiple variations of this, but this is the basic variant.
+        ArrayAdapter<CharSequence> sortByAdapter = ArrayAdapter.createFromResource(this, R.array.sortByItems,
+                R.layout.spinner_dropdown_item);
+        //set the sortBy adapter to the previously created one.
+        sortByDropdown.setAdapter(sortByAdapter);
+        // set on click functions: onItemSelected and nothingSelected (must have these names)
+        sortByDropdown.setOnItemSelectedListener(this);
+
+        // TRY to set selected sort by method from db
+        String sort = db.getMapSort();
+        int sortID = 0;
+        if (sort.equals("date")) sortID = 1;
+        else if (sort.equals("size")) sortID = 2;
+        sortByDropdown.setSelection(sortID,true);
+
         // GET THE LIST FROM THE DATABASE
         myAdapter = new CustomAdapter(MainActivity.this, db.getAllMaps());
         lv = (ListView) findViewById(R.id.lv);
@@ -180,7 +201,6 @@ public class MainActivity extends AppCompatActivity {
     private void updateDistToMap() {
         for (int i=0; i<myAdapter.getCount(); i++) {
             PDFMap map = myAdapter.pdfMaps.get(i);
-            //View cell = lv.getChildAt(i);
             View cell = lv.getChildAt(i - lv.getFirstVisiblePosition());
 
             if (cell == null || map == null || map.getBounds() == null)
@@ -207,8 +227,8 @@ public class MainActivity extends AppCompatActivity {
 
             // Is on map?
             if (latNow >= lat1 && latNow <= lat2 && longNow >= long1 && longNow <= long2){
-                locIcon.setVisibility(View.VISIBLE);
-                distToMapText.setText("on map");
+                locIcon.setVisibility(View.VISIBLE); // Near me icon to visible
+                distToMapText.setText(""); // On the map
             }
             else {
                 locIcon.setVisibility(View.GONE);
@@ -281,6 +301,53 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ...................
+    //   Sort By DropDown
+    // ...................
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+
+        switch (position) {
+            case 0:
+                // Sort by Name
+                myAdapter.SortByName();
+                lv.setAdapter(myAdapter);
+                try {
+                    db.setMapSort("name");
+                }
+                catch (SQLException e){
+                    Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+                break;
+            case 1:
+                // Sort by Date
+                myAdapter.SortByDate();
+                lv.setAdapter(myAdapter);
+                try {
+                    db.setMapSort("date");
+                }
+                catch (SQLException e){
+                    Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+                break;
+            case 2:
+                // Sort by Size
+                myAdapter.SortBySize();
+                lv.setAdapter(myAdapter);
+                try {
+                    db.setMapSort("size");
+                }
+                catch (SQLException e){
+                    Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+                break;
+        }
+    }
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+        // TODO Auto-generated method stub
+    }
+
+    // ...................
     //     ... MENU
     // ...................
     MenuItem nameItem;
@@ -311,7 +378,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        nameItem = menu.findItem(R.id.action_sort_by_name);
+      /*  nameItem = menu.findItem(R.id.action_sort_by_name);
         dateItem = menu.findItem(R.id.action_sort_by_date);
         // read Settings table in the database and get user preferences
         String sort = db.getMapSort();
@@ -320,13 +387,16 @@ public class MainActivity extends AppCompatActivity {
             lv.setAdapter(myAdapter);
             nameItem.setChecked(true);
             dateItem.setChecked(false);
+            Log.i(TAG, "******onCreateOptionsMenu: sort by name");
         }
         else if (sortFlag && sort.equals("date")){
             myAdapter.SortByDate();
             lv.setAdapter(myAdapter);
             dateItem.setChecked(true);
             nameItem.setChecked(false);
+            Log.i(TAG, "******onCreateOptionsMenu: sort by date");
         }
+       */
         return true;
     }
 
@@ -347,7 +417,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         // Sort map list by name
-        else if (id == R.id.action_sort_by_name){
+       /* else if (id == R.id.action_sort_by_name){
             myAdapter.SortByName();
             lv.setAdapter(myAdapter);
             item.setChecked(true);
@@ -373,12 +443,12 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
             }
             return true;
-        }
+        }*/
         // This is not visible in main activity
-        else if (id == R.id.action_open){
+        /*else if (id == R.id.action_open){
             lv.setAdapter(new CustomAdapter(MainActivity.this,db.getAllMaps()));
             return true;
-        }
+        }*/
 
         return super.onOptionsItemSelected(item);
     }

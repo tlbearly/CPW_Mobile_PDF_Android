@@ -41,7 +41,7 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String TABLE_SETTINGS = "settings";
     // Settings table column names
     private static final String KEY_SETTINGS_ID = "id";
-    private static final String KEY_MAP_SORT = "map_sort"; // Imported maps sort order. Valid values: name or date
+    private static final String KEY_MAP_SORT = "map_sort"; // Imported maps sort order. Valid values: name, date, or size
 
     //public static DBHandler getInstance(Context context) {
     public static synchronized DBHandler getInstance(Context context) {

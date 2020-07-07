@@ -125,8 +125,40 @@ public class PDFMap {
             long secondDate = file2.lastModified();
             // Return ascending order
             if (firstDate < secondDate) return 1;
-            else
-                return -1;
+            else if (firstDate > secondDate) return -1;
+            else return 0;
+        }
+    };
+
+    // Sort arraylist of PDFMaps by pdf file size
+    public static Comparator<PDFMap> SizeComparator = new Comparator<PDFMap>() {
+        @Override
+        public int compare(PDFMap m1, PDFMap m2) {
+            String m1Num = m1.getFileSize();
+            if (m1Num.length()<4)return 0; // if map got stuck importing, the file size may be blank
+            m1Num = m1Num.substring(0,m1Num.length()-3);
+            Float size1 = Float.parseFloat(m1Num);
+
+            if (m1.getFileSize().contains("Mb")){
+                size1 = size1 * 1000;
+            }
+            else if (m1.getFileSize().contains("Gb")){
+                size1 = size1 * 1000000;
+            }
+            String m2Num = m2.getFileSize();
+            if (m2Num.length()<4)return 0; // if map got stuck importing, the file size may be blank
+            m2Num = m2Num.substring(0,m2Num.length()-3);
+            Float size2 = Float.parseFloat(m2Num);
+            if (m2.getFileSize().contains("Mb")){
+                size2 = size2 * 1000;
+            }
+            else if (m2.getFileSize().contains("Gb")){
+                size2 = size2 * 1000000;
+            }
+            // Return largest to smallest
+            if (size1 < size2) return 1;
+            else if (size1 > size2) return -1;
+            else return 0;
         }
     };
 }

@@ -22,8 +22,8 @@
 
             <ImageView
                 android:id="@+id/pdfImage"
-                android:layout_width="60dp"
-                android:layout_height="wrap_content"
+                android:layout_width="90dp"
+                android:layout_height="match_parent"
                 android:contentDescription="@string/pdfimg"
                 android:src="@android:drawable/ic_menu_mapmode" />
 
