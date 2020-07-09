@@ -39,6 +39,7 @@ import androidx.core.content.ContextCompat;
 import com.github.barteksc.pdfviewer.PDFView;
 import com.github.barteksc.pdfviewer.listener.OnDrawListener;
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
+import com.github.barteksc.pdfviewer.listener.OnRenderListener;
 import com.github.barteksc.pdfviewer.listener.OnTapListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -392,7 +393,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         File file = new File(path);
         if (file.canRead()) {
             // LOAD IT, load only first page
-            pdfView.fromFile(file).defaultPage(0).pages(0).onTap(new OnTapListener() {
+            pdfView.fromFile(file).defaultPage(0).pages(0).onRender(new OnRenderListener() {
+                @Override
+                public void onInitiallyRendered(int pages, float pageWidth, float pageHeight) {
+                    pdfView.fitToWidth(); // optionally pass page number
+                }
+            })
+            .onTap(new OnTapListener() {
                 //
                 // LISTEN FOR TAP TO ADD WAY POINT OR DISPLAY PT DATA
                 //
@@ -766,7 +773,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             }).onLoad(new OnLoadCompleteListener() {
                 @Override
                 public void loadComplete(int nbPages) {
-                    pdfView.fitToWidth();
+                   // pdfView.fitToWidth();
                     // Do not rotate pdf when they rotate the screen. It loses their location! pdfView cannot zoom to a point on the screen.
                     // Lock current screen rotation
                     if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT){

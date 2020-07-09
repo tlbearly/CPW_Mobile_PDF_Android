@@ -165,7 +165,6 @@ public class EditWayPointActivity extends AppCompatActivity {
                 else {
                     wayPt.setDesc(name);
                     db.updateWayPt(wayPts.get(id));
-                    //super.finish();
                     // Return to PDFActivity
                     finish();
                     return true;

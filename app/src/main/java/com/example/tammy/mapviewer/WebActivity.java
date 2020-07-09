@@ -210,9 +210,12 @@ public class WebActivity extends AppCompatActivity {
                             path = path.replaceAll("%20", " ");
                             File inFile = new File(path);
                             String name = fileName;
+
                             // remove _ags_ from file downloaded from hunting or fishing atlas
                             if (name.indexOf("_ags_") == 0) name = name.substring(5);
                             File outFile = new File(WebActivity.this.getFilesDir() + "/" + name);
+
+                            // Find unique name in app directory, add a number to the end until unique
                             int i = 0;
                             while (outFile.exists()) {
                                 i++;
@@ -221,6 +224,7 @@ public class WebActivity extends AppCompatActivity {
                             if (i > 0)
                                 name = name.substring(0, name.length() - 4) + i + ".pdf";
 
+                            // Copy file to app directory
                             InputStream is = new FileInputStream(inFile);
                             outFile.setWritable(true, false);
                             OutputStream os = new FileOutputStream(outFile);
@@ -232,7 +236,8 @@ public class WebActivity extends AppCompatActivity {
                             os.close();
                             is.close();
                             newPath = outFile.getPath();
-                            // remove temp file
+
+                            // remove temp file from downloads directory
                             inFile.delete();
 
                         } catch (FileNotFoundException e) {
@@ -247,6 +252,7 @@ public class WebActivity extends AppCompatActivity {
                     }
                 }
 
+                // Add to database
                 PDFMap map = new PDFMap(newPath, "", "", "", null, "Loading...", "", "");
                 DBHandler db = new DBHandler(WebActivity.this);
                 db.addMap(map);

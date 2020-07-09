@@ -176,11 +176,18 @@ public class GetMoreActivity extends AppCompatActivity {
                     db.addMap(map);
 
                     // CALL MAIN ACTIVITY TO DISPLAY LIST OF IMPORTED MAPS
-                    Intent returnIntent = getIntent();
+                    Intent mainIntent = new Intent(GetMoreActivity.this,MainActivity.class);
+                    mainIntent.putExtra("IMPORT_MAP", true);
+                    mainIntent.putExtra("PATH", newPath);
+                    mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(mainIntent);
+
+
+                    /*Intent returnIntent = getIntent();
                     returnIntent.putExtra("IMPORT_MAP", true);
                     returnIntent.putExtra("PATH", newPath);
                     setResult(RESULT_OK, returnIntent);
-                    finish();
+                    finish();*/
 
                 } catch (FileNotFoundException e) {
                     Toast.makeText(GetMoreActivity.this,"File does not exist.", Toast.LENGTH_LONG).show();
