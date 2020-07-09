@@ -191,6 +191,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
         //  GET LAT LONG BOUNDS, CONVERT FROM STRING "LAT1 LONG1 LAT2 LONG1 LAT2 LONG2 LAT1 LONG2" TO FLOATS
         try {
+            // Check that values were passed
+            if (i.getExtras() == null){
+                Toast.makeText(PDFActivity.this, "Can't display map, no map specifications were found.",Toast.LENGTH_LONG).show();
+                return;
+            }
             //bestQuality = i.getExtras().getBoolean("BEST_QUALITY");
             path = i.getExtras().getString("PATH");
 
@@ -334,7 +339,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         txtPaint.setTextSize(emoji_width);
         // Way point popup text arrow emoji
         //Initialise the layout & add a TextView with the emoji in it
-        String emoji = new String(Character.toChars(0x279d)); // 0x279c arrow right //0x27b2)); //0x1F369)); //Doughnut
+        String emoji = new String(Character.toChars(0x279e)); //0x279d)); // 0x279c arrow right //0x27b2)); //0x1F369)); //Doughnut
         // StaticLayout was deprecated in API level 28 use StaticLayout.Builder
         lsLayout = new StaticLayout(emoji, txtPaint, emoji_width, Layout.Alignment.ALIGN_CENTER, 1, 1, true);
 
@@ -432,6 +437,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         }
                         if ( x > ((wayPtX-(textWidth/2)-marg)+offsetBox) && x < ((wayPtX+(textWidth/2)+marg+emoji_width)+offsetBox) &&
                                 y < (wayPtY-startY+marg) && y >= (wayPtY-startY-boxHt-marg) ){
+                            // Open EditWayPointActivity
                             Intent i = new Intent(PDFActivity.this, EditWayPointActivity.class);
                             //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                             i.putExtra("CLICKED", clickedWP);
@@ -445,10 +451,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             wait.setVisibility(View.GONE);
                             return false;
                         }
-                        //else {
-                            //clickedWP = -1;
-                            //return false;
-                        //}
                     }
 
                     // check if clicked on any balloon when all way points are showing their labels
@@ -473,6 +475,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             }
                             if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width) + offsetBox) &&
                                     y < (wayPtY - startY + marg) && y >= (wayPtY - startY - boxHt - marg)) {
+                                // Open EditWayPointActivity
                                 Intent i = new Intent(PDFActivity.this, EditWayPointActivity.class);
                                 //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                 i.putExtra("CLICKED", j);
@@ -1040,10 +1043,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             markCurrent = true;
         }
         else if (id == R.id.action_open){
-            Intent i = new Intent(PDFActivity.this,MainActivity.class);
-            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(i);
-            return true;
+            // open a new map
+            finish();
         }
         else if (id == R.id.action_deleteAll){
             try {

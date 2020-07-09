@@ -257,6 +257,12 @@ public class WebActivity extends AppCompatActivity {
                 i.putExtra("IMPORT_MAP", true);
                 i.putExtra("PATH", newPath);
                 WebActivity.this.startActivity(i);
+
+               /* Intent returnIntent = getIntent();
+                returnIntent.putExtra("IMPORT_MAP", true);
+                returnIntent.putExtra("PATH", newPath);
+                setResult(RESULT_OK, returnIntent);
+                finish();*/
             }
         };
     };
@@ -373,6 +379,7 @@ public class WebActivity extends AppCompatActivity {
 
                 } else {
                     // permission denied, close app
+                    Toast.makeText(this,"Permission needed to read external storage.", Toast.LENGTH_LONG).show();
                     if (Build.VERSION.SDK_INT >= 21) {
                         finishAndRemoveTask();
                     }
@@ -393,6 +400,7 @@ public class WebActivity extends AppCompatActivity {
 
                 } else {
                     // permission denied, close the app.
+                    Toast.makeText(this,"Permission needed for the internet.", Toast.LENGTH_LONG).show();
                     if (Build.VERSION.SDK_INT >= 21) {
                         finishAndRemoveTask();
                     }

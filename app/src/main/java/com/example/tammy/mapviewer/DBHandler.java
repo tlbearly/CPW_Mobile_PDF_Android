@@ -62,18 +62,12 @@ public class DBHandler extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         try {
             // Create Imported Maps Table
-            String CREATE_MAPS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MAPS + "("
-                    + KEY_ID + " INTEGER PRIMARY KEY," + KEY_PATH + " TEXT,"
-                    + KEY_BOUNDS + " TEXT," + KEY_MEDIABOX + " TEXT,"
-                    + KEY_VIEWPORT + " TEXT, " + KEY_THUMBNAIL + " BLOB,"
-                    + KEY_NAME + " TEXT," + KEY_FILESIZE + " TEXT,"
-                    + KEY_DISTTOMAP + " TEXT" + ")";
-            db.execSQL(CREATE_MAPS_TABLE);
+            createMapsTable(db);
 
             // Create User Settings Table
-            createSettings();
+            createSettingsTable();
         }
-        catch (Exception e){
+        catch (SQLException e){
             Log.d("DBHandler","Error creating database: "+e.getMessage());
             Toast.makeText(c, "Error creating database: "+e.getMessage(), Toast.LENGTH_LONG).show();
         }
@@ -83,24 +77,43 @@ public class DBHandler extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // For new version do new stuff here. Drop tables and call onCreate
         // if (oldVersion != newVersion){
-        //   db.execSQL("DROP TABLE IF EXISTS " + TABLE_MAPS);
-        //   onCreate(db);
-        //   db.execSQL("DROP TABLE IF EXISTS " + TABLE_SETTINGS);
-        //   createSettings();
+        //   try {
+        //      db.execSQL("DROP TABLE IF EXISTS " + TABLE_MAPS);
+        //      db.execSQL("DROP TABLE IF EXISTS " + TABLE_SETTINGS);
+        //      onCreate(db);
+        //  } catch (SQLException e) {
+        //      throw e;
+        //  }
         //}
     }
 
-    public void deleteTable(Context c){
+    private void createMapsTable(SQLiteDatabase db) throws SQLException {
+        // Create Imported Maps Table
+        try {
+            String CREATE_MAPS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MAPS + "("
+                    + KEY_ID + " INTEGER PRIMARY KEY," + KEY_PATH + " TEXT,"
+                    + KEY_BOUNDS + " TEXT," + KEY_MEDIABOX + " TEXT,"
+                    + KEY_VIEWPORT + " TEXT, " + KEY_THUMBNAIL + " BLOB,"
+                    + KEY_NAME + " TEXT," + KEY_FILESIZE + " TEXT,"
+                    + KEY_DISTTOMAP + " TEXT" + ")";
+            db.execSQL(CREATE_MAPS_TABLE);
+        } catch (SQLException e) {
+            throw e;
+        }
+    }
+
+    public void deleteTableMaps(Context c) throws SQLException {
+        // Delete and recreate Table_Maps
         try {
             SQLiteDatabase db = this.getWritableDatabase();
             // delete maps table
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_MAPS);
             // Create maps table again
             onCreate(db);
-            Toast.makeText(c, "All imported maps were deleted.", Toast.LENGTH_LONG).show();
+           // Toast.makeText(c, "All imported maps were deleted.", Toast.LENGTH_LONG).show();
         }
-        catch (Exception e){
-            Toast.makeText(c, "Error deleting database table: "+e.getMessage(), Toast.LENGTH_LONG).show();
+        catch (SQLException e){
+            throw e;
         }
     }
 
@@ -157,8 +170,51 @@ public class DBHandler extends SQLiteOpenHelper {
         // Select All Query
         String selectQuery = "SELECT * FROM " + TABLE_MAPS;
         Cursor cursor = db.rawQuery(selectQuery, null);
+        // If user database does not contain all of the fields recreate it preserving user maps.
+        if (cursor.getColumnCount() != 9) {
+            cursor.close();
+            try {
+                mapList = recreateDB();
+            } catch (SQLException e) {
+                throw e;
+            }
+            return mapList;
+        } else {
+            // looping through all rows and adding to list
+            if (cursor.moveToFirst()) {
+                do {
+                    PDFMap map = new PDFMap();
+                    map.setId(Integer.parseInt(cursor.getString(0)));
+                    map.setPath(cursor.getString(1));
+                    map.setBounds(cursor.getString(2));
+                    map.setMediabox(cursor.getString(3));
+                    map.setViewport(cursor.getString(4));
+                    // thumbnail was saved to a file, get the path
+                    map.setThumbnail(cursor.getString(5));
+                    map.setName(cursor.getString(6));
+                    map.setFileSize(cursor.getString(7));
+                    map.setDistToMap(cursor.getString(8));
+                    // Adding map to list
+                    mapList.add(map);
+                } while (cursor.moveToNext());
+            }
+        }
+        cursor.close();
+        // return map list
+        return mapList;
+    }
 
-        // looping through all rows and adding to list
+    // Recreate database if they do not have all of the fields
+    private ArrayList<PDFMap> recreateDB() throws SQLException {
+        // Read what is currently in the database into mapList.
+        // Delete database and recreate it. Add maps that they had.
+        SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<PDFMap> mapList = new ArrayList<>();
+        // Select All Query
+        String selectQuery = "SELECT * FROM " + TABLE_MAPS;
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // Save user maps in mapList
         if (cursor.moveToFirst()) {
             do {
                 PDFMap map = new PDFMap();
@@ -175,14 +231,14 @@ public class DBHandler extends SQLiteOpenHelper {
                     map.setDistToMap(cursor.getString(8));
                 }
                 else {
-                    // Get File Size
+                    // Calculate the File Size
                     File file = new File(map.getPath());
                     String fileSize = "";
                     long size = file.length() / 1024; // Get size and convert bytes into Kb.
                     if (size >= 1024) {
                         Double sizeDbl = new Double(size);
                         fileSize = String.format("%.1f", (sizeDbl / 1024)) + " Mb";
-                       // fileSize = (size / 1024) + " Mb";
+                        // fileSize = (size / 1024) + " Mb";
                     } else {
                         fileSize = size + " Kb";
                     }
@@ -194,7 +250,14 @@ public class DBHandler extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
         cursor.close();
-        // return map list
+
+        // remove database and add again
+        deleteTableMaps(c);
+
+        // fill database
+        for (int i=0; i<mapList.size(); i++){
+            addMap(mapList.get(i));
+        }
         return mapList;
     }
 
@@ -228,7 +291,7 @@ public class DBHandler extends SQLiteOpenHelper {
     //-----------------
     //  USER SETTINGS
     //-----------------
-    public void createSettings(){
+    public void createSettingsTable(){
         SQLiteDatabase db = this.getWritableDatabase();
         String CREATE_SETTINGS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SETTINGS + "("
                 + KEY_SETTINGS_ID + " INTEGER PRIMARY KEY," + KEY_MAP_SORT + " TEXT)";
@@ -243,10 +306,13 @@ public class DBHandler extends SQLiteOpenHelper {
         // delete maps table
         db.execSQL("DROP TABLE IF EXISTS "+ TABLE_SETTINGS);
         // Create settings table again
-        createSettings();
+        createSettingsTable();
         Toast.makeText(c, "Reverted to default settings.", Toast.LENGTH_LONG).show();
     }
 
+    //----------------
+    //     SORTING
+    //---------------
     public void setMapSort(String order) throws SQLException{
         // How to sort the MainActivity imported maps
         SQLiteDatabase db = this.getWritableDatabase();
@@ -265,7 +331,7 @@ public class DBHandler extends SQLiteOpenHelper {
             Cursor cursor = db.rawQuery(selectQuery, null);
             if (cursor == null){
                 // Settings table does not exist. Create it.
-                createSettings();
+                createSettingsTable();
                 return "date";
             }
             else {
@@ -280,7 +346,7 @@ public class DBHandler extends SQLiteOpenHelper {
         catch (SQLException e){
             //Toast.makeText(c, "Error reading app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
             // create the table
-            createSettings();
+            createSettingsTable();
             return "date"; // default value
         }
     }

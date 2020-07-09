@@ -51,6 +51,8 @@ public class CustomAdapter extends BaseAdapter {
     TextView fileSizeTxt;
     TextView distToMapTxt;
     static String viewport, mediabox, bounds;
+    private final int RENAME_REQUEST_CODE = 2;
+    private final int DELETE_REQUEST_CODE = 3;
 
 
     public CustomAdapter(Context c, ArrayList<PDFMap> pdfMaps) {
@@ -735,7 +737,6 @@ public class CustomAdapter extends BaseAdapter {
         });
 
         // ITEM LONG CLICK - show menu delete item, rename item
-        //view.onCreateOptionsMenu(Menu menu){}
         view.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
@@ -842,7 +843,7 @@ public class CustomAdapter extends BaseAdapter {
     // OPEN PDF VIEW - load the map
     private void openPDFView(String path, String name, String bounds, String mediaBox, String viewPort) {
         Intent i = new Intent(c, PDFActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         i.putExtra("PATH", path);
         i.putExtra("NAME", name);
         i.putExtra("BOUNDS", bounds);

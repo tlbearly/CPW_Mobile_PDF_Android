@@ -18,6 +18,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -39,6 +40,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     boolean sortFlag=true;
     Toolbar toolbar;
     Integer selectedId;
+    private final int IMPORT_REQUEST_CODE = 1;
+    private final int RENAME_REQUEST_CODE = 2;
+    private final int DELETE_REQUEST_CODE = 3;
 
     // location variables
     private FusedLocationProviderClient mFusedLocationClient;
@@ -49,6 +53,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //Toast.makeText(MainActivity.this, "onCreate", Toast.LENGTH_SHORT).show();
+
         setContentView(R.layout.activity_main);
         db = DBHandler.getInstance(MainActivity.this);
         // top menu with ... button
@@ -73,7 +79,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         sortByDropdown.setSelection(sortID,true);
 
         // GET THE LIST FROM THE DATABASE
-        myAdapter = new CustomAdapter(MainActivity.this, db.getAllMaps());
+        try {
+            myAdapter = new CustomAdapter(MainActivity.this, db.getAllMaps());
+        } catch (SQLException e){
+            Toast.makeText(MainActivity.this, "Error deleting database table: "+e.getMessage(), Toast.LENGTH_LONG).show();
+        }
         lv = (ListView) findViewById(R.id.lv);
         lv.setAdapter(myAdapter);
         registerForContextMenu(lv); // set up edit/trash context menu
@@ -137,9 +147,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
          fab.setOnClickListener(new View.OnClickListener() {
              @Override
              public void onClick(View view) {
-                 Intent i=new Intent(MainActivity.this,GetMoreActivity.class);
-                 i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                 startActivity(i);
+                 Intent intent=new Intent(MainActivity.this,GetMoreActivity.class);
+                 //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                 startActivityForResult(intent,IMPORT_REQUEST_CODE);
+                 //startActivity(i);
             }
         });
 
@@ -170,7 +181,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             startLocationUpdates();
         }
+        //Toast.makeText(MainActivity.this, "onResume", Toast.LENGTH_SHORT).show();
     }
+
 
     @Override
     protected void onPause(){
@@ -179,11 +192,52 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             stopLocationUpdates();
         }
+        //Toast.makeText(MainActivity.this, "onPause", Toast.LENGTH_SHORT).show();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // return from GetMoreActivity
+        if (requestCode == IMPORT_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                sortFlag=false; // hold off on sorting.
+                // Scroll down to last item. The one just added.
+                // String name = new File(i.getExtras().getString("PATH")).getName();
+                // int pos = myAdapter.findName();
+                int pos = myAdapter.getCount()-1;
+                if (pos > -1) lv.setSelection(pos);
+            }
+        }
+        // Return from EditMapNameActivity with delete map icon pressed
+        else if (requestCode == DELETE_REQUEST_CODE){
+            if (resultCode == RESULT_OK) {
+                // Delete map, remove from Imported Maps list, delete from database
+                selectedId = data.getIntExtra("ID",0);
+                myAdapter.removeItem(selectedId);
+                Toast.makeText(MainActivity.this, "Map removed", Toast.LENGTH_LONG).show();
+                //i.removeExtra("ID");
+                //i.removeExtra("DELETE");
+                // Display note if no records found
+                if (myAdapter.pdfMaps.size() == 0){
+                    TextView msg = (TextView) findViewById(R.id.txtMessage);
+                    msg.setText("No maps have been imported.\nUse the + button to import a map.");
+                }
+            }
+        }
+        // Return from EditMapNameActivity with back arrow pressed, rename map with new name
+        else if (requestCode == RENAME_REQUEST_CODE){
+            if (resultCode == RESULT_OK) {
+                String name = data.getStringExtra("NAME");
+                Integer id = data.getIntExtra("ID",0);
+                myAdapter.rename(id, name);
+            }
+        }
+    }
 
-
+    //--------------------
     // Location Functions
+    //--------------------
 
     //  LOCATION UPDATES
     private void startLocationUpdates() {

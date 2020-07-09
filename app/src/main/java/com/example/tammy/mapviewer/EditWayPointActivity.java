@@ -3,8 +3,6 @@ package com.example.tammy.mapviewer;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,6 +13,9 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class EditWayPointActivity extends AppCompatActivity {
     EditText editTxt;
@@ -39,6 +40,10 @@ public class EditWayPointActivity extends AppCompatActivity {
 
         // Read the way point id that was clicked on and the map name
         Intent i = this.getIntent();
+        if (i.getExtras() == null){
+            Toast.makeText(EditWayPointActivity.this, "Failed to get map values. Try again.",Toast.LENGTH_LONG).show();
+            return;
+        }
         id = i.getExtras().getInt("CLICKED");
         mapName = i.getExtras().getString("NAME");
         path = i.getExtras().getString("PATH");
@@ -111,18 +116,9 @@ public class EditWayPointActivity extends AppCompatActivity {
             switch (which){
                 case DialogInterface.BUTTON_POSITIVE:
                     //'DELETE' button clicked, remove map from imported maps
-                    //mActionMode.finish(); // hide the edit menu
                     db.deleteWayPt(wayPt);
-                    //wayPts.remove(wayPt.getX(),wayPt.getY());
 
-                    /*Intent i = new Intent(EditWayPointActivity.this,PDFActivity.class);
-                    i.putExtra("PATH", path);
-                    i.putExtra("NAME", mapName);
-                    i.putExtra("BOUNDS", bounds);
-                    i.putExtra("MEDIABOX", mediaBox);
-                    i.putExtra("VIEWPORT", viewPort);
-                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(i);*/
+                    // Return to PDFActivity
                     finish();
                     break;
 
@@ -169,15 +165,9 @@ public class EditWayPointActivity extends AppCompatActivity {
                 else {
                     wayPt.setDesc(name);
                     db.updateWayPt(wayPts.get(id));
-                    /*Intent i = new Intent(EditWayPointActivity.this,PDFActivity.class);
-                    i.putExtra("PATH", path);
-                    i.putExtra("NAME", mapName);
-                    i.putExtra("BOUNDS", bounds);
-                    i.putExtra("MEDIABOX", mediaBox);
-                    i.putExtra("VIEWPORT", viewPort);
-                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(i);*/
-                    super.finish();
+                    //super.finish();
+                    // Return to PDFActivity
+                    finish();
                     return true;
                 }
             default:
