@@ -25,11 +25,10 @@ public class EditWayPointActivity extends AppCompatActivity {
     RadioGroup pinColorGrp;
     RadioButton cyanBtn, redBtn, blueBtn;
     private WayPts wayPts = null;
-    private String mapName;
-    private String path;
-    private String bounds;
-    private String mediaBox;
-    private String viewPort;
+    String mapName;
+    String path;
+    String bounds;
+    String viewPort;
     private DBWayPtHandler db = DBWayPtHandler.getInstance(this);
     private int id;
     WayPt wayPt;
@@ -48,7 +47,7 @@ public class EditWayPointActivity extends AppCompatActivity {
         mapName = i.getExtras().getString("NAME");
         path = i.getExtras().getString("PATH");
         bounds = i.getExtras().getString("BOUNDS");
-        mediaBox = i.getExtras().getString("MEDIABOX");
+        //String mediaBox = i.getExtras().getString("MEDIABOX");
         viewPort = i.getExtras().getString("VIEWPORT");
         wayPts = db.getWayPts(mapName);
         wayPts.SortPts();
@@ -156,19 +155,17 @@ public class EditWayPointActivity extends AppCompatActivity {
 
             case android.R.id.home:
                 // rename map
-                String name;
-                name = editTxt.getText().toString();
-                if (name.equals("")){
+                String name = editTxt.getText().toString();
+                if(name.equals("")){
                     Toast.makeText(EditWayPointActivity.this, "Cannot rename to blank!", Toast.LENGTH_LONG).show();
-                    return true;
                 }
                 else {
                     wayPt.setDesc(name);
                     db.updateWayPt(wayPts.get(id));
                     // Return to PDFActivity
                     finish();
-                    return true;
                 }
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

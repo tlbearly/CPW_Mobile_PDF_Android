@@ -5,8 +5,10 @@ import android.content.Intent;
 import android.database.SQLException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.ParcelFileDescriptor;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,9 +52,13 @@ public class CustomAdapter extends BaseAdapter {
     TextView nameTxt;
     TextView fileSizeTxt;
     TextView distToMapTxt;
+    ImageView locIcon;
+    Double latNow, longNow;
     static String viewport, mediabox, bounds;
     private final int RENAME_REQUEST_CODE = 2;
     private final int DELETE_REQUEST_CODE = 3;
+    private Boolean loading = false;
+    private String TAG = "CustomAdapter";
 
 
     public CustomAdapter(Context c, ArrayList<PDFMap> pdfMaps) {
@@ -75,6 +81,16 @@ public class CustomAdapter extends BaseAdapter {
         Collections.sort((this.pdfMaps), PDFMap.SizeComparator);
     }
 
+    public void SortByProximity(){
+        // Sort array list pdfMaps of objects of type pdfMap by proximity.
+        Collections.sort((this.pdfMaps), PDFMap.ProximityComparator);
+    }
+
+    public void setLocation(Location location){
+        latNow = location.getLatitude();
+        longNow = location.getLongitude();
+    }
+
     public class ImportMapTask extends AsyncTask<Integer, Integer, String> {
         ProgressBar progressBar;
         String path;
@@ -86,11 +102,14 @@ public class CustomAdapter extends BaseAdapter {
             this.pdfMap = pdfMap;
             this.progressBar = pb;
             this.path = pdfMap.getPath();
+            // calls onPreExecute
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            loading = true;
+            // calls doInBackground
             // show progress bar
             progressBar.setVisibility(View.VISIBLE);
         }
@@ -503,6 +522,7 @@ public class CustomAdapter extends BaseAdapter {
         protected void onPostExecute(String result) {
             // result of background computation is sent here
             progressBar.setVisibility(View.GONE);
+            loading = false;
             // Map Import Failed
             if (!result.equals("Import Done")) {
                 Toast.makeText(c, result, Toast.LENGTH_LONG).show();
@@ -512,8 +532,8 @@ public class CustomAdapter extends BaseAdapter {
             else {
                 // Display message and load map
                 //Toast.makeText(c, "Map copied to App folder.", Toast.LENGTH_LONG).show();
-                notifyDataSetChanged(); // Refresh list of pdf maps
-               openPDFView(pdfMap.getPath(), pdfMap.getName(), pdfMap.getBounds(), pdfMap.getMediabox(), pdfMap.getViewport());
+                //notifyDataSetChanged(); // Refresh list of pdf maps
+                openPDFView(pdfMap.getPath(), pdfMap.getName(), pdfMap.getBounds(), pdfMap.getMediabox(), pdfMap.getViewport());
             }
         }
     }
@@ -546,6 +566,84 @@ public class CustomAdapter extends BaseAdapter {
             notifyDataSetChanged();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, "Problem removing map: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public void getDistToMap() {
+        // calculate updated distances for all cells
+        if (latNow == null || longNow == null)
+            return;
+        for (int i=0; i<pdfMaps.size(); i++) {
+            PDFMap map = pdfMaps.get(i);
+
+            String bounds = map.getBounds(); // lat1 long1 lat2 long1 lat2 long2 lat1 long2
+            if (bounds == null || bounds.length() == 0)
+                return; // it will be 0 length if is importing
+            bounds = bounds.trim(); // remove leading and trailing spaces
+            int pos = bounds.indexOf(" ");
+            Double lat1 = Double.valueOf(bounds.substring(0, pos));
+            bounds = bounds.substring(pos + 1); // strip off 'lat1 '
+            pos = bounds.indexOf(" ");
+            Double long1 = Double.valueOf(bounds.substring(0, pos));
+            // FIND LAT2
+            bounds = bounds.substring(pos + 1); // strip off 'long1 '
+            pos = bounds.indexOf(" ");
+            Double lat2 = Double.valueOf(bounds.substring(0, pos));
+            // FIND LONG2
+            pos = bounds.lastIndexOf(" ");
+            Double long2 = Double.valueOf(bounds.substring(pos + 1));
+
+            // Is on map?
+            // On map
+            if (latNow >= lat1 && latNow <= lat2 && longNow >= long1 && longNow <= long2) {
+                map.setMiles(0.0);
+                map.setDistToMap("");
+                Log.d(TAG, "updateDistToMap: " + map.getName() + " on map");
+            }
+            // Off map, calculate distance away
+            else {
+                String direction = "";
+                Double dist = 0.0;
+                if (latNow > lat1) direction = "S";
+                else if (latNow > lat2) direction = "";
+                else direction = "N";
+                if (longNow < long1) direction += "E";
+                else if (longNow > long2) direction += "W";
+
+                float[] results = new float[1];
+                switch (direction) {
+                    case "S":
+                        Location.distanceBetween(latNow, longNow, lat2, longNow, results);
+                        break;
+                    case "N":
+                        Location.distanceBetween(latNow, longNow, lat1, longNow, results);
+                        break;
+                    case "E":
+                        Location.distanceBetween(latNow, longNow, latNow, long2, results);
+                        break;
+                    case "W":
+                        Location.distanceBetween(latNow, longNow, latNow, long1, results);
+                        break;
+                    case "SE":
+                        Location.distanceBetween(latNow, longNow, lat2, long2, results);
+                        break;
+                    case "SW":
+                        Location.distanceBetween(latNow, longNow, lat1, long2, results);
+                        break;
+                    case "NE":
+                        Location.distanceBetween(latNow, longNow, lat2, long1, results);
+                        break;
+                    case "NW":
+                        Location.distanceBetween(latNow, longNow, lat1, long1, results);
+                        break;
+                }
+                dist = results[0] * 0.00062137119;
+                map.setMiles(dist);
+                String distStr = "    " + String.format("%.1f", dist) + " mi " + direction;
+                map.setDistToMap(distStr);
+
+                Log.d(TAG, "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
+            }
         }
     }
 
@@ -677,6 +775,7 @@ public class CustomAdapter extends BaseAdapter {
         nameTxt = (TextView) view.findViewById(R.id.nameTxt);
         fileSizeTxt = (TextView) view.findViewById(R.id.fileSizeTxt);
         distToMapTxt = (TextView) view.findViewById(R.id.distToMapTxt);
+        locIcon = (ImageView) view.findViewById(R.id.locationIcon);
         ImageView img = view.findViewById(R.id.pdfImage);
         ProgressBar pb = view.findViewById(R.id.loadProgress);
         pb.setVisibility(View.GONE);
@@ -704,12 +803,20 @@ public class CustomAdapter extends BaseAdapter {
         if (pdfMap.getName().equals("Loading...")) {
             nameTxt.setText("Loading...");
             // call AsyncTask to read pdf binary and update progress bar and import into database
-            ImportMapTask importMap = new ImportMapTask(c, pdfMap, pb);
-            importMap.execute();
+            if (!loading) {
+                ImportMapTask importMap = new ImportMapTask(c, pdfMap, pb);
+                importMap.execute();
+            }
         } else {
             nameTxt.setText(pdfMap.getName());
             fileSizeTxt.setText(pdfMap.getFileSize());
             distToMapTxt.setText(pdfMap.getDistToMap());
+            //if (distToMap.equals("")) pdfMap.setMiles(0.0);
+            //else pdfMap.setMiles(Double.parseDouble(distToMap));
+            if (pdfMap.getDistToMap().equals(""))
+                locIcon.setVisibility(View.VISIBLE);
+            else
+                locIcon.setVisibility(View.GONE);
         }
 
         // VIEW ITEM CLICK
@@ -851,10 +958,4 @@ public class CustomAdapter extends BaseAdapter {
         i.putExtra("VIEWPORT", viewPort);
         c.startActivity(i);
     }
-
-
-    // ........................................
-    // ...   MENU Displayed on long click    ...
-    // .........................................
-
 }

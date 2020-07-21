@@ -11,6 +11,7 @@ import java.util.Comparator;
 public class PDFMap {
     private String path, bounds, mediabox, viewport, name, fileSize, distToMap;
     private int id;
+    private Double miles;
     private String thumbnail; // image filename
 
     public PDFMap(){}
@@ -24,6 +25,7 @@ public class PDFMap {
         this.name = name;
         this.fileSize = fileSize;
         this.distToMap = distToMap;
+        this.miles = Double.parseDouble(distToMap);
     }
 
     public PDFMap(int id, String path, String bounds, String mediabox, String viewport, String thumbnail, String name, String fileSize, String distToMap){
@@ -36,6 +38,7 @@ public class PDFMap {
         this.name = name;
         this.fileSize = fileSize;
         this.distToMap = distToMap;
+        this.miles = Double.parseDouble(distToMap);
     }
 
     public String getThumbnail() {
@@ -104,6 +107,10 @@ public class PDFMap {
         this.distToMap = distToMap;
     }
 
+    public Double getMiles() { return miles; }
+
+    public void setMiles(Double miles) { this.miles = miles; }
+
     // Sort arraylist of PDFMaps by pdf file name
     public static Comparator<PDFMap> NameComparator = new Comparator<PDFMap>() {
         @Override
@@ -126,6 +133,19 @@ public class PDFMap {
             // Return ascending order
             if (firstDate < secondDate) return 1;
             else if (firstDate > secondDate) return -1;
+            else return 0;
+        }
+    };
+
+    // Sort arraylist of PDFMaps by proximity to the user's current location
+    public static Comparator<PDFMap> ProximityComparator = new Comparator<PDFMap>() {
+        @Override
+        public int compare(PDFMap m1, PDFMap m2) {
+            // Sort closest map at top
+            Double miles1 = m1.getMiles();
+            Double miles2 = m2.getMiles();
+            if (miles1 > miles2) return 1;
+            else if (miles1 < miles2) return -1;
             else return 0;
         }
     };

@@ -12,7 +12,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -21,6 +20,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -30,13 +30,13 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener{
-// Displays list of imported pdf maps and an add more button. When an item is clicked, it loads the map.
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+    // Displays list of imported pdf maps and an add more button. When an item is clicked, it loads the map.
     private ListView lv;
     private CustomAdapter myAdapter; // list of imported pdf maps
     private DBHandler db;
     private String TAG = "MainActivity";
-    boolean sortFlag=true;
+    boolean sortFlag = true;
     Toolbar toolbar;
     Integer selectedId;
    /* private final int IMPORT_REQUEST_CODE = 1;
@@ -46,8 +46,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     // location variables
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
-    double latNow;
-    double longNow;
+    double latNow, latBefore=0.0;
+    double longNow, longBefore=0.0;
+    Spinner sortByDropdown;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,28 +61,29 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         // Fill Sort By Options
-        Spinner sortByDropdown = findViewById(R.id.sortBy);
+        sortByDropdown = findViewById(R.id.sortBy);
         //create an adapter to describe how the items are displayed, adapters are used in several places in android.
-        //There are multiple variations of this, but this is the basic variant.
+        // sortByItems is an array defined in res/values/strings.xml
         ArrayAdapter<CharSequence> sortByAdapter = ArrayAdapter.createFromResource(this, R.array.sortByItems,
                 R.layout.spinner_dropdown_item);
         //set the sortBy adapter to the previously created one.
         sortByDropdown.setAdapter(sortByAdapter);
         // set on click functions: onItemSelected and nothingSelected (must have these names)
         sortByDropdown.setOnItemSelectedListener(this);
-
-        // TRY to set selected sort by method from db
+        // set selected sort by item
         String sort = db.getMapSort();
         int sortID = 0;
         if (sort.equals("date")) sortID = 1;
         else if (sort.equals("size")) sortID = 2;
-        sortByDropdown.setSelection(sortID,true);
+        else if (sort.equals("proximity")) sortID = 3;
+        sortByDropdown.setSelection(sortID, true);
+
 
         // GET THE LIST FROM THE DATABASE
         try {
             myAdapter = new CustomAdapter(MainActivity.this, db.getAllMaps());
-        } catch (SQLException e){
-            Toast.makeText(MainActivity.this, "Error deleting database table: "+e.getMessage(), Toast.LENGTH_LONG).show();
+        } catch (SQLException e) {
+            Toast.makeText(MainActivity.this, "Error deleting database table: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
         lv = (ListView) findViewById(R.id.lv);
         lv.setAdapter(myAdapter);
@@ -91,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         myAdapter.checkIfExists();
 
         // Display note if no records found
-        if (myAdapter.pdfMaps.size() == 0){
+        if (myAdapter.pdfMaps.size() == 0) {
             TextView msg = (TextView) findViewById(R.id.txtMessage);
             msg.setText("No maps have been imported.\nUse the + button to import a map.");
         }
@@ -99,18 +101,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // IMPORT NEW MAP INTO LIST
         // CustomAdapter calls MapImportTask class in CustomAdapter.java
         final Intent i = this.getIntent();
-        if (i.getExtras()!=null && !i.getExtras().isEmpty()) {
+        if (i.getExtras() != null && !i.getExtras().isEmpty()) {
             if (i.getExtras().containsKey("IMPORT_MAP") && i.getExtras().containsKey("PATH")) {
                 Boolean import_map = i.getExtras().getBoolean("IMPORT_MAP");
                 // IMPORT MAP SELECTED
                 if (import_map) {
-                    sortFlag=false; // hold off on sorting.
+                    sortFlag = false; // hold off on sorting.
                     // Scroll down to last item. The one just added.
-                   // String name = new File(i.getExtras().getString("PATH")).getName();
-                   // int pos = myAdapter.findName();
-                    int pos = myAdapter.getCount()-1;
+                    // String name = new File(i.getExtras().getString("PATH")).getName();
+                    // int pos = myAdapter.findName();
+                    int pos = myAdapter.getCount() - 1;
                     if (pos > -1) lv.setSelection(pos);
-                    //Toast.makeText(MainActivity.this, "Map imported: "+i.getExtras().getString("PATH"), Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Map imported: "+i.getExtras().getString("PATH"), Toast.LENGTH_LONG).show();
                 }
                 i.removeExtra("PATH");
                 i.removeExtra("IMPORT_MAP");
@@ -135,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 i.removeExtra("ID");
                 i.removeExtra("DELETE");
                 // Display note if no records found
-                if (myAdapter.pdfMaps.size() == 0){
+                if (myAdapter.pdfMaps.size() == 0) {
                     TextView msg = (TextView) findViewById(R.id.txtMessage);
                     msg.setText("No maps have been imported.\nUse the + button to import a map.");
                 }
@@ -143,13 +145,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
 
         // FLOATING ACTION BUTTON CLICK
-         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-         fab.setOnClickListener(new View.OnClickListener() {
-             @Override
-             public void onClick(View view) {
-                 Intent intent=new Intent(MainActivity.this,GetMoreActivity.class);
-                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                 startActivity(intent);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, GetMoreActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
             }
         });
 
@@ -162,19 +164,55 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             public void onLocationResult(LocationResult locationResult) {
                 for (Location location : locationResult.getLocations()) {
                     // Update UI with location data
-
+                    float[] results = new float[1];
                     latNow = location.getLatitude();
                     longNow = location.getLongitude(); // make it positive
+
+                    // for debugging
+                    //latBefore = 38.5;
+                    //longBefore = -105.0;
+                    myAdapter.setLocation(location);
                     //bearing = location.getBearing(); // 0-360 degrees 0 at North
-                    //accuracy = location.getAccuracy();
-                    updateDistToMap();
+
+                    // if accuracy is 1/10 of a mile or greater do not update distance to map
+                    float accuracy = location.getAccuracy();
+                    //Log.d(TAG, "onLocationResult: accuracy="+accuracy);
+                    if (accuracy > 160.9344) return;
+
+                    if (latBefore != 0.0) {
+                        try {
+                            Location.distanceBetween(latBefore, longBefore, latNow, longNow, results);
+                        } catch (IllegalArgumentException e) {
+                            return;
+                        }
+                    }
+
+                    // if change in location is > .1 miles update distance to map
+                    if (results[0] > 160.9344 || latBefore == 0.0) {
+                         // updateDistToMap(); // move to CustomAdapter
+                         myAdapter.getDistToMap();
+                         // if first time update distance to map
+                         String sort = db.getMapSort();
+                         if (latBefore == 0.0 && sort != "proximity")
+                            myAdapter.notifyDataSetChanged();
+
+                         if (sort.equals("proximity")) {
+                            if (latBefore != 0.0)
+                                Toast.makeText(MainActivity.this,"Updating proximity.",Toast.LENGTH_SHORT).show();
+                            sortMaps("proximity"); // scrolls to top!!!! oh no!!!!!
+                         }
+                    }
+
+                    // save current location so we can see how much they moved
+                    latBefore = latNow;
+                    longBefore = longNow;
                 }
             }
         };
     }
 
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
         if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
                 (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
@@ -185,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
     @Override
-    protected void onPause(){
+    protected void onPause() {
         super.onPause();
         if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
                 (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
@@ -202,8 +240,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private void startLocationUpdates() {
         LocationRequest mLocationRequest;
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(1000); //update location every 1 seconds
+        mLocationRequest.setInterval(30000); //update location every 30 seconds
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null /*looper*/);
     }
 
@@ -211,7 +259,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
 
-    private void updateDistToMap() {
+    /*private void updateDistToMap() {
+        // calculate updated distances for visible cells
         for (int i=0; i<myAdapter.getCount(); i++) {
             PDFMap map = myAdapter.pdfMaps.get(i);
             View cell = lv.getChildAt(i - lv.getFirstVisiblePosition());
@@ -237,14 +286,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             // Get text field to display distance
             TextView distToMapText = (TextView) cell.findViewById(R.id.distToMapTxt);
             ImageView locIcon = cell.findViewById(R.id.locationIcon);
+            locIcon.setVisibility(View.GONE);
 
             // Is on map?
+            // On map
             if (latNow >= lat1 && latNow <= lat2 && longNow >= long1 && longNow <= long2){
                 locIcon.setVisibility(View.VISIBLE); // Near me icon to visible
                 distToMapText.setText(""); // On the map
+                map.setDistToMap("");
+                map.setMiles(0.0);
+                Log.d(TAG, "updateDistToMap: "+map.getName()+ " on map");
             }
+            // Off map, calculate distance away
             else {
-                locIcon.setVisibility(View.GONE);
                 String direction = "";
                 Double dist = 0.0;
                 if (latNow > lat1) direction = "S";
@@ -279,9 +333,27 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         dist = distance_on_unit_sphere(latNow, longNow, lat1, long1);
                         break;
                 }
-                String distStr = String.format("%.1f", dist);
-
-                distToMapText.setText("    " + distStr + " mi " + direction);
+                String distStr = "    " +String.format("%.1f", dist) + " mi " + direction;
+                distToMapText.setText(distStr);
+                map.setDistToMap(distStr);
+                map.setMiles(dist);
+                Log.d(TAG, "updateDistToMap: "+map.getName()+ " "+map.getDistToMap());
+            }
+        }
+        // Sort by proximity with updated distances
+        String sort = db.getMapSort();
+        if (sort.equals("proximity")) {
+            //sortMaps(sort);
+            for (int i = 0; i < myAdapter.getCount(); i++) {
+                PDFMap map = myAdapter.pdfMaps.get(i);
+                View cell = lv.getChildAt(i - lv.getFirstVisiblePosition());
+                if (cell == null || map == null)
+                    continue;
+                TextView distToMapText = (TextView) cell.findViewById(R.id.distToMapTxt);
+                ImageView locIcon = cell.findViewById(R.id.locationIcon);
+                locIcon.setVisibility(View.GONE);
+                distToMapText.setText(map.getDistToMap());
+                if (map.getDistToMap().equals("")) locIcon.setVisibility(View.VISIBLE);
             }
         }
     }
@@ -311,27 +383,26 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // Remember to multiply arc by the radius of the earth
         // in your favorite set of units to get length.
         return arc * 3963; // 3,962 is the radius of earth in miles
-    }
+    }*/
 
     // ...................
     //   Sort By DropDown
     // ...................
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
-
-        switch (position) {
-            case 0:
+    private  void sortMaps(String sortBy) throws IllegalStateException {
+        switch (sortBy) {
+            case "name":
                 // Sort by Name
                 myAdapter.SortByName();
                 lv.setAdapter(myAdapter);
                 try {
+                    // save user sort preference in db
                     db.setMapSort("name");
                 }
                 catch (SQLException e){
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
                 }
                 break;
-            case 1:
+            case "date":
                 // Sort by Date
                 myAdapter.SortByDate();
                 lv.setAdapter(myAdapter);
@@ -342,7 +413,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
                 }
                 break;
-            case 2:
+            case "size":
                 // Sort by Size
                 myAdapter.SortBySize();
                 lv.setAdapter(myAdapter);
@@ -353,6 +424,59 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
                 }
                 break;
+            case "proximity":
+                // Sort by Proximity
+                int pos = lv.getFirstVisiblePosition();
+                myAdapter.SortByProximity();
+                myAdapter.notifyDataSetChanged();
+                lv.smoothScrollToPosition(pos);
+
+                //lv.setAdapter(myAdapter); // scrolls to the top
+                try {
+                    db.setMapSort("proximity");
+                }
+                catch (SQLException e){
+                    Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + sortBy);
+        }
+    }
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View v, int position, long id) throws IllegalStateException {
+
+        switch (position) {
+            case 0:
+                // Sort by Name
+                sortMaps("name");
+                break;
+            case 1:
+                // Sort by Date
+               try {
+                   sortMaps("date");
+               } catch (IllegalStateException e) {
+                   throw e;
+               }
+                break;
+            case 2:
+                // Sort by Size
+                try {
+                    sortMaps("size");
+                } catch (IllegalStateException e) {
+                    throw e;
+                }
+                break;
+            case 3:
+                // Sort by Proximity
+                try {
+                    sortMaps("proximity");
+                } catch (IllegalStateException e) {
+                    throw e;
+                }
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + position);
         }
     }
     @Override

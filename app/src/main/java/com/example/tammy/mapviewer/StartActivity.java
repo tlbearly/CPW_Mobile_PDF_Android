@@ -25,7 +25,7 @@ import static androidx.appcompat.app.AlertDialog.Builder;
  */
 public class StartActivity extends AppCompatActivity {
 
-    static final int MY_PERMISSIONS_LOCATION=0;
+    static final int MY_PERMISSIONS_LOCATION = 0;
     static final int MY_PERMISSIONS_STORAGE = 2;
     static final int MY_PERMISSIONS_INTERNET = 4;
     

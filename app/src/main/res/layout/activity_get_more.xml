@@ -31,6 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:layout_marginBottom="10dp"
+            android:gravity="center"
             android:text="@string/device_storage_help" />
 
         <Button
@@ -46,6 +47,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -73,8 +75,10 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:layout_marginBottom="10dp"
+            android:gravity="center_horizontal"
             android:text="@string/ready_made"
             android:textSize="18sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/textView2"
             app:layout_constraintTop_toBottomOf="@+id/textView"
             tools:layout_editor_absoluteX="8dp" />
@@ -86,6 +90,7 @@
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
             android:layout_marginBottom="10dp"
+            android:gravity="center_horizontal"
             android:text="@string/ready_made_help"
             tools:layout_editor_absoluteX="8dp"
             tools:layout_editor_absoluteY="108dp" />
@@ -97,25 +102,27 @@
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             android:layout_marginBottom="10dp"
+            android:gravity="center_horizontal"
             android:text="@string/ready_made_help2"
             tools:layout_editor_absoluteX="8dp"
             tools:layout_editor_absoluteY="108dp" />
 
+        <Button
+            android:id="@+id/CPWBtn"
+            style="@style/button_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/grey_button"
+            android:text="@string/CPW" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:gravity="center_horizontal"
             android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/CPWBtn"
-                style="@style/button_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/grey_button"
-                android:text="@string/CPW" />
 
             <Button
                 android:id="@+id/usgsBtn"
@@ -123,9 +130,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="10dp"
                 android:background="@drawable/grey_button"
                 android:text="@string/usgs" />
+
+            <Button
+                android:id="@+id/fsBtn"
+                style="@style/button_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/grey_button"
+                android:text="@string/fstopo" />
         </LinearLayout>
 
         <TextView
@@ -135,8 +150,10 @@
             android:layout_marginStart="10dp"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="10dp"
+            android:gravity="center_horizontal"
             android:text="@string/custom"
-            android:textSize="18sp" />
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/textView3"
@@ -144,6 +161,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:layout_marginBottom="10dp"
+            android:gravity="center_horizontal"
             android:text="@string/custom_help" />
 
         <LinearLayout

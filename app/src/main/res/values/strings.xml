@@ -26,6 +26,7 @@
         <item>Name</item>
         <item>Date</item>
         <item>Size</item>
+        <item>Proximity</item>
     </string-array>
 
     <string name="title_activity_load_file">CPW Map Viewer</string>
@@ -76,4 +77,6 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="renameMap">Rename Map</string>
     <string name="renameWayPt">Rename Way Pt.</string>
+    <string name="fstopo">FS Topo</string>
+    <string name="downloading">Downloading...</string>
 </resources>

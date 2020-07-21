@@ -68,6 +68,32 @@ public class GetMoreActivity extends AppCompatActivity {
             }
         });
 
+        // US Forest Service Topos, FSTopo Map Product Download
+        Button fsBtn = (Button) findViewById(R.id.fsBtn);
+        fsBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Open a web page inside this app (using a WebView)
+                Intent browser4 = new Intent(GetMoreActivity.this,WebActivity.class);
+                browser4.putExtra("URL","https://www.arcgis.com/apps/webappviewer/index.html?id=b70e11a68aac46b3a5bd911b82b53c1e");
+                browser4.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(browser4);
+            }
+        });
+
+        // USGS TopoView
+        Button usgsBtn = (Button) findViewById(R.id.usgsBtn);
+        usgsBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Open a web page inside this app (using a WebView)
+                Intent browser5 = new Intent(GetMoreActivity.this,WebActivity.class);
+                // historical topo maps from usgs https://www.natgeomaps.com/trail-maps/pdf-quads
+                // Current US Topo maps from USGS https://viewer.nationalmap.gov/basic/?basemap=b1&category=histtopo%2Custopo&title=Map%20View
+                browser5.putExtra("URL","https://viewer.nationalmap.gov/apps/mobile_client/");//?basemap=b1&category=histtopo%2Custopo&title=Map%20View");
+                browser5.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(browser5);
+            }
+        });
+
         // Open Android File Picker for PDF files API 1
         downloadsBtn = (Button) findViewById(R.id.downloadsBtn);
         downloadsBtn.setOnClickListener(new View.OnClickListener() {
@@ -89,20 +115,6 @@ public class GetMoreActivity extends AppCompatActivity {
                 // it would be "*/*".
                 intent.setType("application/pdf");
                 startActivityForResult(intent,READ_REQUEST_CODE);
-            }
-        });
-
-        // USGS TopoView
-        Button usgsBtn = (Button) findViewById(R.id.usgsBtn);
-        usgsBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // Open a web page inside this app (using a WebView)
-                Intent browser4 = new Intent(GetMoreActivity.this,WebActivity.class);
-                // historical topo maps from usgs https://www.natgeomaps.com/trail-maps/pdf-quads
-                // Current US Topo maps from USGS https://viewer.nationalmap.gov/basic/?basemap=b1&category=histtopo%2Custopo&title=Map%20View
-                browser4.putExtra("URL","https://viewer.nationalmap.gov/apps/mobile_client/");//?basemap=b1&category=histtopo%2Custopo&title=Map%20View");
-                browser4.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(browser4);
             }
         });
     }

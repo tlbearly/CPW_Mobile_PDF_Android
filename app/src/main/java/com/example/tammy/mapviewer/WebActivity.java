@@ -12,16 +12,15 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.GeolocationPermissions;
-import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -51,6 +50,13 @@ public class WebActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web);
         AlertDialog.Builder builder;
+
+        // hide progress bar
+        LinearLayout webProgressView = findViewById(R.id.webProgressView);
+        webProgressView.setVisibility(View.GONE);
+        ProgressBar webProgress = findViewById(R.id.webProgress);
+        webProgress.setProgress(0);
+
         // check for internet permission or return.
         if (ContextCompat.checkSelfPermission(WebActivity.this, Manifest.permission.INTERNET)
                 == PackageManager.PERMISSION_DENIED) {
@@ -79,20 +85,33 @@ public class WebActivity extends AppCompatActivity {
             //  GET URL to Load
             try {
                 url = intent.getExtras().getString("URL");
-                if (url.contains("nationalmap"))
+                if (url.contains("nationalmap")) {
                     setTitle("USGS Website");
-                else if (url.contains("Hunting"))
+                    Toast.makeText(WebActivity.this, "Loading USGS Website...", Toast.LENGTH_LONG).show();
+                }
+                else if (url.contains("Hunting")) {
                     setTitle("Hunting Atlas Website");
-                else if (url.contains("Fishing"))
+                    Toast.makeText(WebActivity.this, "Loading HuntingAtlas Website...", Toast.LENGTH_LONG).show();
+                }
+                else if (url.contains("Fishing")) {
                     setTitle("Fishing Atlas Website");
-                else if (url.contains("cpw"))
+                    Toast.makeText(WebActivity.this, "Loading FishingAtlas Website...", Toast.LENGTH_LONG).show();
+                }
+                else if (url.contains("cpw")) {
                     setTitle("CPW Website");
+                    Toast.makeText(WebActivity.this, "Loading CPW Website...", Toast.LENGTH_LONG).show();
+                }
+                else if (url.contains("webappviewer")) {
+                    setTitle("FS Topo Website");
+                    Toast.makeText(WebActivity.this, "Loading FS Website...", Toast.LENGTH_LONG).show();
+                }
             } catch (NullPointerException e) {
                 Toast.makeText(WebActivity.this, "Trouble reading the web address. Read: " + url, Toast.LENGTH_LONG).show();
                 return;
             }
             myWebView = findViewById(R.id.webview);
             WebSettings webSettings = myWebView.getSettings();
+
             // NOTE: Side note: you'll be warned for a security issue (because JavaScript is evil!). Simply add the SuppressWarning annotation to the onCreate() method
             webSettings.setJavaScriptCanOpenWindowsAutomatically(true); // open dialog for location tracking
             webSettings.setJavaScriptEnabled(true);
@@ -105,7 +124,6 @@ public class WebActivity extends AppCompatActivity {
             }
             else {
                 cookieManager.setAcceptCookie(true);
-                //cookieManager.getInstance().setAcceptCookie(true);
             }
             registerReceiver(onDownloadComplete,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
@@ -140,23 +158,25 @@ public class WebActivity extends AppCompatActivity {
                     File destinationDir = new File(getExternalFilesDir(null),"");// Can't do internal file  WebActivity.this.getFilesDir(); // get path to app directory
                     // We only want to handle requests for pdf files, everything else the webview
                     // can handle normally
-                    if (url.indexOf(".pdf")>-1) {
-                        Toast.makeText(WebActivity.this, "Downloading...", Toast.LENGTH_LONG).show();
+                    if (url.contains(".pdf")) {
+                        LinearLayout webProgressView = findViewById(R.id.webProgressView);
+                        webProgressView.setVisibility(View.VISIBLE);
+                       // Toast.makeText(WebActivity.this, "Downloading...", Toast.LENGTH_LONG).show();
                         shouldOverride = true;
                         Uri source = Uri.parse(url);
                         fileName = source.getLastPathSegment();
 
                         // Use the same file name for the destination
-                        File destinationFile = new File (destinationDir, source.getLastPathSegment());
+                        File destinationFile = new File (destinationDir, fileName);
 
                         // Make a new request pointing to the pdf url
                         DownloadManager.Request request = new DownloadManager.Request(source)
                                 .setTitle("Map Download")// Title of the Download Notification
-                                .setDescription("Downloading")// Description of the Download Notification
-                                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)// Visibility of the download Notification
+                                .setDescription("Downloading a map")// Description of the Download Notification
                                 .setDestinationUri(Uri.fromFile(destinationFile))// Uri of the destination file
                                 .setAllowedOverMetered(true)// Set if download is allowed on Mobile network
                                 .setAllowedOverRoaming(true);// Set if download is allowed on roaming network
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                         if (Build.VERSION.SDK_INT >= 24) {
                             request.setRequiresCharging(false);// Set if charging is required to begin the download
                         }
@@ -165,22 +185,13 @@ public class WebActivity extends AppCompatActivity {
                         downloadQueueId = downloadManager.enqueue(request);// enqueue puts the download request in the queue.
                     }
                     else {
-                        Toast.makeText(WebActivity.this, "Must be a PDF file, not "+url.substring(url.length()-4), Toast.LENGTH_LONG).show();
+                        // USFS Topo uses a php file to get the pdf file, so wait for the pdf file download
+                        if (!url.contains(".php"))
+                            Toast.makeText(WebActivity.this, "Must be a PDF file, not "+url.substring(url.length()-4), Toast.LENGTH_LONG).show();
                     }
                     return shouldOverride;
                 }
             });
-
-
-            if (url.indexOf("Hunting")>-1)
-                Toast.makeText(WebActivity.this, "Loading HuntingAtlas...", Toast.LENGTH_LONG).show();
-            else if (url.indexOf("Fishing")>-1)
-                Toast.makeText(WebActivity.this, "Loading FishingAtlas...", Toast.LENGTH_LONG).show();
-            else  if (url.indexOf("Maps-Library")>-1)
-                Toast.makeText(WebActivity.this, "Loading CPW Maps Library...", Toast.LENGTH_LONG).show();
-            else  if (url.indexOf("nationalmap")>-1)
-                Toast.makeText(WebActivity.this, "Loading USGS...", Toast.LENGTH_LONG).show();
-       // }
     }
 
     // Handle Download Here
@@ -191,6 +202,8 @@ public class WebActivity extends AppCompatActivity {
             long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
             //Checking if the received broadcast is for our enqueued download by matching download id
             if (downloadQueueId == id) {
+                ProgressBar webProgress = findViewById(R.id.webProgress);
+
                 //Toast.makeText(WebActivity.this, "Download Completed.", Toast.LENGTH_SHORT).show();
                 // IMPORT a BLANK MAP INTO DATABASE
                 DownloadManager.Query query = new DownloadManager.Query();
@@ -200,10 +213,11 @@ public class WebActivity extends AppCompatActivity {
                 String path = "";
                 if (c.moveToFirst()) {
                     // show status
-                    DownloadStatus(c,downloadQueueId);
+                    String status = DownloadStatus(c,downloadQueueId);
                     int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
                     if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
                         try {
+                            webProgress.setProgress(100);
                             path = c.getString(c.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI));
                             if (path.indexOf("file://")>-1) path=path.substring(7);
                             // Replace spaces with _
@@ -249,26 +263,31 @@ public class WebActivity extends AppCompatActivity {
                             e.printStackTrace();
                             return;
                         }
+
+                        // Add to database
+                        PDFMap map = new PDFMap(newPath, "", "", "", null, "Loading...", "", "");
+                        DBHandler db = new DBHandler(WebActivity.this);
+                        db.addMap(map);
+
+                        // CALL MAIN ACTIVITY TO DISPLAY LIST OF IMPORTED MAPS WITH FLAG TO IMPORT THE NEW MAP
+                        Intent i = new Intent(WebActivity.this, MainActivity.class);
+                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        i.putExtra("IMPORT_MAP", true);
+                        i.putExtra("PATH", newPath);
+                        WebActivity.this.startActivity(i);
+                    }
+                    else if (DownloadManager.STATUS_FAILED == c.getInt(columnIndex)) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(WebActivity.this);
+                        builder.setTitle("Download Failed");
+                        int columnReason = c.getColumnIndex(DownloadManager.COLUMN_REASON);
+                        int reason = c.getInt(columnReason);
+                        builder.setMessage(status).setPositiveButton("OK", dialogClickListener).show();
+                        LinearLayout webProgressView = findViewById(R.id.webProgressView);
+                        webProgressView.setVisibility(View.GONE);
+                        webProgress.setProgress(0);
                     }
                 }
 
-                // Add to database
-                PDFMap map = new PDFMap(newPath, "", "", "", null, "Loading...", "", "");
-                DBHandler db = new DBHandler(WebActivity.this);
-                db.addMap(map);
-
-                // CALL MAIN ACTIVITY TO DISPLAY LIST OF IMPORTED MAPS WITH FLAG TO IMPORT THE NEW MAP
-                Intent i = new Intent(WebActivity.this, MainActivity.class);
-                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                i.putExtra("IMPORT_MAP", true);
-                i.putExtra("PATH", newPath);
-                WebActivity.this.startActivity(i);
-
-               /* Intent returnIntent = getIntent();
-                returnIntent.putExtra("IMPORT_MAP", true);
-                returnIntent.putExtra("PATH", newPath);
-                setResult(RESULT_OK, returnIntent);
-                finish();*/
             }
         };
     };
@@ -279,16 +298,16 @@ public class WebActivity extends AppCompatActivity {
     // <script type="text/javascript">
     //   Interface.javaMehod("This information sent from html page.");
     //</script>
-    public class WebviewInterface {
+   /* public class WebviewInterface {
         @JavascriptInterface
         public void javaMehod(String val) {
             Log.i("WebActivity", val);
             Toast.makeText(WebActivity.this, val, Toast.LENGTH_SHORT).show();
         }
-    }
+    }*/
 
     // handle error messages
-    private void DownloadStatus(Cursor cursor, long DownloadId){
+    private String DownloadStatus(Cursor cursor, long DownloadId){
         //column for download  status
         int columnIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
         int status = cursor.getInt(columnIndex);
@@ -303,7 +322,7 @@ public class WebActivity extends AppCompatActivity {
                 statusText = "FAILED";
                 switch(reason){
                     case DownloadManager.ERROR_CANNOT_RESUME:
-                        reasonText = "ERROR_CANNOT_RESUME";
+                        reasonText = "An error occured and the download was unable to resume.";
                         break;
                     case DownloadManager.ERROR_DEVICE_NOT_FOUND:
                         reasonText = "ERROR_DEVICE_NOT_FOUND";
@@ -328,6 +347,9 @@ public class WebActivity extends AppCompatActivity {
                         break;
                     case DownloadManager.ERROR_UNKNOWN:
                         reasonText = "ERROR_UNKNOWN";
+                        break;
+                    default:
+                        reasonText = "Unknown error occured.";
                         break;
                 }
                 break;
@@ -359,14 +381,32 @@ public class WebActivity extends AppCompatActivity {
                 break;
         }
 
-        Toast toast = Toast.makeText(WebActivity.this,
-                "Download " + statusText + " " +
-                        reasonText,
-                Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.TOP, 25, 400);
-        toast.show();
+        /*if (statusText.equals("FAILED")) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(WebActivity.this);
+            builder.setTitle("Download Failed");
+            builder.setMessage(reasonText).setPositiveButton("OK", dialogClickListener).show();
+        } else {*/
+            // Success show quick message
+           /* Toast toast = Toast.makeText(WebActivity.this,
+                    "Download " + statusText + " " +
+                            reasonText,
+                    Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.TOP, 25, 400);
+            toast.show();*/
+            return reasonText;
+       // }
     }
 
+    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which){
+                case DialogInterface.BUTTON_POSITIVE:
+                    // OK button clicked
+                    break;
+            }
+        }
+    };
     // Permission for location service?
     @Override
     public void onRequestPermissionsResult(int requestCode,

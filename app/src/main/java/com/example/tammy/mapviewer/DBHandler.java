@@ -194,6 +194,12 @@ public class DBHandler extends SQLiteOpenHelper {
                     map.setName(cursor.getString(6));
                     map.setFileSize(cursor.getString(7));
                     map.setDistToMap(cursor.getString(8));
+                    if (map.getDistToMap().equals("")) {
+                        map.setMiles(0.0);
+                    }
+                    else {
+                        map.setMiles(Double.parseDouble(map.getDistToMap()));
+                    }
                     // Adding map to list
                     mapList.add(map);
                 } while (cursor.moveToNext());
