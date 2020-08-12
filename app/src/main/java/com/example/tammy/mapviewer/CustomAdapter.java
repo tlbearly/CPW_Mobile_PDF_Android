@@ -47,7 +47,7 @@ import static java.lang.Integer.parseInt;
 public class CustomAdapter extends BaseAdapter {
     private Context c;
     ArrayList<PDFMap> pdfMaps;
-    private int vis, hide;
+    //private int vis, hide;
     // EditText renameTxt;
     TextView nameTxt;
     TextView fileSizeTxt;
@@ -571,8 +571,11 @@ public class CustomAdapter extends BaseAdapter {
 
     public void getDistToMap() {
         // calculate updated distances for all cells
-        if (latNow == null || longNow == null)
+        // Called from MainActivity onLocationResult when user location has changed by 1/10 of a mile
+        // Or when latBefore is 0.0.
+        if (latNow == null || longNow == null) {
             return;
+        }
         for (int i=0; i<pdfMaps.size(); i++) {
             PDFMap map = pdfMaps.get(i);
 
@@ -770,12 +773,13 @@ public class CustomAdapter extends BaseAdapter {
         final PDFMap pdfMap = (PDFMap) this.getItem(i);
 
         // renameTxt = (EditText) view.findViewById(R.id.rename);
-        vis = View.VISIBLE;
-        hide = View.GONE;
+        //vis = View.VISIBLE;
+        //hide = View.GONE;
         nameTxt = (TextView) view.findViewById(R.id.nameTxt);
         fileSizeTxt = (TextView) view.findViewById(R.id.fileSizeTxt);
         distToMapTxt = (TextView) view.findViewById(R.id.distToMapTxt);
         locIcon = (ImageView) view.findViewById(R.id.locationIcon);
+        locIcon.setVisibility(View.GONE);
         ImageView img = view.findViewById(R.id.pdfImage);
         ProgressBar pb = view.findViewById(R.id.loadProgress);
         pb.setVisibility(View.GONE);
@@ -810,12 +814,14 @@ public class CustomAdapter extends BaseAdapter {
         } else {
             nameTxt.setText(pdfMap.getName());
             fileSizeTxt.setText(pdfMap.getFileSize());
+            // getDistToMap sets miles also
             distToMapTxt.setText(pdfMap.getDistToMap());
-            //if (distToMap.equals("")) pdfMap.setMiles(0.0);
-            //else pdfMap.setMiles(Double.parseDouble(distToMap));
-            if (pdfMap.getDistToMap().equals(""))
-                locIcon.setVisibility(View.VISIBLE);
-            else
+            if (latNow != null) {
+                if (!pdfMap.getDistToMap().equals(""))
+                    locIcon.setVisibility(View.GONE);
+                else
+                    locIcon.setVisibility(View.VISIBLE);
+            } else
                 locIcon.setVisibility(View.GONE);
         }
 

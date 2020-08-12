@@ -36,6 +36,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import static android.content.DialogInterface.*;
+
 public class WebActivity extends AppCompatActivity {
 // Load a CPW, HuntingAtals, or FishingAtlas Website in an activity window and listen for download file
     WebView myWebView;
@@ -55,7 +57,7 @@ public class WebActivity extends AppCompatActivity {
         LinearLayout webProgressView = findViewById(R.id.webProgressView);
         webProgressView.setVisibility(View.GONE);
         ProgressBar webProgress = findViewById(R.id.webProgress);
-        webProgress.setProgress(0);
+        //webProgress.setProgress(0);
 
         // check for internet permission or return.
         if (ContextCompat.checkSelfPermission(WebActivity.this, Manifest.permission.INTERNET)
@@ -64,7 +66,7 @@ public class WebActivity extends AppCompatActivity {
             if (ActivityCompat.shouldShowRequestPermissionRationale(WebActivity.this, Manifest.permission.INTERNET)) {
                 builder = new AlertDialog.Builder(WebActivity.this);
                 builder.setTitle("Notice");
-                builder.setMessage("Permission for the internet is needed to download Maps.").setPositiveButton("OK",  new DialogInterface.OnClickListener() {
+                builder.setMessage("Permission for the internet is needed to download Maps.").setPositiveButton("OK",  new OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         // User clicked OK button. Hide dialog. Ask again
                         ActivityCompat.requestPermissions(WebActivity.this,
@@ -171,12 +173,12 @@ public class WebActivity extends AppCompatActivity {
 
                         // Make a new request pointing to the pdf url
                         DownloadManager.Request request = new DownloadManager.Request(source)
-                                .setTitle("Map Download")// Title of the Download Notification
-                                .setDescription("Downloading a map")// Description of the Download Notification
+                                .setTitle("Download")// Title of the Download Notification
+                                .setDescription("Downloading map...")// Description of the Download Notification
                                 .setDestinationUri(Uri.fromFile(destinationFile))// Uri of the destination file
                                 .setAllowedOverMetered(true)// Set if download is allowed on Mobile network
                                 .setAllowedOverRoaming(true);// Set if download is allowed on roaming network
-                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);//   .VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                         if (Build.VERSION.SDK_INT >= 24) {
                             request.setRequiresCharging(false);// Set if charging is required to begin the download
                         }
@@ -202,7 +204,7 @@ public class WebActivity extends AppCompatActivity {
             long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
             //Checking if the received broadcast is for our enqueued download by matching download id
             if (downloadQueueId == id) {
-                ProgressBar webProgress = findViewById(R.id.webProgress);
+                //ProgressBar webProgress = findViewById(R.id.webProgress);
 
                 //Toast.makeText(WebActivity.this, "Download Completed.", Toast.LENGTH_SHORT).show();
                 // IMPORT a BLANK MAP INTO DATABASE
@@ -213,11 +215,11 @@ public class WebActivity extends AppCompatActivity {
                 String path = "";
                 if (c.moveToFirst()) {
                     // show status
-                    String status = DownloadStatus(c,downloadQueueId);
+                    String status = DownloadStatus(c);
                     int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
                     if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
                         try {
-                            webProgress.setProgress(100);
+                            //webProgress.setProgress(100);
                             path = c.getString(c.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI));
                             if (path.indexOf("file://")>-1) path=path.substring(7);
                             // Replace spaces with _
@@ -279,17 +281,17 @@ public class WebActivity extends AppCompatActivity {
                     else if (DownloadManager.STATUS_FAILED == c.getInt(columnIndex)) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(WebActivity.this);
                         builder.setTitle("Download Failed");
-                        int columnReason = c.getColumnIndex(DownloadManager.COLUMN_REASON);
-                        int reason = c.getInt(columnReason);
+                        //int columnReason = c.getColumnIndex(DownloadManager.COLUMN_REASON);
+                        //int reason = c.getInt(columnReason);
                         builder.setMessage(status).setPositiveButton("OK", dialogClickListener).show();
                         LinearLayout webProgressView = findViewById(R.id.webProgressView);
                         webProgressView.setVisibility(View.GONE);
-                        webProgress.setProgress(0);
+                        //webProgress.setProgress(0);
                     }
                 }
 
             }
-        };
+        }
     };
 
 
@@ -307,22 +309,22 @@ public class WebActivity extends AppCompatActivity {
     }*/
 
     // handle error messages
-    private String DownloadStatus(Cursor cursor, long DownloadId){
+    private String DownloadStatus(Cursor cursor){
         //column for download  status
         int columnIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
         int status = cursor.getInt(columnIndex);
         //column for reason code if the download failed or paused
         int columnReason = cursor.getColumnIndex(DownloadManager.COLUMN_REASON);
         int reason = cursor.getInt(columnReason);
-        String statusText = "";
+       // String statusText = "";
         String reasonText = "";
 
         switch(status){
             case DownloadManager.STATUS_FAILED:
-                statusText = "FAILED";
+                //statusText = "FAILED";
                 switch(reason){
                     case DownloadManager.ERROR_CANNOT_RESUME:
-                        reasonText = "An error occured and the download was unable to resume.";
+                        reasonText = "An error occurred and the download was unable to resume.";
                         break;
                     case DownloadManager.ERROR_DEVICE_NOT_FOUND:
                         reasonText = "ERROR_DEVICE_NOT_FOUND";
@@ -354,7 +356,7 @@ public class WebActivity extends AppCompatActivity {
                 }
                 break;
             case DownloadManager.STATUS_PAUSED:
-                statusText = "PAUSED";
+                //statusText = "PAUSED";
                 switch(reason){
                     case DownloadManager.PAUSED_QUEUED_FOR_WIFI:
                         reasonText = "PAUSED_QUEUED_FOR_WIFI";
@@ -371,13 +373,13 @@ public class WebActivity extends AppCompatActivity {
                 }
                 break;
             case DownloadManager.STATUS_PENDING:
-                statusText = "PENDING";
+                //statusText = "PENDING";
                 break;
             case DownloadManager.STATUS_RUNNING:
-                statusText = "RUNNING";
+                //statusText = "RUNNING";
                 break;
             case DownloadManager.STATUS_SUCCESSFUL:
-                statusText = "Successful";
+                //statusText = "Successful";
                 break;
         }
 
@@ -397,22 +399,20 @@ public class WebActivity extends AppCompatActivity {
        // }
     }
 
-    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+    OnClickListener dialogClickListener = new OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
-            switch (which){
-                case DialogInterface.BUTTON_POSITIVE:
-                    // OK button clicked
-                    break;
-            }
+            // user clicked ok button
         }
     };
+
     // Permission for location service?
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String[] permissions, int[] grantResults) {
-        AlertDialog.Builder builder;
-        if (grantResults.length == 0)return;
+        if (grantResults != null && grantResults.length == 0) {
+            return;
+        }
         switch (requestCode) {
             case MY_PERMISSIONS_STORAGE:{
                 // If request is cancelled, the result arrays are empty.
@@ -454,23 +454,34 @@ public class WebActivity extends AppCompatActivity {
                         finish();
                     }
                 }
-                return;
             }
         }
     }
     @Override
     protected void onResume(){
         super.onResume();
+        // Register the receiver to receive an intent when download complete
+        IntentFilter intentFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+        registerReceiver(onDownloadComplete, intentFilter);
     }
 
     @Override
     protected void onPause(){
         super.onPause();
+        try {
+            unregisterReceiver(onDownloadComplete);
+        } catch(IllegalArgumentException e){
+            //receiver was not registered
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(onDownloadComplete);
+        try {
+            unregisterReceiver(onDownloadComplete);
+        } catch(IllegalArgumentException e){
+            //receiver was not registered
+        }
     }
 }

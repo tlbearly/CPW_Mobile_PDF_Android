@@ -19,13 +19,14 @@
     <string name="red">Red</string>
     <string name="blue">Blue</string>
     <string name="cyan">Cyan</string>
+    <string name="noMapsImported">No maps have been imported.\nUse the + button to import a map.</string>
 
     <string name="title_activity_main">Imported Maps</string>
     <string name="sort_by">Sort By:</string>
     <string-array name="sortByItems">
         <item>Name</item>
-        <item>Date</item>
-        <item>Size</item>
+        <item>Date Added</item>
+        <item>File Size</item>
         <item>Proximity</item>
     </string-array>
 

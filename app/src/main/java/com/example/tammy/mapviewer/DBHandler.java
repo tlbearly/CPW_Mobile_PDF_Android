@@ -7,7 +7,6 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -18,7 +17,7 @@ import java.util.ArrayList;
 
 public class DBHandler extends SQLiteOpenHelper {
     private static DBHandler mInstance = null;
-    private Context c;
+   //private Context c;
     private static final int DATABASE_VERSION = 1;
     // Database Name
     private static final String DATABASE_NAME = "mapsInfo";
@@ -55,21 +54,22 @@ public class DBHandler extends SQLiteOpenHelper {
     }
     public DBHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        this.c = context;
+        //this.c = context;
     }
 
     @Override
-    public void onCreate(SQLiteDatabase db) {
+    public void onCreate(SQLiteDatabase db) throws SQLException {
         try {
             // Create Imported Maps Table
             createMapsTable(db);
 
             // Create User Settings Table
-            createSettingsTable();
+            createSettingsTable(db);
         }
         catch (SQLException e){
             Log.d("DBHandler","Error creating database: "+e.getMessage());
-            Toast.makeText(c, "Error creating database: "+e.getMessage(), Toast.LENGTH_LONG).show();
+           // Toast.makeText(c, "Error creating database: "+e.getMessage(), Toast.LENGTH_LONG).show();
+            throw e;
         }
     }
 
@@ -141,7 +141,7 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
     // Getting one PDF Map
-    public PDFMap getMap(int id) throws SQLException {
+   /* public PDFMap getMap(int id) throws SQLException {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(TABLE_MAPS, new String[]{KEY_ID,
@@ -158,24 +158,34 @@ public class DBHandler extends SQLiteOpenHelper {
             // return geo pdf map
             return map;
         }catch(NullPointerException e) {
-            Toast.makeText(c, "Error reading database.", Toast.LENGTH_LONG).show();
-            return null;
+            //Toast.makeText(c, "Error reading database.", Toast.LENGTH_LONG).show();
+            throw e;
+            //return null;
         }
-    }
+    }*/
 
     // Getting All PDF Maps
-    public ArrayList<PDFMap> getAllMaps() throws SQLException {
+    public ArrayList<PDFMap> getAllMaps(Context c) throws SQLException {
+        // Called by CustomAdapter creation
         SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<PDFMap> mapList = new ArrayList<>();
         // Select All Query
         String selectQuery = "SELECT * FROM " + TABLE_MAPS;
         Cursor cursor = db.rawQuery(selectQuery, null);
-        // If user database does not contain all of the fields recreate it preserving user maps.
+        // If user database does not contain all of the fields recreate it preserving the user's maps.
         if (cursor.getColumnCount() != 9) {
             cursor.close();
             try {
-                mapList = recreateDB();
+                mapList = recreateDB(c);
             } catch (SQLException e) {
+                throw e;
+            }
+            catch (Exception e)
+            {
+                // General error can be anything*
+                // captured by the java class Exception
+                // print in the console detailed technical info
+                e.printStackTrace();
                 throw e;
             }
             return mapList;
@@ -211,7 +221,7 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
     // Recreate database if they do not have all of the fields
-    private ArrayList<PDFMap> recreateDB() throws SQLException {
+    private ArrayList<PDFMap> recreateDB(Context c) throws SQLException {
         // Read what is currently in the database into mapList.
         // Delete database and recreate it. Add maps that they had.
         SQLiteDatabase db = this.getWritableDatabase();
@@ -287,57 +297,61 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
     // Deleting a PDF Map
-    public void deleteMap(PDFMap map) throws SQLException {
+    public void deleteMap(PDFMap map) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_MAPS, KEY_ID + " = ?",
-            new String[] { String.valueOf(map.getId()) });
+                new String[]{String.valueOf(map.getId())});
         //db.close();
     }
 
     //-----------------
     //  USER SETTINGS
     //-----------------
-    public void createSettingsTable(){
-        SQLiteDatabase db = this.getWritableDatabase();
+    public void createSettingsTable(SQLiteDatabase db){
+       // SQLiteDatabase db = this.getWritableDatabase();
         String CREATE_SETTINGS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SETTINGS + "("
                 + KEY_SETTINGS_ID + " INTEGER PRIMARY KEY," + KEY_MAP_SORT + " TEXT)";
         db.execSQL(CREATE_SETTINGS_TABLE);
         // Insert default user settings
         ContentValues values = new ContentValues();
-        values.put(KEY_MAP_SORT, "date");
+        values.put(KEY_MAP_SORT, "name");
         db.insert(TABLE_SETTINGS, null, values);
     }
-    public void resetSettings(){
+   /* public void resetSettings(){
         SQLiteDatabase db = this.getWritableDatabase();
         // delete maps table
         db.execSQL("DROP TABLE IF EXISTS "+ TABLE_SETTINGS);
         // Create settings table again
         createSettingsTable();
-        Toast.makeText(c, "Reverted to default settings.", Toast.LENGTH_LONG).show();
-    }
+      //  Toast.makeText(c, "Reverted to default settings.", Toast.LENGTH_LONG).show();
+    }*/
 
     //----------------
     //     SORTING
     //---------------
     public void setMapSort(String order) throws SQLException{
         // How to sort the MainActivity imported maps
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(KEY_MAP_SORT, order);
-        String id = "1";
-        db.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
+        try {
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put(KEY_MAP_SORT, order);
+            String id = "1";
+            db.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
+        } catch (SQLException e) {
+            throw e;
+        }
     }
 
     public String getMapSort() {
         // How to sort the MainActivity imported maps
+        SQLiteDatabase db = this.getWritableDatabase();
         try {
-            SQLiteDatabase db = this.getWritableDatabase();
             String order = "null";
             String selectQuery = "SELECT " + KEY_MAP_SORT + " FROM " + TABLE_SETTINGS;
             Cursor cursor = db.rawQuery(selectQuery, null);
             if (cursor == null){
                 // Settings table does not exist. Create it.
-                createSettingsTable();
+                createSettingsTable(db);
                 return "date";
             }
             else {
@@ -350,9 +364,8 @@ public class DBHandler extends SQLiteOpenHelper {
             }
         }
         catch (SQLException e){
-            //Toast.makeText(c, "Error reading app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
-            // create the table
-            createSettingsTable();
+            // Error reading the database Settings table. Re-create the table
+            createSettingsTable(db);
             return "date"; // default value
         }
     }

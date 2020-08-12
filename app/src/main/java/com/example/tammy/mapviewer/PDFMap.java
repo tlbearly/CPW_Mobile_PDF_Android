@@ -25,7 +25,10 @@ public class PDFMap {
         this.name = name;
         this.fileSize = fileSize;
         this.distToMap = distToMap;
-        this.miles = Double.parseDouble(distToMap);
+        if (distToMap.equals(""))
+            this.miles = 0.0;
+        else
+            this.miles = Double.parseDouble(distToMap);
     }
 
     public PDFMap(int id, String path, String bounds, String mediabox, String viewport, String thumbnail, String name, String fileSize, String distToMap){
@@ -38,7 +41,10 @@ public class PDFMap {
         this.name = name;
         this.fileSize = fileSize;
         this.distToMap = distToMap;
-        this.miles = Double.parseDouble(distToMap);
+        if (distToMap.equals(""))
+            this.miles = 0.0;
+        else
+            this.miles = Double.parseDouble(distToMap);
     }
 
     public String getThumbnail() {

@@ -4,6 +4,6 @@
     android:textColor="#000"
     style="?attr/spinnerDropDownItemStyle"
     android:singleLine="true"
-    android:layout_width="match_parent"
-    android:layout_height="50dp"
+    android:layout_width="100dp"
+    android:layout_height="40dp"
     android:ellipsize="marquee"/>

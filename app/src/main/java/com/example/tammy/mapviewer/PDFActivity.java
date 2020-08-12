@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.database.SQLException;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -23,7 +22,6 @@ import android.os.Bundle;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
-import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -55,7 +53,7 @@ import static android.graphics.Color.argb;
 /* show the map */
 public class PDFActivity extends AppCompatActivity implements SensorEventListener {
     PDFView pdfView;
-    static final int MY_PERMISSIONS_LOCATION = 0;
+   // static final int MY_PERMISSIONS_LOCATION = 0;
     //private static final String TAG = PDFActivity.class.getSimpleName();
     Menu mapMenu;
     // Color and style of current location point
@@ -205,7 +203,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             // Check that values were passed
             if (i.getExtras() == null) {
                 Toast.makeText(PDFActivity.this, "Can't display map, no map specifications were found.", Toast.LENGTH_LONG).show();
-                return;
+                finish();
             }
             //bestQuality = i.getExtras().getBoolean("BEST_QUALITY");
             path = i.getExtras().getString("PATH");
@@ -217,22 +215,29 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             wayPts.SortPts();
 
             // GET LAT/LONG
-            bounds = i.getExtras().getString("BOUNDS"); // lat1 long1 lat2 long1 lat2 long2 lat1 long2
+            try {
+                bounds = i.getExtras().getString("BOUNDS"); // lat1 long1 lat2 long1 lat2 long2 lat1 long2
+            }catch (NullPointerException e){
+                Toast.makeText(PDFActivity.this,"Could not read page lat/long.",Toast.LENGTH_SHORT).show();
+                finish();
+            }
+            assert bounds != null;
             bounds = bounds.trim(); // remove leading and trailing spaces
             strBounds = bounds;
+
             //Toast.makeText(PDFActivity.this, bounds, Toast.LENGTH_LONG).show();
             int pos = bounds.indexOf(" ");
-            lat1 = Double.valueOf(bounds.substring(0, pos));
+            lat1 = Double.parseDouble(bounds.substring(0, pos));
             bounds = bounds.substring(pos + 1); // strip off 'lat1 '
             pos = bounds.indexOf(" ");
-            long1 = Double.valueOf(bounds.substring(0, pos));
+            long1 = Double.parseDouble(bounds.substring(0, pos));
             // FIND LAT2
             bounds = bounds.substring(pos + 1); // strip off 'long1 '
             pos = bounds.indexOf(" ");
-            lat2 = Double.valueOf(bounds.substring(0, pos));
+            lat2 = Double.parseDouble(bounds.substring(0, pos));
             // FIND LONG2
             pos = bounds.lastIndexOf(" ");
-            long2 = Double.valueOf(bounds.substring(pos + 1));
+            long2 = Double.parseDouble(bounds.substring(pos + 1));
             longDiff = (long2 + 180) - (long1 + 180);
             latDiff = (90 - lat1) - (90 - lat2);
         } catch (Exception e) {
@@ -240,51 +245,59 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         }
         try {
             // GET MEDIA BOX or PAGE BOUNDARIES for example: "0 0 612 792"
-            // FIND X1
-            mediaBox = i.getExtras().getString("MEDIABOX");
+            try {
+                mediaBox = i.getExtras().getString("MEDIABOX");
+            } catch (NullPointerException e) {
+                Toast.makeText(PDFActivity.this, "Could not read page size.", Toast.LENGTH_SHORT).show();
+             finish();
+            }
+            assert mediaBox != null;
             mediaBox = mediaBox.trim(); // remove leading and trailing spaces
             strMediaBox = mediaBox;
             int pos = mediaBox.indexOf(" ");
-            mediaBoxX1 = Double.valueOf(mediaBox.substring(0, pos));
+            // FIND X1
+            mediaBoxX1 = Double.parseDouble(mediaBox.substring(0, pos));
             // FIND Y1
             mediaBox = mediaBox.substring(pos + 1); // strip off 'X1 '
             pos = mediaBox.indexOf(" ");
-            mediaBoxY1 = Double.valueOf(mediaBox.substring(0, pos));
+            mediaBoxY1 = Double.parseDouble(mediaBox.substring(0, pos));
             // FIND X2
             mediaBox = mediaBox.substring(pos + 1); // strip off 'Y1 '
             pos = mediaBox.indexOf(" ");
-            mediaBoxX2 = Double.valueOf(mediaBox.substring(0, pos));
+            mediaBoxX2 = Double.parseDouble(mediaBox.substring(0, pos));
             // FIND Y2
             mediaBox = mediaBox.substring(pos + 1); // strip off 'X2 '
             pos = mediaBox.indexOf(" ");
-            mediaBoxY2 = Double.valueOf(mediaBox.substring(pos + 1));
+            mediaBoxY2 = Double.parseDouble(mediaBox.substring(pos + 1));
         } catch (Exception e) {
-            Toast.makeText(PDFActivity.this, "Trouble reading mediaBox page boundaries from Geo PDF. Read: " + bounds, Toast.LENGTH_LONG).show();
+            Toast.makeText(PDFActivity.this, "Trouble reading mediaBox page boundaries from Geo PDF. Read: " + mediaBox, Toast.LENGTH_LONG).show();
+            finish();
         }
         try {
             // GET MARGINS - origin is at bottom left. BBox[23 570 768 48]
             try {
                 viewPort = i.getExtras().getString("VIEWPORT");
-                viewPort = viewPort.trim();
             } catch (NullPointerException e) {
                 Toast.makeText(PDFActivity.this, "Trouble reading viewport from Geo PDF.", Toast.LENGTH_LONG).show();
             }
+            assert  viewPort != null;
+            viewPort = viewPort.trim();
             strViewPort = viewPort;
             // FIND bBoxX1
             int pos = viewPort.indexOf(" ");
-            bBoxX1 = Double.valueOf(viewPort.substring(0, pos));
+            bBoxX1 = Double.parseDouble(viewPort.substring(0, pos));
             // FIND bBoxY1
             viewPort = viewPort.substring(pos + 1); // strip off 'bBoxX1 '
             pos = viewPort.indexOf(" ");
-            bBoxY1 = Double.valueOf(viewPort.substring(0, pos));
+            bBoxY1 = Double.parseDouble(viewPort.substring(0, pos));
             // FIND bBoxX2
             viewPort = viewPort.substring(pos + 1); // strip off 'bBoxY1 '
             pos = viewPort.indexOf(" ");
-            bBoxX2 = Double.valueOf(viewPort.substring(0, pos));
+            bBoxX2 = Double.parseDouble(viewPort.substring(0, pos));
             // FIND bBoxY2
             viewPort = viewPort.substring(pos + 1); // strip off 'bBoxX2 '
             pos = viewPort.indexOf(" ");
-            bBoxY2 = Double.valueOf(viewPort.substring(pos + 1));
+            bBoxY2 = Double.parseDouble(viewPort.substring(pos + 1));
 
             marginTop = mediaBoxY2 - bBoxY1;
             marginBottom = bBoxY2;
@@ -841,10 +854,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
     }
 
-    public static float px2dp(Resources resource, float px) {
+    /*public static float px2dp(Resources resource, float px) {
         // Convert pixels to dp (device independent)
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, px, resource.getDisplayMetrics());
-    }
+    }*/
 
     public void drawTriangle(Canvas canvas, Paint paint, int x, int y, int width) {
         // ----  White triangle with black v. For way point balloon.
