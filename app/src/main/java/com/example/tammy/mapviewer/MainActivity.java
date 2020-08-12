@@ -98,6 +98,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // Make sure all the maps in the database still exist
         myAdapter.checkIfExists();
 
+        sortFlag = true;
+
         // Display note if no records found
         showHideNoImportsMessage();
         /*if (myAdapter.pdfMaps.size() == 0) {
@@ -281,7 +283,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                  }
                              }
                          }
-                        else sortFlag = true;
                     }
 
                     // save current location so we can see how much they moved
@@ -393,6 +394,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onItemSelected(AdapterView<?> parent, View v, int position, long id) throws IllegalStateException {
         // sort by dropdown required callback
+        if (!sortFlag) return;
         switch (position) {
             case 0:
                 // Sort by Name

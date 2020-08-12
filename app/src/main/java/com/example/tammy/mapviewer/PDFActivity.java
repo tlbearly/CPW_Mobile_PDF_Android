@@ -562,7 +562,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 else {
                                     newWP = true;
                                     String location = String.format("%.5f", latitude) + ", " + String.format("%.5f", longitude);
-                                    WayPt wayPt = wayPts.add(mapName, "Way Point " + wayPts.size(), (float) longitude, (float) latitude, "blue", location);
+                                    int num = wayPts.size() + 1;
+                                    WayPt wayPt = wayPts.add(mapName, "Way Point " + num, (float) longitude, (float) latitude, "blue", location);
                                     String desc = wayPt.getDesc();
                                     wayPts.SortPts();
                                     try {
@@ -662,7 +663,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     if (markCurrent) {
                         markCurrent = false;
                         @SuppressLint("DefaultLocale") String location = String.format("%.5f", latNow) + ", " + String.format("%.5f", longNow);
-                        WayPt wayPt = wayPts.add(mapName, "Way Point " + wayPts.size(), (float) longNow, (float) latNow, "red", location);
+                        int num = wayPts.size() + 1;
+                        WayPt wayPt = wayPts.add(mapName, "Way Point " + num, (float) longNow, (float) latNow, "red", location);
                         wayPts.SortPts();
                         try {
                             db.addWayPt(wayPt);
