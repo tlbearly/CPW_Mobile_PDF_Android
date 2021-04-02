@@ -195,6 +195,7 @@ public class CustomAdapter extends BaseAdapter {
                 //----------------------------------------------------------------------------
                 if (vp != null) {
                     // Find largest image it should be the map
+                    String[] units;
                     int id = 0;
                     Double max = 0.0;
                     for (int i = 0; i < vp.size(); i++) {
@@ -234,15 +235,61 @@ public class CustomAdapter extends BaseAdapter {
                     viewport = viewport.replaceAll(",", "");
                     publishProgress(30);
 
+                    String bboxArr[] = viewport.split(" ");
                     //---------------------------------------------
                     // Get Lat Long from /Measure dictionary /GPTS
                     //---------------------------------------------
                     PdfDictionary measure = vpDict.getAsDict(PdfName.MEASURE);
+                    // get unit box correction for BBox if [0,1, 0,0, 1,0, 1,1] needs no correction
+                    String unitBox = measure.get(PdfName.BOUNDS).toString();
+                    unitBox = unitBox.trim();
+                    unitBox = unitBox.substring(1,unitBox.length() -1);
+                    unitBox = unitBox.replaceAll(",", ""); // remove commas
+                    units = unitBox.split(" ");
+
+
+                    // adjust bbox by unitBox
+                    // top-left
+                   /* Double bboxX1 = Double.valueOf(bboxArr[0]) + (Double.valueOf(bboxArr[2]) - Double.valueOf(bboxArr[0])) * (Double.valueOf(units[6]) - 1);
+                    Double bboxY1 = Double.valueOf(bboxArr[1]) + (Double.valueOf(bboxArr[3]) - Double.valueOf(bboxArr[1])) * Double.valueOf(units[5]);
+                    // bottom-left map boundary * unit square
+                    Double bboxX2 = Double.valueOf(bboxArr[2]) + (Double.valueOf(bboxArr[2]) - Double.valueOf(bboxArr[0])) * Double.valueOf(units[2]);
+                    Double bboxY2 = Double.valueOf(bboxArr[3]) + (Double.valueOf(bboxArr[3]) - Double.valueOf(bboxArr[1])) * (Double.valueOf(units[1]) - 1);*/
+                    Double bboxX1 = Double.valueOf(bboxArr[0]) + ((Double.valueOf(units[0]) - 0) * Double.valueOf(bboxArr[0]));
+                    Double bboxY1 = Double.valueOf(bboxArr[1]) + ((Double.valueOf(units[1]) - 1) * Double.valueOf(bboxArr[1]));
+                    // bottom-right map boundary * unit square
+                    Double bboxX2 = Double.valueOf(bboxArr[2]) + ((Double.valueOf(units[4]) - 1) * Double.valueOf(bboxArr[2]));
+                    Double bboxY2 = Double.valueOf(bboxArr[3]) + ((Double.valueOf(units[5]) - 0) * Double.valueOf(bboxArr[3]));
+                    Log.d("viewport", viewport);
+                    // Adjust view port by unit box???????
+                    viewport = bboxX1+" "+bboxY1+" "+bboxX2+" "+bboxY2;
+                    Log.d("adjusted viewport", viewport);
+
+
+
+
                     bounds = measure.get(PdfName.GPTS).toString();
                     if (bounds == null) return ("Import Failed");
                     bounds.trim();
                     bounds = bounds.substring(1, bounds.length() - 1);
                     bounds = bounds.replaceAll(",", "");
+                    String[] latlong;
+                    latlong = bounds.split(" ");
+                    // adjusted with the unit square - gives the correct lat long for BBox
+                    // bottom-left lat/long (given long + (height or width in decimal degrees) * unit square value
+                    Double lat1 = Double.valueOf(latlong[0]) + (Double.valueOf(latlong[2]) - Double.valueOf(latlong[0])) * Double.valueOf(units[0]);
+                    Double long1 = Double.valueOf(latlong[1]) + (Double.valueOf(latlong[7]) - Double.valueOf(latlong[1])) * (Double.valueOf(units[1]) - 1);
+                    // top-left lat/long (given lat + (height or width in decimal degrees) * unit square value
+                    Double lat2 = Double.valueOf(latlong[2]) + (Double.valueOf(latlong[2]) - Double.valueOf(latlong[0])) * Double.valueOf(units[2]);
+                    Double long2 = Double.valueOf(latlong[3]) + (Double.valueOf(latlong[5]) - Double.valueOf(latlong[3])) * Double.valueOf(units[3]);
+
+                    // top-right lat/long (given lat + (height or width in decimal degrees) * unit square value
+                    Double lat3 = Double.valueOf(latlong[4]) + (Double.valueOf(latlong[4]) - Double.valueOf(latlong[6])) * Double.valueOf(units[4]);
+                    Double long3 = Double.valueOf(latlong[5]) + (Double.valueOf(latlong[5]) - Double.valueOf(latlong[3])) * Double.valueOf(units[5]);
+                    // bottom-right lat/long (given lat + (height or width in decimal degrees) * unit square value
+                    Double lat4 = Double.valueOf(latlong[6]) + (Double.valueOf(latlong[4]) - Double.valueOf(latlong[4])) * (Double.valueOf(units[6]) - 1);
+                    Double long4 = Double.valueOf(latlong[7]) + (Double.valueOf(latlong[1]) - Double.valueOf(latlong[5])) * Double.valueOf(units[7]);
+                    Log.d("adjusted lat/long", lat1+", "+long1+ "  "+lat2+", "+long2+"  "+lat3+", "+long3+"  "+lat4+", "+long4);
                     publishProgress(40);
                 }
                 // View port not found geoPDF
@@ -311,7 +358,7 @@ public class CustomAdapter extends BaseAdapter {
                         if (!projType.toString().toLowerCase().equals("ut")) return "Import Failed - unhandled projection "+projType.toString();
                         units = projDict.getAsString(PdfNameUnits);
                         if (!units.toString().toLowerCase().equals("m")) return "Import Failed - unknown unit "+units.toString();
-                        PdfNumber z = displayDict.getAsNumber(PdfNameZone);
+                        PdfNumber z = projDict.getAsNumber(PdfNameZone);
                         if (z != null)
                             zone = Integer.parseInt(z.toString());
                     }
@@ -362,8 +409,11 @@ public class CustomAdapter extends BaseAdapter {
                     double [] latlong1 = UTMtoLL(y1,x1,zone);
                     double [] latlong2 = UTMtoLL(y2,x2,zone);
                     bounds = String.valueOf(latlong2[1]) +" "+ String.valueOf(latlong1[0]) +" "+ String.valueOf(latlong1[1]) +" "+ String.valueOf(latlong1[0]) +" "+ String.valueOf(latlong1[1]) +" "+ String.valueOf(latlong2[0]);
+                    // this one does not work!!! Can't add way points
+                    //bounds = String.valueOf(latlong1[1]) +" "+ String.valueOf(latlong1[0]) +" "+ String.valueOf(latlong2[1]) +" "+ String.valueOf(latlong1[0]) +" "+ String.valueOf(latlong2[1]) +" "+ String.valueOf(latlong2[0]);
+
                     publishProgress(40);
-                    String description = lgiDictionary.getAsString(desc).toString();
+                    //String description = lgiDictionary.getAsString(desc).toString();
                 }
                 reader.close();
 

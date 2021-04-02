@@ -3,12 +3,12 @@ apply plugin: 'com.android.application'
 // To use Vector Drawables add "vectorDrawables.useSupportLibrary = true" to defaultConfig. VectorDrawables is available at sdk 21 but can use
 // appcompat to use VectorDrawableCompat for backward compatible. Allows SVG graphics.
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29"
+    compileSdkVersion 30
+    buildToolsVersion "30"
     defaultConfig {
         applicationId "com.example.tammy.pdfsample"
         minSdkVersion 18
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
