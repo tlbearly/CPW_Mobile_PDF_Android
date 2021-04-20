@@ -32,6 +32,20 @@ public class GetMoreActivity extends AppCompatActivity {
         //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         //setSupportActionBar(toolbar);
 
+
+
+
+        // TODO add link to maps page
+        // https://cpw.state.co.us/learn/Pages/Maps.aspx
+        Button linkButton = (Button) findViewById(R.id.downloadMapsBtn);
+        linkButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://cpw.state.co.us/learn/Pages/Maps.aspx"));
+                    startActivity(browserIntent);
+            }
+        });
+
+
         // Open a web page inside this app (using a WebView)
         Button cpwBtn = (Button) findViewById(R.id.CPWBtn);
         cpwBtn.setOnClickListener(new View.OnClickListener() {
@@ -95,7 +109,7 @@ public class GetMoreActivity extends AppCompatActivity {
         });
 
         // Open Android File Picker for PDF files API 1
-        downloadsBtn = (Button) findViewById(R.id.downloadsBtn);
+        downloadsBtn = (Button) findViewById(R.id.importBtn);
         downloadsBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 /**

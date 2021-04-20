@@ -20,7 +20,9 @@
     <string name="blue">Blue</string>
     <string name="cyan">Cyan</string>
     <string name="noMapsImported">No maps have been imported.\nUse the + button to import a map.</string>
-
+    <string name="downloadPDFlink">Places to Download PDFs From</string>
+    <string name="downloadInstr">Open the Colorado Parks and Wildlife website page with a list of resources for downloading geo-referenced PDFs. Use the Import Maps button to load these into this app.</string>
+    <string name="download_maps">Download Maps</string>
     <string name="title_activity_main">Imported Maps</string>
     <string name="sort_by">Sort By:</string>
     <string-array name="sortByItems">
@@ -48,7 +50,7 @@
     <string name="Fishing">Fishing Atlas</string>
     <string name="Hunting">Hunting Atlas</string>
     <string name="device_storage_help">Select PDF files that you downloaded.</string>
-    <string name="DownloadDir">File Picker</string>
+    <string name="import_maps">Import Maps</string>
     <string name="DownloadMap">Add Map</string>
     <string name="title_activity_get_more">Add Map</string>
     <string name="title_activity_web">Import Map</string>

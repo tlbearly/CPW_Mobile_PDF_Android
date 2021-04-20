@@ -35,14 +35,45 @@
             android:text="@string/device_storage_help" />
 
         <Button
-            android:id="@+id/downloadsBtn"
+            android:id="@+id/importBtn"
             style="@style/button_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="20dp"
             android:background="@drawable/grey_button"
-            android:text="@string/DownloadDir" />
+            android:text="@string/import_maps" />
+
+        <TextView
+            android:id="@+id/textView11"
+            style="@style/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="10dp"
+            android:text="@string/downloadPDFlink" />
+
+        <TextView
+            android:id="@+id/textView12"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="10dp"
+            android:text="@string/downloadInstr" />
+
+        <Button
+            android:id="@+id/downloadMapsBtn"
+            style="@style/button_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/grey_button"
+            android:text="@string/download_maps" />
 
         <LinearLayout
             android:layout_width="match_parent"
