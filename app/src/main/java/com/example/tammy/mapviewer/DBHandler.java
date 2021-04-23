@@ -118,7 +118,7 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
     // Adding new PDF Map
-    public int addMap(PDFMap map) throws SQLException {
+    public void addMap(PDFMap map) throws SQLException {
         try {
             SQLiteDatabase db = this.getWritableDatabase();
             ContentValues values = new ContentValues();
@@ -135,9 +135,8 @@ public class DBHandler extends SQLiteOpenHelper {
             //db.close(); // Closing database connection
         }
         catch (SQLException e){
-            return -1;
+            throw e;
         }
-        return 0;
     }
 
     // Getting one PDF Map
@@ -249,12 +248,11 @@ public class DBHandler extends SQLiteOpenHelper {
                 else {
                     // Calculate the File Size
                     File file = new File(map.getPath());
-                    String fileSize = "";
+                    String fileSize;
                     long size = file.length() / 1024; // Get size and convert bytes into Kb.
                     if (size >= 1024) {
-                        Double sizeDbl = new Double(size);
-                        fileSize = String.format("%.1f", (sizeDbl / 1024)) + " Mb";
-                        // fileSize = (size / 1024) + " Mb";
+                        Double sizeDbl = (double) size;
+                        fileSize = String.format("%s Mb", String.format("%.1f", (sizeDbl / 1024)));
                     } else {
                         fileSize = size + " Kb";
                     }
@@ -278,22 +276,25 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
     // Updating a PDF Map
-    public int updateMap(PDFMap map) throws SQLException {
-        SQLiteDatabase db = this.getWritableDatabase();
+    public void updateMap(PDFMap map) throws SQLException {
+        try {
+            SQLiteDatabase db = this.getWritableDatabase();
 
-        ContentValues values = new ContentValues();
-        values.put(KEY_PATH, map.getPath());
-        values.put(KEY_BOUNDS, map.getBounds());
-        values.put(KEY_MEDIABOX, map.getMediabox());
-        values.put(KEY_VIEWPORT, map.getViewport());
-        values.put(KEY_THUMBNAIL, map.getThumbnail());
-        values.put(KEY_NAME, map.getName());
-        values.put(KEY_FILESIZE, map.getFileSize());
-        values.put(KEY_DISTTOMAP, map.getDistToMap());
+            ContentValues values = new ContentValues();
+            values.put(KEY_PATH, map.getPath());
+            values.put(KEY_BOUNDS, map.getBounds());
+            values.put(KEY_MEDIABOX, map.getMediabox());
+            values.put(KEY_VIEWPORT, map.getViewport());
+            values.put(KEY_THUMBNAIL, map.getThumbnail());
+            values.put(KEY_NAME, map.getName());
+            values.put(KEY_FILESIZE, map.getFileSize());
+            values.put(KEY_DISTTOMAP, map.getDistToMap());
 
-        // updating row
-        return db.update(TABLE_MAPS, values, KEY_ID + " = ?",
-            new String[]{ String.valueOf(map.getId()) });
+            // updating row
+            db.update(TABLE_MAPS, values, KEY_ID + " = ?",
+                    new String[]{String.valueOf(map.getId())});
+            db.close();
+        }catch(SQLException e){throw e;}
     }
 
     // Deleting a PDF Map
@@ -301,7 +302,7 @@ public class DBHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_MAPS, KEY_ID + " = ?",
                 new String[]{String.valueOf(map.getId())});
-        //db.close();
+        db.close();
     }
 
     //-----------------

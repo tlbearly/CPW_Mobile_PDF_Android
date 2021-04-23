@@ -1,5 +1,6 @@
 package com.example.tammy.mapviewer;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.SQLException;
@@ -31,6 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -55,10 +57,8 @@ public class CustomAdapter extends BaseAdapter {
     ImageView locIcon;
     Double latNow, longNow;
     static String viewport, mediabox, bounds;
-    private final int RENAME_REQUEST_CODE = 2;
-    private final int DELETE_REQUEST_CODE = 3;
     private Boolean loading = false;
-    private String TAG = "CustomAdapter";
+    //final private String TAG = "CustomAdapter"; // debug logs
 
 
     public CustomAdapter(Context c, ArrayList<PDFMap> pdfMaps) {
@@ -91,24 +91,39 @@ public class CustomAdapter extends BaseAdapter {
         longNow = location.getLongitude();
     }
 
-    public class ImportMapTask extends AsyncTask<Integer, Integer, String> {
+    public static class ImportMapTask extends AsyncTask<Integer, Integer, String> {
+        private WeakReference<CustomAdapter> customAdapterRef;
         ProgressBar progressBar;
-        String path;
+        String filePath;
         PDFMap pdfMap;
-        Context c;
+        //Context c;
 
-        protected ImportMapTask(Context c, PDFMap pdfMap, ProgressBar pb) {
-            this.c = c;
+        ImportMapTask(CustomAdapter context, PDFMap pdfMap, ProgressBar pb) {
+            // calls onPreExecute
+            // only retain a weak reference to the CustomAdapter class
+            customAdapterRef = new WeakReference<>(context);
             this.pdfMap = pdfMap;
             this.progressBar = pb;
-            this.path = pdfMap.getPath();
-            // calls onPreExecute
+            this.filePath = pdfMap.getPath();
         }
+
+        //protected ImportMapTask(Context c, PDFMap pdfMap, ProgressBar pb) {
+            //this.c = c;
+            //this.pdfMap = pdfMap;
+            //this.progressBar = pb;
+            //this.path = pdfMap.getPath();
+            // calls onPreExecute
+        //}
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            loading = true;
+            // get a reference to the CustomAdapter if it is still there
+            CustomAdapter caRef = customAdapterRef.get();
+            Activity activity = (Activity) caRef.c;
+            if (caRef == null || activity.isFinishing()) return;
+
+            caRef.loading = true;
             // calls doInBackground
             // show progress bar
             progressBar.setVisibility(View.VISIBLE);
@@ -132,10 +147,16 @@ public class CustomAdapter extends BaseAdapter {
 
         @Override
         protected String doInBackground(Integer... params) {
+            // get a reference to the CustomAdapter if it is still there
+            CustomAdapter caRef = customAdapterRef.get();
+            Activity activity = (Activity) caRef.c;
+            if (caRef == null || activity.isFinishing()) return "";
+            Context c = caRef.c;
+
             // preform background computation
             publishProgress(10); // calls onProgressUpdate
             // Get PDF
-            File file = new File(path);
+            File file = new File(filePath);
 
             // Use iText 5 to read margins, page size, and lat long. iText 7 works with Android 26 and above. iText 5 works with older versions.
             // PDF ISO standard.
@@ -164,10 +185,10 @@ public class CustomAdapter extends BaseAdapter {
             // trailer
             //<</Size 82/Root 5 0 R/Info 3 0 R/ID[<481274B989C1D7419BA9E71CBA227123><D6AEE54D32AC354E980F653350D6C962>]/Prev 2874274>>
             try {
-                PdfReader reader = new PdfReader(path);
+                PdfReader reader = new PdfReader(filePath);
                 if (reader == null) return ("Import Failed");
 
-                int numPages = reader.getNumberOfPages();
+                //int numPages = reader.getNumberOfPages();
 
                 PdfDictionary page = reader.getPageN(1);
                 if (page == null) return ("Import Failed");
@@ -185,8 +206,7 @@ public class CustomAdapter extends BaseAdapter {
                 //--------------------------
                 mediabox = page.getAsArray(PdfName.MEDIABOX).toString(); // works [ 0 0 792 1224]
                 if (mediabox == null) return ("Import Failed");
-                mediabox = mediabox.substring(1,mediabox.length()-1);
-                mediabox.trim();
+                mediabox = mediabox.substring(1,mediabox.length()-1).trim();
                 mediabox = mediabox.replaceAll(",","");
                 publishProgress(20);
 
@@ -229,8 +249,7 @@ public class CustomAdapter extends BaseAdapter {
                     if (vpDict == null) return ("Import Failed");
                     PdfArray bbox = vpDict.getAsArray(PdfName.BBOX);
                     if (bbox == null) return ("Import Failed");
-                    viewport = bbox.toString();
-                    viewport.trim();
+                    viewport = bbox.toString().trim();
                     viewport = viewport.substring(1, viewport.length() - 1);
                     viewport = viewport.replaceAll(",", "");
                     publishProgress(30);
@@ -396,7 +415,6 @@ public class CustomAdapter extends BaseAdapter {
                     viewport = Integer.toString(h1) + " " + Integer.toString(v1) + " " + Integer.toString(h2) + " " + Integer.toString(v2);
                     publishProgress(20);
 
-
                     // Get Latitude/Longitude Bounds = lat1 long1 lat2 long1 lat2 long2 lat1 long2
                     PdfArray ctmArray = lgiDictionary.getAsArray(ctm);
                     double a = Double.parseDouble(ctmArray.getAsString(0).toString()); // scale (x2 - x1) / (h2 - h1)
@@ -431,7 +449,6 @@ public class CustomAdapter extends BaseAdapter {
             try {
                 ParcelFileDescriptor fd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
                 PdfDocument pdfDocument = pdfiumCore.newDocument(fd);
-
                 publishProgress(50);
                 pdfiumCore.openPage(pdfDocument, pageNum);
 
@@ -503,6 +520,7 @@ public class CustomAdapter extends BaseAdapter {
                 db.updateMap(pdfMap);
                 db.close();
                 publishProgress(100);
+                fd.close(); // thumbnail
             } catch (IOException ex) {
                 ex.printStackTrace();
                 pdfMap.setName("deleting...");
@@ -571,19 +589,24 @@ public class CustomAdapter extends BaseAdapter {
 
         protected void onPostExecute(String result) {
             // result of background computation is sent here
+            // get a reference to the CustomAdapter if it is still there
+            CustomAdapter caRef = customAdapterRef.get();
+            Activity activity = (Activity) caRef.c;
+            if (caRef == null || activity.isFinishing()) return;
+
             progressBar.setVisibility(View.GONE);
-            loading = false;
+            caRef.loading = false;
             // Map Import Failed
             if (!result.equals("Import Done")) {
-                Toast.makeText(c, result, Toast.LENGTH_LONG).show();
-                removeItem(pdfMap.getId());
+                Toast.makeText(caRef.c, result, Toast.LENGTH_LONG).show();
+                caRef.removeItem(pdfMap.getId());
             }
             // Map Import Success
             else {
                 // Display message and load map
                 //Toast.makeText(c, "Map copied to App folder.", Toast.LENGTH_LONG).show();
                 //notifyDataSetChanged(); // Refresh list of pdf maps
-                openPDFView(pdfMap.getPath(), pdfMap.getName(), pdfMap.getBounds(), pdfMap.getMediabox(), pdfMap.getViewport());
+                caRef.openPDFView(pdfMap.getPath(), pdfMap.getName(), pdfMap.getBounds(), pdfMap.getMediabox(), pdfMap.getViewport());
             }
         }
     }
@@ -651,7 +674,7 @@ public class CustomAdapter extends BaseAdapter {
             if (latNow >= lat1 && latNow <= lat2 && longNow >= long1 && longNow <= long2) {
                 map.setMiles(0.0);
                 map.setDistToMap("");
-                Log.d(TAG, "updateDistToMap: " + map.getName() + " on map");
+               // Log.d(TAG, "updateDistToMap: " + map.getName() + " on map");
             }
             // Off map, calculate distance away
             else {
@@ -695,7 +718,7 @@ public class CustomAdapter extends BaseAdapter {
                 String distStr = "    " + String.format("%.1f", dist) + " mi " + direction;
                 map.setDistToMap(distStr);
 
-                Log.d(TAG, "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
+               // Log.d(TAG, "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
             }
         }
     }
@@ -759,17 +782,26 @@ public class CustomAdapter extends BaseAdapter {
         // remove all maps from the list and the database
         try {
             DBHandler db = DBHandler.getInstance(c);
-            for (int i = 0; i < pdfMaps.size(); i++) {
+            for (int i = pdfMaps.size()-1; i > -1;  i--) {
                 PDFMap map = pdfMaps.get(i);
-                //Toast.makeText(c,"Deleting: "+map.getName(), Toast.LENGTH_LONG).show();
+                Toast.makeText(c,"Deleting: "+map.getName(), Toast.LENGTH_LONG).show();
                 File f = new File(map.getPath());
-                if (f != null || f.exists())
-                    f.delete();
+                if (f != null || f.exists()) {
+                    boolean deleted = f.delete();
+                    if (!deleted) {
+                        Toast.makeText(c, c.getResources().getString(R.string.deleteFile), Toast.LENGTH_LONG).show();
+                    }
+                }
                 db.deleteMap(map);
                 pdfMaps.remove(i);
                 // delete thumbnail image also
                 File img = new File(map.getThumbnail());
-                img.delete();
+                if (img != null || img.exists()) {
+                    boolean deleted = img.delete();
+                    if (!deleted) {
+                        Toast.makeText(c, c.getResources().getString(R.string.deleteThumbnail), Toast.LENGTH_LONG).show();
+                    }
+                }
             }
             notifyDataSetChanged();
         } catch (IndexOutOfBoundsException e) {
@@ -782,12 +814,16 @@ public class CustomAdapter extends BaseAdapter {
         try {
             DBHandler db = DBHandler.getInstance(c);
             DBWayPtHandler dbwaypt = DBWayPtHandler.getInstance(c);
-            for (int i = 0; i < pdfMaps.size(); i++) {
+            for (int i = 0; i < this.pdfMaps.size(); i++) {
                 if (pdfMaps.get(i).getId() == id) {
                     PDFMap map = pdfMaps.get(i);
                     File f = new File(map.getPath());
-                    if (f != null || f.exists())
-                        f.delete();
+                    if (f != null || f.exists()) {
+                        boolean deleted = f.delete();
+                        if (!deleted) {
+                            Toast.makeText(c, c.getResources().getString(R.string.deleteFile), Toast.LENGTH_LONG).show();
+                        }
+                    }
                     //Toast.makeText(c,"Deleting: "+map.getName(), Toast.LENGTH_LONG).show();
                     db.deleteMap(map);
                     dbwaypt.deleteWayPts(map.getName());
@@ -796,17 +832,21 @@ public class CustomAdapter extends BaseAdapter {
                     String imgPath = map.getThumbnail();
                     if (imgPath != null) {
                         File img = new File(imgPath);
-                        if (img != null || img.exists())
-                            img.delete();
+                        if (img != null || img.exists()) {
+                            boolean deleted = img.delete();
+                            if (!deleted) {
+                                Toast.makeText(c, c.getResources().getString(R.string.deleteThumbnail), Toast.LENGTH_LONG).show();
+                            }
+                        }
                     }
                     notifyDataSetChanged();
                     break;
                 }
             }
         } catch (IndexOutOfBoundsException e) {
-            Toast.makeText(c, "Problem removing map: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(c, c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
         } catch (SQLException e){
-            Toast.makeText(c, "Problem removing map: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(c, c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
 
     }
@@ -840,7 +880,7 @@ public class CustomAdapter extends BaseAdapter {
         else {
             try {
                 File imgFile = new File(pdfMap.getThumbnail());
-                Bitmap myBitmap = null;
+                Bitmap myBitmap;
                 myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
                 if (myBitmap != null)
                     img.setImageBitmap(myBitmap);
@@ -854,11 +894,12 @@ public class CustomAdapter extends BaseAdapter {
         }
         // BIND DATA
         // Read lat/long bounds, margins, thumbnail and write to database
-        if (pdfMap.getName().equals("Loading...")) {
-            nameTxt.setText("Loading...");
+
+        if (pdfMap.getName().equals(c.getResources().getString(R.string.loading))) {
+            nameTxt.setText(c.getResources().getString(R.string.loading));
             // call AsyncTask to read pdf binary and update progress bar and import into database
             if (!loading) {
-                ImportMapTask importMap = new ImportMapTask(c, pdfMap, pb);
+                ImportMapTask importMap = new ImportMapTask(this, pdfMap, pb);
                 importMap.execute();
             }
         } else {

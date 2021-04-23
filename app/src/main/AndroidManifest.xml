@@ -10,9 +10,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
-    <!-- add usesCleartextTraffic to prevent error when downloading over http like fstopo uses -->
+    <!-- add usesCleartextTraffic to prevent error when downloading over http like fstopo uses     android:usesCleartextTraffic="true" -->
     <application
-        android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -70,23 +69,23 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.tammy.mapviewer.MainActivity" />
         </activity>
-        <activity
+        <!--activity
             android:name=".WebActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_web"
-            android:parentActivityName=".GetMoreActivity">
+            android:parentActivityName=".GetMoreActivity"-->
             <!-- Listen for file download and handle it in web activity -->
-            <intent-filter>
+            <!--intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" />
                 <data android:host="*" />
                 <data android:mimeType="application/pdf" />
-            </intent-filter>
+            </intent-filter-->
 
             <!-- handle https requests without mimetypes -->
-            <intent-filter>
+            <!--intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <category android:name="android.intent.category.OPENABLE"/>
@@ -94,10 +93,10 @@
                 <data android:scheme="https" />
                 <data android:host="*" />
                 <data android:pathPattern=".*\\.pdf" />
-            </intent-filter>
+            </intent-filter-->
             <!-- handle intent from a file browser app -->
             <!--data android:pathPattern=".*\\.pdf" /-->
-            <intent-filter>
+            <!--intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="file" />
@@ -107,7 +106,7 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.tammy.mapviewer.GetMoreActivity" />
-        </activity>
+        </activity-->
         <activity
             android:name=".EditMapNameActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
