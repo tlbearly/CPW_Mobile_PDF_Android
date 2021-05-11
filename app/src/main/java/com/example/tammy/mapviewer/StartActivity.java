@@ -26,8 +26,7 @@ import static androidx.appcompat.app.AlertDialog.Builder;
 public class StartActivity extends AppCompatActivity {
 
     static final int MY_PERMISSIONS_LOCATION = 0;
-    static final int MY_PERMISSIONS_STORAGE = 2;
-    static final int MY_PERMISSIONS_INTERNET = 4;
+    //static final int MY_PERMISSIONS_STORAGE = 2;
     
     /* Check for permissions before we start */
     @Override
@@ -45,7 +44,7 @@ public class StartActivity extends AppCompatActivity {
             }
         });
 
-        if ((ContextCompat.checkSelfPermission(StartActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) ||
+        /*if ((ContextCompat.checkSelfPermission(StartActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) ||
             (ContextCompat.checkSelfPermission(StartActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED)) {
             // Permission is not granted. Request the permission
             if (ActivityCompat.shouldShowRequestPermissionRationale(StartActivity.this,
@@ -65,7 +64,7 @@ public class StartActivity extends AppCompatActivity {
                         new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         MY_PERMISSIONS_STORAGE);
             }
-        }
+        }*/
         // Ask for location permissions
         if ((ContextCompat.checkSelfPermission(StartActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) ||
                 (ContextCompat.checkSelfPermission(StartActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED)) {
@@ -206,7 +205,7 @@ public class StartActivity extends AppCompatActivity {
                 }
                 return;
             }
-            case MY_PERMISSIONS_STORAGE:{
+           /* case MY_PERMISSIONS_STORAGE:{
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -279,7 +278,7 @@ public class StartActivity extends AppCompatActivity {
                                 }).create().show();
                     }
                 }
-            }
+            }*/
            /* case MY_PERMISSIONS_INTERNET:{
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0

@@ -2,13 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.tammy.mapviewer">
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!--uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /-->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!--uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /-->
 
     <!-- add usesCleartextTraffic to prevent error when downloading over http like fstopo uses     android:usesCleartextTraffic="true" -->
     <application
@@ -69,44 +69,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.tammy.mapviewer.MainActivity" />
         </activity>
-        <!--activity
-            android:name=".WebActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_web"
-            android:parentActivityName=".GetMoreActivity"-->
-            <!-- Listen for file download and handle it in web activity -->
-            <!--intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" />
-                <data android:host="*" />
-                <data android:mimeType="application/pdf" />
-            </intent-filter-->
-
-            <!-- handle https requests without mimetypes -->
-            <!--intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <category android:name="android.intent.category.OPENABLE"/>
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="https" />
-                <data android:host="*" />
-                <data android:pathPattern=".*\\.pdf" />
-            </intent-filter-->
-            <!-- handle intent from a file browser app -->
-            <!--data android:pathPattern=".*\\.pdf" /-->
-            <!--intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="file" />
-                <data android:host="*" />
-                <data android:pathPattern="*.pdf" />
-            </intent-filter>
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.tammy.mapviewer.GetMoreActivity" />
-        </activity-->
         <activity
             android:name=".EditMapNameActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"

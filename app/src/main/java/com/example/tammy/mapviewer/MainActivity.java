@@ -78,8 +78,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         sortByDropdown = findViewById(R.id.sortBy);
         //create an adapter to describe how the items are displayed, adapters are used in several places in android.
         // sortByItems is an array defined in res/values/strings.xml
+        // width is set in res/layout/spinner_dropdown_item.xml
         ArrayAdapter<CharSequence> sortByAdapter = ArrayAdapter.createFromResource(this, R.array.sortByItems,
                 R.layout.spinner_dropdown_item);
+
         //set the sortBy adapter to the previously created one.
         sortByDropdown.setAdapter(sortByAdapter);
         // set on click functions: onItemSelected and nothingSelected (must have these names)
@@ -162,9 +164,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             // set selected sort by item
             String sort = db.getMapSort();
             int sortID = 0;
-            if (sort.equals("date")) sortID = 1;
-            else if (sort.equals("size")) sortID = 2;
-            else if (sort.equals("proximity")) sortID = 3;
+            if (sort.equals("date") || sort.equals("daterev")) sortID = 1;
+            else if (sort.equals("size") || sort.equals("sizerev")) sortID = 2;
+            else if (sort.equals("proximity") || sort.equals("proximityrev")) sortID = 3;
             sortByDropdown.setSelection(sortID, true);
         }
 
@@ -226,7 +228,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                          myAdapter.getDistToMap();
 
                          String sort = db.getMapSort();
-                         if (sort.equals("proximity") && sortFlag) {
+                         if (sort.equals("proximity") || sort.equals("proximityrev") && sortFlag) {
                              myAdapter.SortByProximity();
                              //myAdapter.notifyDataSetChanged();
 
@@ -324,7 +326,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(30000); //update location every 30 seconds
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // Was handled in StartActivity
             return;
         }
@@ -340,6 +342,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //   Sort By DropDown
     // ...................
     private  void sortMaps(String sortBy) {
+        int pos;
         switch (sortBy) {
             case "name":
                 // Sort by Name
@@ -352,6 +355,17 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 catch (SQLException e){
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
                 }
+                break;case "namerev":
+                // Sort by Name Reverse
+                myAdapter.SortByNameReverse();
+                lv.setAdapter(myAdapter);
+                try {
+                    // save user sort preference in db
+                    db.setMapSort("namerev");
+                }
+                catch (SQLException e){
+                    Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
+                }
                 break;
             case "date":
                 // Sort by Date
@@ -359,6 +373,17 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 lv.setAdapter(myAdapter);
                 try {
                     db.setMapSort("date");
+                }
+                catch (SQLException e){
+                    Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+                break;
+            case "daterev":
+                // Sort by Date Reverse
+                myAdapter.SortByDateReverse();
+                lv.setAdapter(myAdapter);
+                try {
+                    db.setMapSort("daterev");
                 }
                 catch (SQLException e){
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -375,13 +400,36 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
                 }
                 break;
+            case "sizerev":
+                // Sort by Size Reverse
+                myAdapter.SortBySizeReverse();
+                lv.setAdapter(myAdapter);
+                try {
+                    db.setMapSort("sizerev");
+                }
+                catch (SQLException e){
+                    Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+                break;
             case "proximity":
                 // Sort by Proximity
-                int pos = lv.getFirstVisiblePosition(); // get current top position
+                pos = lv.getFirstVisiblePosition(); // get current top position
                 myAdapter.SortByProximity();
                 lv.setAdapter(myAdapter); // scrolls to the top
                 try {
                     db.setMapSort("proximity");
+                }
+                catch (SQLException e){
+                    Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+                break;
+            case "proximityrev":
+                // Sort by Proximity Reverse
+                pos = lv.getFirstVisiblePosition(); // get current top position
+                myAdapter.SortByProximityReverse();
+                lv.setAdapter(myAdapter); // scrolls to the top
+                try {
+                    db.setMapSort("proximityrev");
                 }
                 catch (SQLException e){
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -395,22 +443,35 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void onItemSelected(AdapterView<?> parent, View v, int position, long id) throws IllegalStateException {
         // sort by dropdown required callback
         if (!sortFlag) return;
+
         switch (position) {
             case 0:
                 // Sort by Name
                 sortMaps("name");
                 break;
             case 1:
+                sortMaps("namerev");
+                break;
+            case 2:
                 // Sort by Date
                 sortMaps("date");
                 break;
-            case 2:
+            case 3:
+                sortMaps("daterev");
+                break;
+            case 4:
                 // Sort by Size
                 sortMaps("size");
                 break;
-            case 3:
+            case 5:
+                sortMaps("sizerev");
+                break;
+            case 6:
                 // Sort by Proximity
                 sortMaps("proximity");
+                break;
+            case 7:
+                sortMaps("proximityrev");
                 break;
             default:
                 Toast.makeText(getApplicationContext(), "Sort method not found: "+position, Toast.LENGTH_LONG).show();
@@ -468,25 +529,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-      /*  nameItem = menu.findItem(R.id.action_sort_by_name);
-        dateItem = menu.findItem(R.id.action_sort_by_date);
-        // read Settings table in the database and get user preferences
-        String sort = db.getMapSort();
-        if (sortFlag && sort.equals("name")){
-            myAdapter.SortByName();
-            lv.setAdapter(myAdapter);
-            nameItem.setChecked(true);
-            dateItem.setChecked(false);
-            Log.i(TAG, "******onCreateOptionsMenu: sort by name");
-        }
-        else if (sortFlag && sort.equals("date")){
-            myAdapter.SortByDate();
-            lv.setAdapter(myAdapter);
-            dateItem.setChecked(true);
-            nameItem.setChecked(false);
-            Log.i(TAG, "******onCreateOptionsMenu: sort by date");
-        }
-       */
         return true;
     }
 
@@ -506,40 +548,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     .setNegativeButton("CANCEL",dialogClickListener).show();
             return true;
         }
-        // Sort map list by name
-       /* else if (id == R.id.action_sort_by_name){
-            myAdapter.SortByName();
-            lv.setAdapter(myAdapter);
-            item.setChecked(true);
-            dateItem.setChecked(false);
-            try {
-                db.setMapSort("name");
-            }
-            catch (SQLException e){
-                Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-            return true;
-        }
-        // Sort map list by date
-        else if (id == R.id.action_sort_by_date){
-            myAdapter.SortByDate();
-            lv.setAdapter(myAdapter);
-            item.setChecked(true);
-            nameItem.setChecked(false);
-            try {
-                db.setMapSort("date");
-            }
-            catch (SQLException e){
-                Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-            return true;
-        }*/
-        // This is not visible in main activity
-        /*else if (id == R.id.action_open){
-            lv.setAdapter(new CustomAdapter(MainActivity.this,db.getAllMaps(MainActivity.this)));
-            return true;
-        }*/
-
         return super.onOptionsItemSelected(item);
     }
 }

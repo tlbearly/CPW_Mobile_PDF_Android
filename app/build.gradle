@@ -2,12 +2,13 @@ apply plugin: 'com.android.application'
 
 // To use Vector Drawables add "vectorDrawables.useSupportLibrary = true" to defaultConfig. VectorDrawables is available at sdk 21 but can use
 // appcompat to use VectorDrawableCompat for backward compatible. Allows SVG graphics.
+// if min SDK version >= 19 permission to read write external files is not required if using getExternalFilesDir.
 android {
     compileSdkVersion 30
     buildToolsVersion "30"
     defaultConfig {
         applicationId "com.example.tammy.pdfsample"
-        minSdkVersion 18
+        minSdkVersion 19
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -50,7 +51,7 @@ dependencies {
     implementation 'com.github.barteksc:android-pdf-viewer:2.8.2'
 
     // for thumbnails
-    implementation 'com.github.barteksc:pdfium-android:1.7.1'
+    implementation 'com.github.barteksc:pdfium-android:1.9.0' //1.7.1'
 
     // iText for reading PDFs
     // itext7 only works with Android level 24 or higher Nougat (requires a license)

@@ -251,7 +251,7 @@ public class DBHandler extends SQLiteOpenHelper {
                     String fileSize;
                     long size = file.length() / 1024; // Get size and convert bytes into Kb.
                     if (size >= 1024) {
-                        Double sizeDbl = (double) size;
+                        double sizeDbl = (double) size;
                         fileSize = String.format("%s Mb", String.format("%.1f", (sizeDbl / 1024)));
                     } else {
                         fileSize = size + " Kb";
@@ -293,7 +293,6 @@ public class DBHandler extends SQLiteOpenHelper {
             // updating row
             db.update(TABLE_MAPS, values, KEY_ID + " = ?",
                     new String[]{String.valueOf(map.getId())});
-            db.close();
         }catch(SQLException e){throw e;}
     }
 
@@ -302,7 +301,6 @@ public class DBHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_MAPS, KEY_ID + " = ?",
                 new String[]{String.valueOf(map.getId())});
-        db.close();
     }
 
     //-----------------

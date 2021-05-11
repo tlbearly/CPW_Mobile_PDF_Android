@@ -71,9 +71,19 @@ public class CustomAdapter extends BaseAdapter {
         Collections.sort((this.pdfMaps), PDFMap.NameComparator);
     }
 
+    public void SortByNameReverse(){
+        // Sort array list pdfMaps of objects of type pdfMap alphabetically by name.
+        Collections.sort((this.pdfMaps), PDFMap.NameComparatorReverse);
+    }
+
     public void SortByDate(){
         // Sort array list pdfMaps of objects of type pdfMap file modification date.
         Collections.sort((this.pdfMaps), PDFMap.DateComparator);
+    }
+
+    public void SortByDateReverse(){
+        // Sort array list pdfMaps of objects of type pdfMap file modification date.
+        Collections.sort((this.pdfMaps), PDFMap.DateComparatorReverse);
     }
 
     public void SortBySize(){
@@ -81,9 +91,19 @@ public class CustomAdapter extends BaseAdapter {
         Collections.sort((this.pdfMaps), PDFMap.SizeComparator);
     }
 
+    public void SortBySizeReverse(){
+        // Sort array list pdfMaps of objects of type pdfMap file size.
+        Collections.sort((this.pdfMaps), PDFMap.SizeComparatorReverse);
+    }
+
     public void SortByProximity(){
         // Sort array list pdfMaps of objects of type pdfMap by proximity.
         Collections.sort((this.pdfMaps), PDFMap.ProximityComparator);
+    }
+
+    public void SortByProximityReverse(){
+        // Sort array list pdfMaps of objects of type pdfMap by proximity.
+        Collections.sort((this.pdfMaps), PDFMap.ProximityComparatorReverse);
     }
 
     public void setLocation(Location location){
@@ -520,7 +540,7 @@ public class CustomAdapter extends BaseAdapter {
                 db.updateMap(pdfMap);
                 db.close();
                 publishProgress(100);
-                fd.close(); // thumbnail
+                fd.close(); // thumbnail file descriptor
             } catch (IOException ex) {
                 ex.printStackTrace();
                 pdfMap.setName("deleting...");
@@ -637,6 +657,8 @@ public class CustomAdapter extends BaseAdapter {
                 }
             }
             notifyDataSetChanged();
+            db.close();
+            wpdb.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, "Problem removing map: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
@@ -766,10 +788,10 @@ public class CustomAdapter extends BaseAdapter {
                     break;
                 }
             }
+            db.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, "Problem renaming map: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
-
     }
 
 
@@ -804,6 +826,7 @@ public class CustomAdapter extends BaseAdapter {
                 }
             }
             notifyDataSetChanged();
+            db.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, "Problem removing map: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
@@ -843,12 +866,13 @@ public class CustomAdapter extends BaseAdapter {
                     break;
                 }
             }
+            db.close();
+            dbwaypt.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
         } catch (SQLException e){
             Toast.makeText(c, c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
-
     }
 
     @Override

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PDF Map Viewer</string>
+    <string name="app_name">CPW Pocket Maps</string>
     <string name="action_quality">Use best quality map (uses more memory)</string>
     <string name="name">Name</string>
     <string name="file_size_placeholder">File Size</string>
@@ -23,17 +23,20 @@
     <string name="title_activity_main">Imported Maps</string>
     <string name="sort_by">Sort By:</string>
     <string-array name="sortByItems">
-        <item>Name</item>
-        <item>Date Added</item>
-        <item>File Size</item>
-        <item>Proximity</item>
+        <item>Name A-Z</item>
+        <item>Name Z-A</item>
+        <item>Recently Added</item>
+        <item>Oldest Added</item>
+        <item>Largest File Size</item>
+        <item>Smallest File Size</item>
+        <item>Closest Proximity</item>
+        <item>Farthest Proximity</item>
     </string-array>
-
     <string name="title_activity_load_file">CPW Pocket Maps</string>
     <string name="getmore_title1">Load Maps</string>
-    <string name="device_storage_help">Browse your phone to find PDF maps that you downloaded. Will make a copy in this app.</string>
-    <string name="getmore_title2">Get Maps</string>
-    <string name="downloadInstr">Open a Colorado Parks and Wildlife website page in your browser showing a list of resources for downloading geo-referenced PDFs. Use the Import Maps button above to load these into this app.</string>
+    <string name="device_storage_help">Browse your phone to find PDF maps that you downloaded. Will copy into this app.</string>
+    <string name="getmore_title2">Find Maps</string>
+    <string name="downloadInstr">Show a list of resources for downloading geo-ref PDFs from CPW website in your browser. Then use the Import Maps button above to load maps into this app.</string>
     <string name="download_maps">Download Maps</string>
     <string name="web_download">Download a map from the CPW Maps Library, the Hunting Atlas, or the Fishing Atlas.</string>
     <string name="importedmaps">Imported Maps</string>
