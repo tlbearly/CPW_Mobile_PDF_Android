@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private ListView lv;
     private CustomAdapter myAdapter; // list of imported pdf maps
     private DBHandler db;
-    private String TAG = "MainActivity";
+    //private String TAG = "MainActivity";
     boolean sortFlag = true;
     Toolbar toolbar;
     Integer selectedId;
@@ -59,8 +59,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //Toast.makeText(MainActivity.this, "onCreate", Toast.LENGTH_SHORT).show();
-
+        //Toast.makeText(MainActivity.this, "onCreate", Toast.LENGTH_SHORT).show()
 
         // DEBUG ***********
         //latBefore = 38.5;
@@ -71,17 +70,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         setContentView(R.layout.activity_main);
         db = DBHandler.getInstance(MainActivity.this);
         // top menu with ... button
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Fill Sort By Options
+        // FILL SORT BY OPTIONS
         sortByDropdown = findViewById(R.id.sortBy);
         //create an adapter to describe how the items are displayed, adapters are used in several places in android.
         // sortByItems is an array defined in res/values/strings.xml
         // width is set in res/layout/spinner_dropdown_item.xml
         ArrayAdapter<CharSequence> sortByAdapter = ArrayAdapter.createFromResource(this, R.array.sortByItems,
                 R.layout.spinner_dropdown_item);
-
         //set the sortBy adapter to the previously created one.
         sortByDropdown.setAdapter(sortByAdapter);
         // set on click functions: onItemSelected and nothingSelected (must have these names)
@@ -93,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         } catch (SQLException e) {
             Toast.makeText(MainActivity.this, "Error deleting database table: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
-        lv = (ListView) findViewById(R.id.lv);
+        lv = findViewById(R.id.lv);
         lv.setAdapter(myAdapter);
         registerForContextMenu(lv); // set up edit/trash context menu
 
@@ -118,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         final Intent i = this.getIntent();
         if (i.getExtras() != null && !i.getExtras().isEmpty()) {
             if (i.getExtras().containsKey("IMPORT_MAP") && i.getExtras().containsKey("PATH")) {
-                Boolean import_map = i.getExtras().getBoolean("IMPORT_MAP");
+                boolean import_map = i.getExtras().getBoolean("IMPORT_MAP");
                 // IMPORT MAP SELECTED
                 if (import_map) {
                     sortFlag = false; // hold off on sorting.
@@ -136,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             else if (i.getExtras().containsKey("RENAME") && i.getExtras().containsKey("NAME") && i.getExtras().containsKey("ID")) {
                 // Renamed map, update with new name
                 String name = i.getExtras().getString("NAME");
-                Integer id = i.getExtras().getInt("ID");
+                int id = i.getExtras().getInt("ID");
                 myAdapter.rename(id, name);
                 //Toast.makeText(MainActivity.this, "Map renamed to: " + name, Toast.LENGTH_LONG).show();
                 i.removeExtra("NAME");
@@ -164,14 +162,34 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             // set selected sort by item
             String sort = db.getMapSort();
             int sortID = 0;
-            if (sort.equals("date") || sort.equals("daterev")) sortID = 1;
-            else if (sort.equals("size") || sort.equals("sizerev")) sortID = 2;
-            else if (sort.equals("proximity") || sort.equals("proximityrev")) sortID = 3;
+            switch (sort) {
+                case "namerev":
+                    sortID = 1;
+                    break;
+                case "date":
+                    sortID = 2;
+                    break;
+                case "daterev":
+                    sortID = 3;
+                    break;
+                case "size":
+                    sortID = 4;
+                    break;
+                case "sizerev":
+                    sortID = 5;
+                    break;
+                case "proximity":
+                    sortID = 6;
+                    break;
+                case "proximityrev":
+                    sortID = 7;
+                    break;
+            }
             sortByDropdown.setSelection(sortID, true);
         }
 
         // FLOATING ACTION BUTTON CLICK
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -242,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                  ImageView img = v.findViewById(R.id.pdfImage);
                                  try {
                                      File imgFile = new File(myAdapter.pdfMaps.get(i- lv.getFirstVisiblePosition()).getThumbnail());
-                                     Bitmap myBitmap = null;
+                                     Bitmap myBitmap;
                                      myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
                                      if (myBitmap != null)
                                          img.setImageBitmap(myBitmap);
@@ -253,11 +271,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                      img.setImageResource(R.drawable.pdf_icon);
                                  }
 
-                                 TextView name = (TextView) v.findViewById(R.id.nameTxt) ;
+                                 TextView name = v.findViewById(R.id.nameTxt) ;
                                  name.setText(myAdapter.pdfMaps.get(i- lv.getFirstVisiblePosition()).getName());
-                                 TextView fileSize = (TextView) v.findViewById(R.id.fileSizeTxt);
+                                 TextView fileSize = v.findViewById(R.id.fileSizeTxt);
                                  fileSize.setText(myAdapter.pdfMaps.get(i).getFileSize());
-                                 TextView distToMap = (TextView) v.findViewById(R.id.distToMapTxt);
+                                 TextView distToMap = v.findViewById(R.id.distToMapTxt);
                                  String dist = myAdapter.pdfMaps.get(i- lv.getFirstVisiblePosition()).getDistToMap();
                                  distToMap.setText(dist);
                                  if (dist.equals("")){
@@ -275,7 +293,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                  View v = lv.getChildAt(i - lv.getFirstVisiblePosition());
                                  if (v == null)
                                      return;
-                                 TextView distToMap = (TextView) v.findViewById(R.id.distToMapTxt);
+                                 TextView distToMap = v.findViewById(R.id.distToMapTxt);
                                  String dist = myAdapter.pdfMaps.get(i).getDistToMap();
                                  distToMap.setText(dist);
                                  if (dist.equals("")) {
@@ -342,7 +360,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //   Sort By DropDown
     // ...................
     private  void sortMaps(String sortBy) {
-        int pos;
         switch (sortBy) {
             case "name":
                 // Sort by Name
@@ -355,7 +372,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 catch (SQLException e){
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
                 }
-                break;case "namerev":
+                break;
+            case "namerev":
                 // Sort by Name Reverse
                 myAdapter.SortByNameReverse();
                 lv.setAdapter(myAdapter);
@@ -413,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 break;
             case "proximity":
                 // Sort by Proximity
-                pos = lv.getFirstVisiblePosition(); // get current top position
+                //lv.getFirstVisiblePosition(); // get current top position
                 myAdapter.SortByProximity();
                 lv.setAdapter(myAdapter); // scrolls to the top
                 try {
@@ -425,7 +443,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 break;
             case "proximityrev":
                 // Sort by Proximity Reverse
-                pos = lv.getFirstVisiblePosition(); // get current top position
+                //lv.getFirstVisiblePosition(); // get current top position
                 myAdapter.SortByProximityReverse();
                 lv.setAdapter(myAdapter); // scrolls to the top
                 try {
@@ -443,7 +461,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void onItemSelected(AdapterView<?> parent, View v, int position, long id) throws IllegalStateException {
         // sort by dropdown required callback
         if (!sortFlag) return;
-
         switch (position) {
             case 0:
                 // Sort by Name
@@ -485,9 +502,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     // Show or Hide no maps imported message
     private void showHideNoImportsMessage(){
-        TextView msg = (TextView) findViewById(R.id.txtMessage);
-        TextView sortTitle = (TextView) findViewById(R.id.sortTitle);
-        Spinner sortBy = (Spinner) findViewById(R.id.sortBy);
+        TextView msg = findViewById(R.id.txtMessage);
+        TextView sortTitle = findViewById(R.id.sortTitle);
+        Spinner sortBy = findViewById(R.id.sortBy);
         if (myAdapter.pdfMaps.size() == 0){
             msg.setVisibility(View.VISIBLE);
             sortTitle.setVisibility(View.GONE);
@@ -504,8 +521,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     // ...................
     //     ... MENU
     // ...................
-    MenuItem nameItem;
-    MenuItem dateItem;
+   // MenuItem nameItem;
+   // MenuItem dateItem;
     DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {

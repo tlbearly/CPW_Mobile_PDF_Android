@@ -111,12 +111,11 @@ public class CustomAdapter extends BaseAdapter {
         longNow = location.getLongitude();
     }
 
-    public static class ImportMapTask extends AsyncTask<Integer, Integer, String> {
+    private static class ImportMapTask extends AsyncTask<Integer, Integer, String> {
         private WeakReference<CustomAdapter> customAdapterRef;
         ProgressBar progressBar;
         String filePath;
         PDFMap pdfMap;
-        //Context c;
 
         ImportMapTask(CustomAdapter context, PDFMap pdfMap, ProgressBar pb) {
             // calls onPreExecute
