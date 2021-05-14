@@ -248,8 +248,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                          String sort = db.getMapSort();
                          if (sort.equals("proximity") || sort.equals("proximityrev") && sortFlag) {
                              myAdapter.SortByProximity();
-                             //myAdapter.notifyDataSetChanged();
-
+                             myAdapter.notifyDataSetChanged();
 
                              // Refresh all data in visible table cells
                              for (int i=0; i < myAdapter.pdfMaps.size(); i++) {

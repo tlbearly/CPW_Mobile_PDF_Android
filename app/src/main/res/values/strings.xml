@@ -42,6 +42,9 @@
     <string name="importedmaps">Imported Maps</string>
 
     <string name="get_more">Get More</string>
+    <string name="Mb"> Mb</string>
+    <string name="Kb"> Kb</string>
+    <string name="miles"> mi</string>
 
     <string name="import_maps">Import Maps</string>
     <string name="DownloadMap">Add Map</string>

@@ -35,8 +35,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
-
-import static java.lang.Integer.parseInt;
+import java.util.Locale;
 
 /**
  * Created by tammy on 9/7/2017.
@@ -47,7 +46,7 @@ import static java.lang.Integer.parseInt;
  */
 
 public class CustomAdapter extends BaseAdapter {
-    private Context c;
+    private final Context c;
     ArrayList<PDFMap> pdfMaps;
     //private int vis, hide;
     // EditText renameTxt;
@@ -112,7 +111,7 @@ public class CustomAdapter extends BaseAdapter {
     }
 
     private static class ImportMapTask extends AsyncTask<Integer, Integer, String> {
-        private WeakReference<CustomAdapter> customAdapterRef;
+        private final WeakReference<CustomAdapter> customAdapterRef;
         ProgressBar progressBar;
         String filePath;
         PDFMap pdfMap;
@@ -140,7 +139,7 @@ public class CustomAdapter extends BaseAdapter {
             // get a reference to the CustomAdapter if it is still there
             CustomAdapter caRef = customAdapterRef.get();
             Activity activity = (Activity) caRef.c;
-            if (caRef == null || activity.isFinishing()) return;
+            if (activity.isFinishing()) return;
 
             caRef.loading = true;
             // calls doInBackground
@@ -148,7 +147,7 @@ public class CustomAdapter extends BaseAdapter {
             progressBar.setVisibility(View.VISIBLE);
         }
 
-        private boolean isInteger(String s) {
+       /* private boolean isInteger(String s) {
             // Given a string, return true if it only contains integers.
             boolean isValidInteger = false;
             try
@@ -162,14 +161,14 @@ public class CustomAdapter extends BaseAdapter {
                 // s is not an integer
             }
             return isValidInteger;
-        }
+        }*/
 
         @Override
         protected String doInBackground(Integer... params) {
             // get a reference to the CustomAdapter if it is still there
             CustomAdapter caRef = customAdapterRef.get();
             Activity activity = (Activity) caRef.c;
-            if (caRef == null || activity.isFinishing()) return "";
+            if (activity.isFinishing()) return "";
             Context c = caRef.c;
 
             // preform background computation
@@ -205,7 +204,7 @@ public class CustomAdapter extends BaseAdapter {
             //<</Size 82/Root 5 0 R/Info 3 0 R/ID[<481274B989C1D7419BA9E71CBA227123><D6AEE54D32AC354E980F653350D6C962>]/Prev 2874274>>
             try {
                 PdfReader reader = new PdfReader(filePath);
-                if (reader == null) return ("Import Failed");
+                //if (reader == null) return ("Import Failed");
 
                 //int numPages = reader.getNumberOfPages();
 
@@ -224,7 +223,7 @@ public class CustomAdapter extends BaseAdapter {
                 // Get MediaBox page size
                 //--------------------------
                 mediabox = page.getAsArray(PdfName.MEDIABOX).toString(); // works [ 0 0 792 1224]
-                if (mediabox == null) return ("Import Failed");
+                //if (mediabox == null) return ("Import Failed");
                 mediabox = mediabox.substring(1,mediabox.length()-1).trim();
                 mediabox = mediabox.replaceAll(",","");
                 publishProgress(20);
@@ -236,27 +235,27 @@ public class CustomAdapter extends BaseAdapter {
                     // Find largest image it should be the map
                     String[] units;
                     int id = 0;
-                    Double max = 0.0;
+                    double max = 0.0;
                     for (int i = 0; i < vp.size(); i++) {
                         PdfArray b = vp.getAsDict(i).getAsArray(PdfName.BBOX);
                         String parse = b.toString().trim();
                         parse = parse.substring(1, parse.length() - 1);
                         parse = parse.replaceAll(",", "");
                         int pos = parse.indexOf(" ");
-                        Double bBoxX1 = Double.valueOf(parse.substring(0, pos));
+                       // double bBoxX1 = Double.parseDouble(parse.substring(0, pos));
                         // FIND bBoxY1
                         parse = parse.substring(pos + 1); // strip off 'bBoxX1 '
                         pos = parse.indexOf(" ");
-                        Double bBoxY1 = Double.valueOf(parse.substring(0, pos));
+                        double bBoxY1 = Double.parseDouble(parse.substring(0, pos));
                         // FIND bBoxX2
                         parse = parse.substring(pos + 1); // strip off 'bBoxY1 '
                         pos = parse.indexOf(" ");
-                        Double bBoxX2 = Double.valueOf(parse.substring(0, pos));
+                        //double bBoxX2 = Double.parseDouble(parse.substring(0, pos));
                         // FIND bBoxY2
                         parse = parse.substring(pos + 1); // strip off 'bBoxX2 '
                         pos = parse.indexOf(" ");
-                        Double bBoxY2 = Double.valueOf(parse.substring(pos + 1));
-                        Double h;
+                        double bBoxY2 = Double.parseDouble(parse.substring(pos + 1));
+                        double h;
                         if (bBoxY1 > bBoxY2) h = bBoxY1 - bBoxY2;
                         else h = bBoxY2 - bBoxY1;
                         if (max < h) {
@@ -273,7 +272,7 @@ public class CustomAdapter extends BaseAdapter {
                     viewport = viewport.replaceAll(",", "");
                     publishProgress(30);
 
-                    String bboxArr[] = viewport.split(" ");
+                    String[] bboxArr = viewport.split(" ");
                     //---------------------------------------------
                     // Get Lat Long from /Measure dictionary /GPTS
                     //---------------------------------------------
@@ -293,11 +292,11 @@ public class CustomAdapter extends BaseAdapter {
                     // bottom-left map boundary * unit square
                     Double bboxX2 = Double.valueOf(bboxArr[2]) + (Double.valueOf(bboxArr[2]) - Double.valueOf(bboxArr[0])) * Double.valueOf(units[2]);
                     Double bboxY2 = Double.valueOf(bboxArr[3]) + (Double.valueOf(bboxArr[3]) - Double.valueOf(bboxArr[1])) * (Double.valueOf(units[1]) - 1);*/
-                    Double bboxX1 = Double.valueOf(bboxArr[0]) + ((Double.valueOf(units[0]) - 0) * Double.valueOf(bboxArr[0]));
-                    Double bboxY1 = Double.valueOf(bboxArr[1]) + ((Double.valueOf(units[1]) - 1) * Double.valueOf(bboxArr[1]));
+                    double bboxX1 = Double.parseDouble(bboxArr[0]) + ((Double.parseDouble(units[0]) - 0) * Double.parseDouble(bboxArr[0]));
+                    double bboxY1 = Double.parseDouble(bboxArr[1]) + ((Double.parseDouble(units[1]) - 1) * Double.parseDouble(bboxArr[1]));
                     // bottom-right map boundary * unit square
-                    Double bboxX2 = Double.valueOf(bboxArr[2]) + ((Double.valueOf(units[4]) - 1) * Double.valueOf(bboxArr[2]));
-                    Double bboxY2 = Double.valueOf(bboxArr[3]) + ((Double.valueOf(units[5]) - 0) * Double.valueOf(bboxArr[3]));
+                    double bboxX2 = Double.parseDouble(bboxArr[2]) + ((Double.parseDouble(units[4]) - 1) * Double.parseDouble(bboxArr[2]));
+                    double bboxY2 = Double.parseDouble(bboxArr[3]) + ((Double.parseDouble(units[5]) - 0) * Double.parseDouble(bboxArr[3]));
                     Log.d("viewport", viewport);
                     // Adjust view port by unit box???????
                     viewport = bboxX1+" "+bboxY1+" "+bboxX2+" "+bboxY2;
@@ -307,28 +306,27 @@ public class CustomAdapter extends BaseAdapter {
 
 
                     bounds = measure.get(PdfName.GPTS).toString();
-                    if (bounds == null) return ("Import Failed");
-                    bounds.trim();
+                    //if (bounds == null) return ("Import Failed");
+                    bounds = bounds.trim();
                     bounds = bounds.substring(1, bounds.length() - 1);
                     bounds = bounds.replaceAll(",", "");
                     String[] latlong;
                     latlong = bounds.split(" ");
                     // adjusted with the unit square - gives the correct lat long for BBox
                     // bottom-left lat/long (given long + (height or width in decimal degrees) * unit square value
-                    Double lat1 = Double.valueOf(latlong[0]) + (Double.valueOf(latlong[2]) - Double.valueOf(latlong[0])) * Double.valueOf(units[0]);
-                    Double long1 = Double.valueOf(latlong[1]) + (Double.valueOf(latlong[7]) - Double.valueOf(latlong[1])) * (Double.valueOf(units[1]) - 1);
+                    double lat1 = Double.parseDouble(latlong[0]) + (Double.parseDouble(latlong[2]) - Double.parseDouble(latlong[0])) * Double.parseDouble(units[0]);
+                    double long1 = Double.parseDouble(latlong[1]) + (Double.parseDouble(latlong[7]) - Double.parseDouble(latlong[1])) * (Double.parseDouble(units[1]) - 1);
                     // top-left lat/long (given lat + (height or width in decimal degrees) * unit square value
-                    Double lat2 = Double.valueOf(latlong[2]) + (Double.valueOf(latlong[2]) - Double.valueOf(latlong[0])) * Double.valueOf(units[2]);
-                    Double long2 = Double.valueOf(latlong[3]) + (Double.valueOf(latlong[5]) - Double.valueOf(latlong[3])) * Double.valueOf(units[3]);
+                    double lat2 = Double.parseDouble(latlong[2]) + (Double.parseDouble(latlong[2]) - Double.parseDouble(latlong[0])) * Double.parseDouble(units[2]);
+                    double long2 = Double.parseDouble(latlong[3]) + (Double.parseDouble(latlong[5]) - Double.parseDouble(latlong[3])) * Double.parseDouble(units[3]);
 
                     // top-right lat/long (given lat + (height or width in decimal degrees) * unit square value
-                    Double lat3 = Double.valueOf(latlong[4]) + (Double.valueOf(latlong[4]) - Double.valueOf(latlong[6])) * Double.valueOf(units[4]);
-                    Double long3 = Double.valueOf(latlong[5]) + (Double.valueOf(latlong[5]) - Double.valueOf(latlong[3])) * Double.valueOf(units[5]);
+                    double lat3 = Double.parseDouble(latlong[4]) + (Double.parseDouble(latlong[4]) - Double.parseDouble(latlong[6])) * Double.parseDouble(units[4]);
+                    double long3 = Double.parseDouble(latlong[5]) + (Double.parseDouble(latlong[5]) - Double.parseDouble(latlong[3])) * Double.parseDouble(units[5]);
                     // bottom-right lat/long (given lat + (height or width in decimal degrees) * unit square value
-                    Double lat4 = Double.valueOf(latlong[6]) + (Double.valueOf(latlong[4]) - Double.valueOf(latlong[4])) * (Double.valueOf(units[6]) - 1);
-                    Double long4 = Double.valueOf(latlong[7]) + (Double.valueOf(latlong[1]) - Double.valueOf(latlong[5])) * Double.valueOf(units[7]);
+                    double lat4 = Double.parseDouble(latlong[6]) + (Double.parseDouble(latlong[4]) - Double.parseDouble(latlong[4])) * (Double.parseDouble(units[6]) - 1);
+                    double long4 = Double.parseDouble(latlong[7]) + (Double.parseDouble(latlong[1]) - Double.parseDouble(latlong[5])) * Double.parseDouble(units[7]);
                     Log.d("adjusted lat/long", lat1+", "+long1+ "  "+lat2+", "+long2+"  "+lat3+", "+long3+"  "+lat4+", "+long4);
-                    publishProgress(40);
                 }
                 // View port not found geoPDF
                 else{
@@ -348,7 +346,7 @@ public class CustomAdapter extends BaseAdapter {
                     //              /Units "m"
                     PdfName lgiDict = new PdfName("LGIDict");
                     PdfName ctm = new PdfName("CTM");
-                    PdfName desc = new PdfName("Description");
+                    //PdfName desc = new PdfName("Description");
                     PdfName display = new PdfName("Display");
                     PdfName projection = new PdfName("Projection");
                     PdfName projectionType = new PdfName("ProjectionType");
@@ -431,7 +429,7 @@ public class CustomAdapter extends BaseAdapter {
                         v1 = v2;
                         v2 = tmp;
                     }
-                    viewport = Integer.toString(h1) + " " + Integer.toString(v1) + " " + Integer.toString(h2) + " " + Integer.toString(v2);
+                    viewport = h1 + " " + v1 + " " + h2 + " " + v2;
                     publishProgress(20);
 
                     // Get Latitude/Longitude Bounds = lat1 long1 lat2 long1 lat2 long2 lat1 long2
@@ -445,13 +443,13 @@ public class CustomAdapter extends BaseAdapter {
                     double y2 = V + a * v2; // meters
                     double [] latlong1 = UTMtoLL(y1,x1,zone);
                     double [] latlong2 = UTMtoLL(y2,x2,zone);
-                    bounds = String.valueOf(latlong2[1]) +" "+ String.valueOf(latlong1[0]) +" "+ String.valueOf(latlong1[1]) +" "+ String.valueOf(latlong1[0]) +" "+ String.valueOf(latlong1[1]) +" "+ String.valueOf(latlong2[0]);
+                    bounds = String.format("%s %s %s %s %s %s", latlong2[1], latlong1[0], latlong1[1], latlong1[0], latlong1[1], latlong2[0]);
                     // this one does not work!!! Can't add way points
                     //bounds = String.valueOf(latlong1[1]) +" "+ String.valueOf(latlong1[0]) +" "+ String.valueOf(latlong2[1]) +" "+ String.valueOf(latlong1[0]) +" "+ String.valueOf(latlong2[1]) +" "+ String.valueOf(latlong2[0]);
 
-                    publishProgress(40);
                     //String description = lgiDictionary.getAsString(desc).toString();
                 }
+                publishProgress(40);
                 reader.close();
 
             }catch(IOException ex){
@@ -483,7 +481,7 @@ public class CustomAdapter extends BaseAdapter {
                 publishProgress(60);
 
                 // scale it down
-                Bitmap scaled = Bitmap.createScaledBitmap(bitmap,100,Math.round(100 * height/width),false);
+                Bitmap scaled = Bitmap.createScaledBitmap(bitmap,100, (int) Math.round(100.0 * (double)height/(double)width),false);
                 //if you need to render annotations and form fields, you can use
                 //the same method above adding 'true' as last param
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -501,12 +499,20 @@ public class CustomAdapter extends BaseAdapter {
                     String path = c.getFilesDir().getAbsolutePath();
                     img = new File(path + "/CPWthumbnail" + pdfMap.getId() + ".png");
                     if (!img.exists()) {
-                        img.createNewFile();
+                            boolean fileDoesNotExist = img.createNewFile();
+                            if (!fileDoesNotExist)
+                                Toast.makeText(c, "Trouble saving map thumbnail. Could not create new file.", Toast.LENGTH_LONG).show();
                     }
                     FileOutputStream fos = new FileOutputStream(img);
                     fos.write(thumbnail);
                     fos.close();
                     pdfMap.setThumbnail(path + "/CPWthumbnail" + pdfMap.getId() + ".png");
+                } catch (IOException e){
+                    Toast.makeText(c, "Trouble saving map thumbnail. Disk full?" + e.getMessage(), Toast.LENGTH_LONG).show();
+                    pdfMap.setThumbnail(null);
+                } catch (SecurityException e){
+                    Toast.makeText(c, "Trouble saving map thumbnail. Security exception." + e.getMessage(), Toast.LENGTH_LONG).show();
+                    pdfMap.setThumbnail(null);
                 } catch (Exception e) {
                     Toast.makeText(c, "Trouble saving map thumbnail. " + e.getMessage(), Toast.LENGTH_LONG).show();
                     pdfMap.setThumbnail(null);
@@ -518,13 +524,12 @@ public class CustomAdapter extends BaseAdapter {
                 publishProgress(80);
 
                 // Get File Size
-                String fileSize = "";
-                long size = file.length() / 1024; // Get size and convert bytes into Kb.
+                String fileSize;
+                double size = file.length() / 1024.0; // Get size and convert bytes into Kb.
                 if (size >= 1024) {
-                    Double sizeDbl = new Double(size);
-                    fileSize = String.format("%.1f", (sizeDbl / 1024)) + " Mb";
+                    fileSize = String.format(Locale.ENGLISH,"%.1f %s", (size / 1024.0), c.getResources().getString(R.string.Mb));
                 } else {
-                    fileSize = size + " Kb";
+                    fileSize = String.format("%.0f %s", size, c.getResources().getString(R.string.Kb));
                 }
 
                 // IMPORT INTO the DATABASE
@@ -576,26 +581,26 @@ public class CustomAdapter extends BaseAdapter {
 
             double d4 = (1 - Math.sqrt(1-d2))/(1 + Math.sqrt(1 - d2));
             double d15 = f1 - 500000;
-            double d16 = f;
+            //double d16 = f;
             double d11 = ((j - 1) * 6 - 180) + 3;
 
             double d3 = d2/(1 - d2);
-            double d10 = d16 / d;
+            double d10 = f / d;
             double d12 = d10 / (d1 * (1 - d2/4 - (3 * d2 *d2)/64 - (5 * Math.pow(d2,3))/256));
             double d14 = d12 + ((3*d4)/2 - (27*Math.pow(d4,3))/32) * Math.sin(2*d12) + ((21*d4*d4)/16 - (55 * Math.pow(d4,4))/32) * Math.sin(4*d12) + ((151 * Math.pow(d4,3))/96) * Math.sin(6*d12);
-            double d13 = d14 * 180 / Math.PI;
-            double d5 = d1 / Math.sqrt(1 - d2 * Math.sin(d14) * Math.sin(d14));
+            //double d13 = d14 * 180 / Math.PI;
+            double d13a = 1 - d2 * Math.sin(d14) * Math.sin(d14); // tlb store since it is used twice
+            double d5 = d1 / Math.sqrt(d13a);
             double d6 = Math.tan(d14)*Math.tan(d14);
             double d7 = d3 * Math.cos(d14) * Math.cos(d14);
-            double d8 = (d1 * (1 - d2))/Math.pow(1-d2*Math.sin(d14)*Math.sin(d14),1.5);
+            double d8 = (d1 * (1 - d2))/Math.pow(d13a,1.5);
 
             double d9 = d15/(d5 * d);
             double d17 = d14 - ((d5 * Math.tan(d14))/d8)*(((d9*d9)/2-(((5 + 3*d6 + 10*d7) - 4*d7*d7-9*d3)*Math.pow(d9,4))/24) + (((61 +90*d6 + 298*d7 + 45*d6*d6) - 252*d3 -3 * d7 *d7) * Math.pow(d9,6))/720);
             d17 = d17 * 180 / Math.PI;
             double d18 = ((d9 - ((1 + 2 * d6 + d7) * Math.pow(d9,3))/6) + (((((5 - 2 * d7) + 28*d6) - 3 * d7 * d7) + 8 * d3 + 24 * d6 * d6) * Math.pow(d9,5))/120)/Math.cos(d14);
             d18 = d11 + d18 * 180 / Math.PI;
-            double [] lat_long = {d18,d17};
-            return lat_long;
+           return new double[]{d18,d17};
         }
 
         @Override
@@ -611,7 +616,7 @@ public class CustomAdapter extends BaseAdapter {
             // get a reference to the CustomAdapter if it is still there
             CustomAdapter caRef = customAdapterRef.get();
             Activity activity = (Activity) caRef.c;
-            if (caRef == null || activity.isFinishing()) return;
+            if (activity.isFinishing()) return;
 
             progressBar.setVisibility(View.GONE);
             caRef.loading = false;
@@ -638,19 +643,26 @@ public class CustomAdapter extends BaseAdapter {
             for (int i = 0; i < pdfMaps.size(); i++) {
                 PDFMap map = pdfMaps.get(i);
                 File file = new File(map.getPath());
-                if (file == null || !file.exists()) {
+                if (!file.exists()) {
                     Toast.makeText(c, "File, " + map.getName() + " no longer exists. Updating database...", Toast.LENGTH_LONG).show();
                     File f = new File(map.getPath());
-                    if (f != null || f.exists())
-                        f.delete();
+                    if (f.exists()) {
+                        boolean result = f.delete();
+                        if (!result){
+                            Toast.makeText(c, "Problem removing map.", Toast.LENGTH_LONG).show();
+                        }
+                    }
                     db.deleteMap(map);
                     wpdb.deleteWayPt(pdfMaps.get(i).getName());
                     pdfMaps.remove(i);
                     // delete thumbnail image also
                     if (map.getThumbnail() != null) {
                         File img = new File(map.getThumbnail());
-                        if (img != null || img.exists())
-                            img.delete();
+                        if (img.exists()) {
+                            boolean result2 = img.delete();
+                            if (!result2)
+                                Toast.makeText(c, "Problem removing thumbnail.", Toast.LENGTH_LONG).show();
+                        }
                     }
                     i--;
                 }
@@ -678,17 +690,17 @@ public class CustomAdapter extends BaseAdapter {
                 return; // it will be 0 length if is importing
             bounds = bounds.trim(); // remove leading and trailing spaces
             int pos = bounds.indexOf(" ");
-            Double lat1 = Double.valueOf(bounds.substring(0, pos));
+            double lat1 = Double.parseDouble(bounds.substring(0, pos));
             bounds = bounds.substring(pos + 1); // strip off 'lat1 '
             pos = bounds.indexOf(" ");
-            Double long1 = Double.valueOf(bounds.substring(0, pos));
+            double long1 = Double.parseDouble(bounds.substring(0, pos));
             // FIND LAT2
             bounds = bounds.substring(pos + 1); // strip off 'long1 '
             pos = bounds.indexOf(" ");
-            Double lat2 = Double.valueOf(bounds.substring(0, pos));
+            double lat2 = Double.parseDouble(bounds.substring(0, pos));
             // FIND LONG2
             pos = bounds.lastIndexOf(" ");
-            Double long2 = Double.valueOf(bounds.substring(pos + 1));
+            double long2 = Double.parseDouble(bounds.substring(pos + 1));
 
             // Is on map?
             // On map
@@ -699,8 +711,8 @@ public class CustomAdapter extends BaseAdapter {
             }
             // Off map, calculate distance away
             else {
-                String direction = "";
-                Double dist = 0.0;
+                String direction;
+                double dist;
                 if (latNow > lat1) direction = "S";
                 else if (latNow > lat2) direction = "";
                 else direction = "N";
@@ -736,7 +748,9 @@ public class CustomAdapter extends BaseAdapter {
                 }
                 dist = results[0] * 0.00062137119;
                 map.setMiles(dist);
-                String distStr = "    " + String.format("%.1f", dist) + " mi " + direction;
+                String str = "    ";
+
+                String distStr = String.format(Locale.ENGLISH,"%s %.1f %s %s", str, dist, c.getResources().getString(R.string.miles), direction);
                 map.setDistToMap(distStr);
 
                // Log.d(TAG, "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
@@ -772,11 +786,14 @@ public class CustomAdapter extends BaseAdapter {
                         File sdcard = c.getFilesDir();
                         File file = new File(map.getPath());
                         String fileName = name;
-                        if (!name.substring(name.length() - 4).equals(".pdf"))
+                        if (!name.endsWith(".pdf"))
                             fileName = name + ".pdf";
                         File newName = new File(sdcard, fileName);
-                        file.renameTo(newName);
-                        Toast.makeText(c, "Map renamed to: " + name, Toast.LENGTH_LONG).show();
+                        boolean result = file.renameTo(newName);
+                        if (!result)
+                            Toast.makeText(c, "Can't rename to: " + name, Toast.LENGTH_LONG).show();
+                        else
+                            Toast.makeText(c, "Map renamed to: " + name, Toast.LENGTH_LONG).show();
                         map.setName(name);
                         map.setPath(sdcard + "/" + fileName);
                         db.updateMap(map);
@@ -807,7 +824,7 @@ public class CustomAdapter extends BaseAdapter {
                 PDFMap map = pdfMaps.get(i);
                 Toast.makeText(c,"Deleting: "+map.getName(), Toast.LENGTH_LONG).show();
                 File f = new File(map.getPath());
-                if (f != null || f.exists()) {
+                if (f.exists()) {
                     boolean deleted = f.delete();
                     if (!deleted) {
                         Toast.makeText(c, c.getResources().getString(R.string.deleteFile), Toast.LENGTH_LONG).show();
@@ -817,7 +834,7 @@ public class CustomAdapter extends BaseAdapter {
                 pdfMaps.remove(i);
                 // delete thumbnail image also
                 File img = new File(map.getThumbnail());
-                if (img != null || img.exists()) {
+                if (img.exists()) {
                     boolean deleted = img.delete();
                     if (!deleted) {
                         Toast.makeText(c, c.getResources().getString(R.string.deleteThumbnail), Toast.LENGTH_LONG).show();
@@ -840,7 +857,7 @@ public class CustomAdapter extends BaseAdapter {
                 if (pdfMaps.get(i).getId() == id) {
                     PDFMap map = pdfMaps.get(i);
                     File f = new File(map.getPath());
-                    if (f != null || f.exists()) {
+                    if (f.exists()) {
                         boolean deleted = f.delete();
                         if (!deleted) {
                             Toast.makeText(c, c.getResources().getString(R.string.deleteFile), Toast.LENGTH_LONG).show();
@@ -854,7 +871,7 @@ public class CustomAdapter extends BaseAdapter {
                     String imgPath = map.getThumbnail();
                     if (imgPath != null) {
                         File img = new File(imgPath);
-                        if (img != null || img.exists()) {
+                        if (img.exists()) {
                             boolean deleted = img.delete();
                             if (!deleted) {
                                 Toast.makeText(c, c.getResources().getString(R.string.deleteThumbnail), Toast.LENGTH_LONG).show();
@@ -867,9 +884,7 @@ public class CustomAdapter extends BaseAdapter {
             }
             db.close();
             dbwaypt.close();
-        } catch (IndexOutOfBoundsException e) {
-            Toast.makeText(c, c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
-        } catch (SQLException e){
+        } catch (IndexOutOfBoundsException | SQLException e) {
             Toast.makeText(c, c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
@@ -888,10 +903,10 @@ public class CustomAdapter extends BaseAdapter {
         // renameTxt = (EditText) view.findViewById(R.id.rename);
         //vis = View.VISIBLE;
         //hide = View.GONE;
-        nameTxt = (TextView) view.findViewById(R.id.nameTxt);
-        fileSizeTxt = (TextView) view.findViewById(R.id.fileSizeTxt);
-        distToMapTxt = (TextView) view.findViewById(R.id.distToMapTxt);
-        locIcon = (ImageView) view.findViewById(R.id.locationIcon);
+        nameTxt = view.findViewById(R.id.nameTxt);
+        fileSizeTxt = view.findViewById(R.id.fileSizeTxt);
+        distToMapTxt = view.findViewById(R.id.distToMapTxt);
+        locIcon = view.findViewById(R.id.locationIcon);
         locIcon.setVisibility(View.GONE);
         ImageView img = view.findViewById(R.id.pdfImage);
         ProgressBar pb = view.findViewById(R.id.loadProgress);
@@ -940,44 +955,38 @@ public class CustomAdapter extends BaseAdapter {
         }
 
         // VIEW ITEM CLICK
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Display the map
-                String bounds = pdfMap.getBounds();
-                if (bounds == null) {
-                    Toast.makeText(c, "This file is not a Geo PDF. Missing GPTS Bounds.", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                String mediaBox = pdfMap.getMediabox();
-                if (mediaBox == null) {
-                    Toast.makeText(c, "This file is not a Geo PDF. Missing MediaBox.", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                String viewPort = pdfMap.getViewport();
-                if (viewPort == null) {
-                    Toast.makeText(c, "This file is not a Geo PDF. Missing Viewport.", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                openPDFView(pdfMap.getPath(), pdfMap.getName(), bounds, mediaBox, viewPort);
+        view.setOnClickListener(view1 -> {
+            // Display the map
+            String bounds = pdfMap.getBounds();
+            if (bounds == null) {
+                Toast.makeText(c, "This file is not a Geo PDF. Missing GPTS Bounds.", Toast.LENGTH_LONG).show();
+                return;
             }
+            String mediaBox = pdfMap.getMediabox();
+            if (mediaBox == null) {
+                Toast.makeText(c, "This file is not a Geo PDF. Missing MediaBox.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            String viewPort = pdfMap.getViewport();
+            if (viewPort == null) {
+                Toast.makeText(c, "This file is not a Geo PDF. Missing Viewport.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            openPDFView(pdfMap.getPath(), pdfMap.getName(), bounds, mediaBox, viewPort);
         });
 
         // ITEM LONG CLICK - show menu delete item, rename item
-        view.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                // Open edit activity
-                Intent i = new Intent(c, EditMapNameActivity.class);
-                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                i.putExtra("PATH", pdfMap.getPath());
-                i.putExtra("NAME", pdfMap.getName());
-                i.putExtra("BOUNDS", pdfMap.getBounds());
-                i.putExtra("ID", pdfMap.getId());
-                i.putExtra("IMG", pdfMap.getThumbnail());
-                c.startActivity(i);
-                return true;
-            }
+        view.setOnLongClickListener(view12 -> {
+            // Open edit activity
+            Intent i1 = new Intent(c, EditMapNameActivity.class);
+            i1.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            i1.putExtra("PATH", pdfMap.getPath());
+            i1.putExtra("NAME", pdfMap.getName());
+            i1.putExtra("BOUNDS", pdfMap.getBounds());
+            i1.putExtra("ID", pdfMap.getId());
+            i1.putExtra("IMG", pdfMap.getThumbnail());
+            c.startActivity(i1);
+            return true;
         });
 
         return view;
