@@ -6,10 +6,10 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Locale;
 
 /**
  * Created by tammy on 12/6/2017.
@@ -59,18 +59,11 @@ public class DBHandler extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) throws SQLException {
-        try {
             // Create Imported Maps Table
             createMapsTable(db);
 
             // Create User Settings Table
             createSettingsTable(db);
-        }
-        catch (SQLException e){
-            Log.d("DBHandler","Error creating database: "+e.getMessage());
-           // Toast.makeText(c, "Error creating database: "+e.getMessage(), Toast.LENGTH_LONG).show();
-            throw e;
-        }
     }
 
     @Override
@@ -89,54 +82,39 @@ public class DBHandler extends SQLiteOpenHelper {
 
     private void createMapsTable(SQLiteDatabase db) throws SQLException {
         // Create Imported Maps Table
-        try {
-            String CREATE_MAPS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MAPS + "("
-                    + KEY_ID + " INTEGER PRIMARY KEY," + KEY_PATH + " TEXT,"
-                    + KEY_BOUNDS + " TEXT," + KEY_MEDIABOX + " TEXT,"
-                    + KEY_VIEWPORT + " TEXT, " + KEY_THUMBNAIL + " BLOB,"
-                    + KEY_NAME + " TEXT," + KEY_FILESIZE + " TEXT,"
-                    + KEY_DISTTOMAP + " TEXT" + ")";
-            db.execSQL(CREATE_MAPS_TABLE);
-        } catch (SQLException e) {
-            throw e;
-        }
+        String CREATE_MAPS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MAPS + "("
+                + KEY_ID + " INTEGER PRIMARY KEY," + KEY_PATH + " TEXT,"
+                + KEY_BOUNDS + " TEXT," + KEY_MEDIABOX + " TEXT,"
+                + KEY_VIEWPORT + " TEXT, " + KEY_THUMBNAIL + " BLOB,"
+                + KEY_NAME + " TEXT," + KEY_FILESIZE + " TEXT,"
+                + KEY_DISTTOMAP + " TEXT" + ")";
+        db.execSQL(CREATE_MAPS_TABLE);
     }
 
-    public void deleteTableMaps(Context c) throws SQLException {
+    public void deleteTableMaps() throws SQLException {
         // Delete and recreate Table_Maps
-        try {
-            SQLiteDatabase db = this.getWritableDatabase();
-            // delete maps table
-            db.execSQL("DROP TABLE IF EXISTS " + TABLE_MAPS);
-            // Create maps table again
-            onCreate(db);
-           // Toast.makeText(c, "All imported maps were deleted.", Toast.LENGTH_LONG).show();
-        }
-        catch (SQLException e){
-            throw e;
-        }
+        SQLiteDatabase db = this.getWritableDatabase();
+        // delete maps table
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_MAPS);
+        // Create maps table again
+        onCreate(db);
     }
 
     // Adding new PDF Map
     public void addMap(PDFMap map) throws SQLException {
-        try {
-            SQLiteDatabase db = this.getWritableDatabase();
-            ContentValues values = new ContentValues();
-            values.put(KEY_PATH, map.getPath()); // Path and file name of map
-            values.put(KEY_BOUNDS, map.getBounds()); // Lat/Long Bounds of the map
-            values.put(KEY_MEDIABOX, map.getMediabox()); // Pixel Bounds of the map
-            values.put(KEY_VIEWPORT, map.getViewport()); // Margins
-            values.put(KEY_THUMBNAIL, map.getThumbnail()); // Thumbnail image
-            values.put(KEY_NAME, map.getName()); // Map name without path
-            values.put(KEY_FILESIZE, map.getFileSize()); // Map pdf file size 267 Kb
-            values.put(KEY_DISTTOMAP, map.getDistToMap()); // Current distance to map
-            // Inserting Row
-            db.insert(TABLE_MAPS, null, values);
-            //db.close(); // Closing database connection
-        }
-        catch (SQLException e){
-            throw e;
-        }
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_PATH, map.getPath()); // Path and file name of map
+        values.put(KEY_BOUNDS, map.getBounds()); // Lat/Long Bounds of the map
+        values.put(KEY_MEDIABOX, map.getMediabox()); // Pixel Bounds of the map
+        values.put(KEY_VIEWPORT, map.getViewport()); // Margins
+        values.put(KEY_THUMBNAIL, map.getThumbnail()); // Thumbnail image
+        values.put(KEY_NAME, map.getName()); // Map name without path
+        values.put(KEY_FILESIZE, map.getFileSize()); // Map pdf file size 267 Kb
+        values.put(KEY_DISTTOMAP, map.getDistToMap()); // Current distance to map
+        // Inserting Row
+        db.insert(TABLE_MAPS, null, values);
+        //db.close(); // 5-21-21 Closing database connection
     }
 
     // Getting one PDF Map
@@ -174,19 +152,7 @@ public class DBHandler extends SQLiteOpenHelper {
         // If user database does not contain all of the fields recreate it preserving the user's maps.
         if (cursor.getColumnCount() != 9) {
             cursor.close();
-            try {
-                mapList = recreateDB(c);
-            } catch (SQLException e) {
-                throw e;
-            }
-            catch (Exception e)
-            {
-                // General error can be anything*
-                // captured by the java class Exception
-                // print in the console detailed technical info
-                e.printStackTrace();
-                throw e;
-            }
+            mapList = recreateDB(c);
             return mapList;
         } else {
             // looping through all rows and adding to list
@@ -215,6 +181,7 @@ public class DBHandler extends SQLiteOpenHelper {
             }
         }
         cursor.close();
+        //db.close(); // 5-21-21
         // return map list
         return mapList;
     }
@@ -252,9 +219,9 @@ public class DBHandler extends SQLiteOpenHelper {
                     long size = file.length() / 1024; // Get size and convert bytes into Kb.
                     if (size >= 1024) {
                         double sizeDbl = (double) size;
-                        fileSize = String.format("%s Mb", String.format("%.1f", (sizeDbl / 1024)));
+                        fileSize = String.format(Locale.ENGLISH,"%.1f%s", (sizeDbl / 1024),c.getResources().getString(R.string.Mb));
                     } else {
-                        fileSize = size + " Kb";
+                        fileSize = size + c.getResources().getString(R.string.Kb);
                     }
                     map.setFileSize(fileSize);
                     map.setDistToMap("");
@@ -264,36 +231,38 @@ public class DBHandler extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
         cursor.close();
+        //db.close(); // 5-21-21
 
         // remove database and add again
-        deleteTableMaps(c);
+        deleteTableMaps();
 
         // fill database
         for (int i=0; i<mapList.size(); i++){
             addMap(mapList.get(i));
         }
+
         return mapList;
     }
 
     // Updating a PDF Map
     public void updateMap(PDFMap map) throws SQLException {
-        try {
-            SQLiteDatabase db = this.getWritableDatabase();
+        // updat a map in the database
+        SQLiteDatabase db = this.getWritableDatabase();
 
-            ContentValues values = new ContentValues();
-            values.put(KEY_PATH, map.getPath());
-            values.put(KEY_BOUNDS, map.getBounds());
-            values.put(KEY_MEDIABOX, map.getMediabox());
-            values.put(KEY_VIEWPORT, map.getViewport());
-            values.put(KEY_THUMBNAIL, map.getThumbnail());
-            values.put(KEY_NAME, map.getName());
-            values.put(KEY_FILESIZE, map.getFileSize());
-            values.put(KEY_DISTTOMAP, map.getDistToMap());
+        ContentValues values = new ContentValues();
+        values.put(KEY_PATH, map.getPath());
+        values.put(KEY_BOUNDS, map.getBounds());
+        values.put(KEY_MEDIABOX, map.getMediabox());
+        values.put(KEY_VIEWPORT, map.getViewport());
+        values.put(KEY_THUMBNAIL, map.getThumbnail());
+        values.put(KEY_NAME, map.getName());
+        values.put(KEY_FILESIZE, map.getFileSize());
+        values.put(KEY_DISTTOMAP, map.getDistToMap());
 
-            // updating row
-            db.update(TABLE_MAPS, values, KEY_ID + " = ?",
-                    new String[]{String.valueOf(map.getId())});
-        }catch(SQLException e){throw e;}
+        // updating row
+        db.update(TABLE_MAPS, values, KEY_ID + " = ?",
+            new String[]{String.valueOf(map.getId())});
+        //db.close(); // 5-21-21
     }
 
     // Deleting a PDF Map
@@ -301,6 +270,7 @@ public class DBHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_MAPS, KEY_ID + " = ?",
                 new String[]{String.valueOf(map.getId())});
+        //db.close(); // 5-21-21
     }
 
     //-----------------
@@ -315,6 +285,7 @@ public class DBHandler extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(KEY_MAP_SORT, "name");
         db.insert(TABLE_SETTINGS, null, values);
+        //db.close(); // 5-21-21
     }
    /* public void resetSettings(){
         SQLiteDatabase db = this.getWritableDatabase();
@@ -330,15 +301,12 @@ public class DBHandler extends SQLiteOpenHelper {
     //---------------
     public void setMapSort(String order) throws SQLException{
         // How to sort the MainActivity imported maps
-        try {
-            SQLiteDatabase db = this.getWritableDatabase();
-            ContentValues values = new ContentValues();
-            values.put(KEY_MAP_SORT, order);
-            String id = "1";
-            db.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
-        } catch (SQLException e) {
-            throw e;
-        }
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_MAP_SORT, order);
+        String id = "1";
+        db.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
+        //db.close(); // 5-21-21
     }
 
     public String getMapSort() {
@@ -359,6 +327,7 @@ public class DBHandler extends SQLiteOpenHelper {
                     order = cursor.getString(0);
                 }
                 cursor.close();
+                //db.close(); // 5-21-21
                 return order;
             }
         }

@@ -47,6 +47,7 @@
     <string name="miles"> mi</string>
 
     <string name="import_maps">Import Maps</string>
+    <string name="importdone">Import Done</string>
     <string name="DownloadMap">Add Map</string>
     <string name="title_activity_get_more">Add Map</string>
     <string name="title_activity_web">Import Map</string>
@@ -80,8 +81,16 @@
     <string name="loading">Loading…</string>
 
     <!-- Error Messages -->
-    <string name="deleteFile">Problem removing PDF map file from App.</string>
+    <string name="deleteFile">Problem removing map file from App.</string>
     <string name="deleteThumbnail">Problem removing thumbnail image from App.</string>
-    <string name="problemRemovingMap">Problem removing map: </string>
-    <string name="writePermission">"Cannot copy PDF map to the App. No write permission."</string>
+    <string name="problemThumbnailSavingFile">Problem saving map thumbnail. Could not create new file. </string>
+    <string name="problemThumbnailDiskFull">Problem saving map thumbnail. Disk full? </string>
+    <string name="problemThumbnailSecurity">Trouble saving map thumbnail. Security exception. </string>
+    <string name="problemThumbnailSaving">Problem saving map thumbnail. </string>
+    <string name="problemRemovingMap">Problem removing map.</string>
+    <string name="writePermission">"Problem copying map to the App. No write permission."</string>
+    <string name="createFile">Problem copying map to the App. Cannot create file.</string>
+    <string name="importing">Importing map…</string>
+    <string name="file">File, </string>
+    <string name="noLongerExists">, no longer exists. Updating database…</string>
 </resources>

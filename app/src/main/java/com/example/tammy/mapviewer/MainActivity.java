@@ -86,22 +86,56 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         sortByDropdown.setOnItemSelectedListener(this);
 
         // GET THE LIST FROM THE DATABASE
-        try {
-            myAdapter = new CustomAdapter(MainActivity.this, db.getAllMaps(MainActivity.this));
-        } catch (SQLException e) {
-            Toast.makeText(MainActivity.this, "Error deleting database table: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-        lv = findViewById(R.id.lv);
-        lv.setAdapter(myAdapter);
-        registerForContextMenu(lv); // set up edit/trash context menu
+        //Runnable r = () -> { System.out.println("reading database...");
+            try {
+                myAdapter = new CustomAdapter(MainActivity.this, db.getAllMaps(MainActivity.this));
+            } catch (SQLException e) {
+                Toast.makeText(MainActivity.this, "Error deleting database table: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+            lv = findViewById(R.id.lv);
+            lv.setAdapter(myAdapter);
+            registerForContextMenu(lv); // set up edit/trash context menu
+            // Make sure all the maps in the database still exist
+            myAdapter.checkIfExists();
+            // Display note if no records found
+            showHideNoImportsMessage();
 
-        // Make sure all the maps in the database still exist
-        myAdapter.checkIfExists();
+            sortFlag = true;
+            if (sortFlag){
+                // set selected sort by item
+                String sort = db.getMapSort();
+                int sortID = 0;
+                switch (sort) {
+                    case "namerev":
+                        sortID = 1;
+                        break;
+                    case "date":
+                        sortID = 2;
+                        break;
+                    case "daterev":
+                        sortID = 3;
+                        break;
+                    case "size":
+                        sortID = 4;
+                        break;
+                    case "sizerev":
+                        sortID = 5;
+                        break;
+                    case "proximity":
+                        sortID = 6;
+                        break;
+                    case "proximityrev":
+                        sortID = 7;
+                        break;
+                }
+                sortByDropdown.setSelection(sortID, true);
+            }
+        //};
+        //Start the new thread to read maps from database
+        //new Thread(r).start();
 
-        sortFlag = true;
 
-        // Display note if no records found
-        showHideNoImportsMessage();
+
         /*if (myAdapter.pdfMaps.size() == 0) {
             TextView msg = (TextView) findViewById(R.id.txtMessage);
             msg.setText("No maps have been imported.\nUse the + button to import a map.");
@@ -158,45 +192,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         }
 
-        if (sortFlag){
-            // set selected sort by item
-            String sort = db.getMapSort();
-            int sortID = 0;
-            switch (sort) {
-                case "namerev":
-                    sortID = 1;
-                    break;
-                case "date":
-                    sortID = 2;
-                    break;
-                case "daterev":
-                    sortID = 3;
-                    break;
-                case "size":
-                    sortID = 4;
-                    break;
-                case "sizerev":
-                    sortID = 5;
-                    break;
-                case "proximity":
-                    sortID = 6;
-                    break;
-                case "proximityrev":
-                    sortID = 7;
-                    break;
-            }
-            sortByDropdown.setSelection(sortID, true);
-        }
-
         // FLOATING ACTION BUTTON CLICK
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, GetMoreActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-            }
+        fab.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, GetMoreActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
         });
 
         // SET UP LOCATION SERVICES
@@ -218,9 +219,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     latBefore = latBefore + .5;
                     longBefore = longBefore -.2;
 
-
-
-
+                    if (myAdapter == null) return;
                     myAdapter.setLocation(location);
                     //bearing = location.getBearing(); // 0-360 degrees 0 at North
 

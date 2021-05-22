@@ -139,7 +139,7 @@ public class CustomAdapter extends BaseAdapter {
             // get a reference to the CustomAdapter if it is still there
             CustomAdapter caRef = customAdapterRef.get();
             Activity activity = (Activity) caRef.c;
-            if (activity.isFinishing()) return;
+            if (caRef == null || activity.isFinishing()) return;
 
             caRef.loading = true;
             // calls doInBackground
@@ -168,7 +168,7 @@ public class CustomAdapter extends BaseAdapter {
             // get a reference to the CustomAdapter if it is still there
             CustomAdapter caRef = customAdapterRef.get();
             Activity activity = (Activity) caRef.c;
-            if (activity.isFinishing()) return "";
+            if (caRef == null || activity.isFinishing()) return "";
             Context c = caRef.c;
 
             // preform background computation
@@ -204,7 +204,7 @@ public class CustomAdapter extends BaseAdapter {
             //<</Size 82/Root 5 0 R/Info 3 0 R/ID[<481274B989C1D7419BA9E71CBA227123><D6AEE54D32AC354E980F653350D6C962>]/Prev 2874274>>
             try {
                 PdfReader reader = new PdfReader(filePath);
-                //if (reader == null) return ("Import Failed");
+                if (reader == null) return ("Import Failed");
 
                 //int numPages = reader.getNumberOfPages();
 
@@ -223,7 +223,7 @@ public class CustomAdapter extends BaseAdapter {
                 // Get MediaBox page size
                 //--------------------------
                 mediabox = page.getAsArray(PdfName.MEDIABOX).toString(); // works [ 0 0 792 1224]
-                //if (mediabox == null) return ("Import Failed");
+                if (mediabox == null) return ("Import Failed");
                 mediabox = mediabox.substring(1,mediabox.length()-1).trim();
                 mediabox = mediabox.replaceAll(",","");
                 publishProgress(20);
@@ -306,7 +306,7 @@ public class CustomAdapter extends BaseAdapter {
 
 
                     bounds = measure.get(PdfName.GPTS).toString();
-                    //if (bounds == null) return ("Import Failed");
+                    if (bounds == null) return ("Import Failed");
                     bounds = bounds.trim();
                     bounds = bounds.substring(1, bounds.length() - 1);
                     bounds = bounds.replaceAll(",", "");
@@ -429,7 +429,7 @@ public class CustomAdapter extends BaseAdapter {
                         v1 = v2;
                         v2 = tmp;
                     }
-                    viewport = h1 + " " + v1 + " " + h2 + " " + v2;
+                    viewport = Integer.toString(h1) + " " + Integer.toString(v1) + " " + Integer.toString(h2) + " " + Integer.toString(v2);
                     publishProgress(20);
 
                     // Get Latitude/Longitude Bounds = lat1 long1 lat2 long1 lat2 long2 lat1 long2
@@ -501,20 +501,20 @@ public class CustomAdapter extends BaseAdapter {
                     if (!img.exists()) {
                             boolean fileDoesNotExist = img.createNewFile();
                             if (!fileDoesNotExist)
-                                Toast.makeText(c, "Trouble saving map thumbnail. Could not create new file.", Toast.LENGTH_LONG).show();
+                                Toast.makeText(c, c.getResources().getString(R.string.problemThumbnailSavingFile), Toast.LENGTH_LONG).show();
                     }
                     FileOutputStream fos = new FileOutputStream(img);
                     fos.write(thumbnail);
                     fos.close();
                     pdfMap.setThumbnail(path + "/CPWthumbnail" + pdfMap.getId() + ".png");
                 } catch (IOException e){
-                    Toast.makeText(c, "Trouble saving map thumbnail. Disk full?" + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(c, c.getResources().getString(R.string.problemThumbnailDiskFull) + e.getMessage(), Toast.LENGTH_LONG).show();
                     pdfMap.setThumbnail(null);
                 } catch (SecurityException e){
-                    Toast.makeText(c, "Trouble saving map thumbnail. Security exception." + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(c, c.getResources().getString(R.string.problemThumbnailSecurity) + e.getMessage(), Toast.LENGTH_LONG).show();
                     pdfMap.setThumbnail(null);
                 } catch (Exception e) {
-                    Toast.makeText(c, "Trouble saving map thumbnail. " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(c, c.getResources().getString(R.string.problemThumbnailSaving) + e.getMessage(), Toast.LENGTH_LONG).show();
                     pdfMap.setThumbnail(null);
                 }
                 publishProgress(60);
@@ -529,7 +529,7 @@ public class CustomAdapter extends BaseAdapter {
                 if (size >= 1024) {
                     fileSize = String.format(Locale.ENGLISH,"%.1f %s", (size / 1024.0), c.getResources().getString(R.string.Mb));
                 } else {
-                    fileSize = String.format("%.0f %s", size, c.getResources().getString(R.string.Kb));
+                    fileSize = String.format(Locale.ENGLISH,"%.0f %s", size, c.getResources().getString(R.string.Kb));
                 }
 
                 // IMPORT INTO the DATABASE
@@ -550,7 +550,7 @@ public class CustomAdapter extends BaseAdapter {
                 pdfMap.setName("deleting...");
                 return "Import Failed " + ex.getMessage();
             }
-            return "Import Done";
+            return c.getResources().getString(R.string.importdone); //"Import Done";
         }
 
         // 10-10-18 Test getting thumbnail from iText
@@ -621,7 +621,7 @@ public class CustomAdapter extends BaseAdapter {
             progressBar.setVisibility(View.GONE);
             caRef.loading = false;
             // Map Import Failed
-            if (!result.equals("Import Done")) {
+            if (!result.equals(caRef.c.getResources().getString(R.string.importdone))) {
                 Toast.makeText(caRef.c, result, Toast.LENGTH_LONG).show();
                 caRef.removeItem(pdfMap.getId());
             }
@@ -644,12 +644,12 @@ public class CustomAdapter extends BaseAdapter {
                 PDFMap map = pdfMaps.get(i);
                 File file = new File(map.getPath());
                 if (!file.exists()) {
-                    Toast.makeText(c, "File, " + map.getName() + " no longer exists. Updating database...", Toast.LENGTH_LONG).show();
+                    Toast.makeText(c,  c.getResources().getString(R.string.file) + map.getName() +  c.getResources().getString(R.string.noLongerExists), Toast.LENGTH_LONG).show();
                     File f = new File(map.getPath());
                     if (f.exists()) {
                         boolean result = f.delete();
                         if (!result){
-                            Toast.makeText(c, "Problem removing map.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(c, c.getResources().getString(R.string.problemRemovingMap), Toast.LENGTH_LONG).show();
                         }
                     }
                     db.deleteMap(map);
@@ -661,7 +661,7 @@ public class CustomAdapter extends BaseAdapter {
                         if (img.exists()) {
                             boolean result2 = img.delete();
                             if (!result2)
-                                Toast.makeText(c, "Problem removing thumbnail.", Toast.LENGTH_LONG).show();
+                                Toast.makeText(c, c.getResources().getString(R.string.deleteThumbnail), Toast.LENGTH_LONG).show();
                         }
                     }
                     i--;
@@ -671,7 +671,7 @@ public class CustomAdapter extends BaseAdapter {
             db.close();
             wpdb.close();
         } catch (IndexOutOfBoundsException e) {
-            Toast.makeText(c, "Problem removing map: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(c,  c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -824,7 +824,7 @@ public class CustomAdapter extends BaseAdapter {
                 PDFMap map = pdfMaps.get(i);
                 Toast.makeText(c,"Deleting: "+map.getName(), Toast.LENGTH_LONG).show();
                 File f = new File(map.getPath());
-                if (f.exists()) {
+                if (f != null || f.exists()) {
                     boolean deleted = f.delete();
                     if (!deleted) {
                         Toast.makeText(c, c.getResources().getString(R.string.deleteFile), Toast.LENGTH_LONG).show();
@@ -834,7 +834,7 @@ public class CustomAdapter extends BaseAdapter {
                 pdfMaps.remove(i);
                 // delete thumbnail image also
                 File img = new File(map.getThumbnail());
-                if (img.exists()) {
+                if (img != null || img.exists()) {
                     boolean deleted = img.delete();
                     if (!deleted) {
                         Toast.makeText(c, c.getResources().getString(R.string.deleteThumbnail), Toast.LENGTH_LONG).show();
@@ -857,7 +857,7 @@ public class CustomAdapter extends BaseAdapter {
                 if (pdfMaps.get(i).getId() == id) {
                     PDFMap map = pdfMaps.get(i);
                     File f = new File(map.getPath());
-                    if (f.exists()) {
+                    if (f != null || f.exists()) {
                         boolean deleted = f.delete();
                         if (!deleted) {
                             Toast.makeText(c, c.getResources().getString(R.string.deleteFile), Toast.LENGTH_LONG).show();
@@ -871,7 +871,7 @@ public class CustomAdapter extends BaseAdapter {
                     String imgPath = map.getThumbnail();
                     if (imgPath != null) {
                         File img = new File(imgPath);
-                        if (img.exists()) {
+                        if (img != null || img.exists()) {
                             boolean deleted = img.delete();
                             if (!deleted) {
                                 Toast.makeText(c, c.getResources().getString(R.string.deleteThumbnail), Toast.LENGTH_LONG).show();

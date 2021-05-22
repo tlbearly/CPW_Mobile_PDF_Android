@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
-import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -29,34 +28,30 @@ public class GetMoreActivity extends AppCompatActivity {
         setContentView(R.layout.activity_get_more);
 
         // add link to download maps page
-        Button linkButton = (Button) findViewById(R.id.downloadMapsBtn);
-        linkButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://cpw.state.co.us/learn/Pages/Maps.aspx"));
-                    startActivity(browserIntent);
-            }
+        Button linkButton = findViewById(R.id.downloadMapsBtn);
+        linkButton.setOnClickListener(v -> {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://cpw.state.co.us/learn/Pages/Maps.aspx"));
+                startActivity(browserIntent);
         });
 
         // Open Android File Picker for PDF files API 1
-        downloadsBtn = (Button) findViewById(R.id.importBtn);
-        downloadsBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                /* Fires an intent to spin up the "file chooser" UI and select a pdf
-                * ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
-                * browser. */
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                //Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT); // API 19
-                // Filter to only show results that can be "opened", such as a
-                // file (as opposed to a list of contacts or timezones)
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
+        downloadsBtn = findViewById(R.id.importBtn);
+        downloadsBtn.setOnClickListener(v -> {
+            /* Fires an intent to spin up the "file chooser" UI and select a pdf
+            * ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
+            * browser. */
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            //Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT); // API 19
+            // Filter to only show results that can be "opened", such as a
+            // file (as opposed to a list of contacts or timezones)
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
 
-                // Filter to show only images, using the image MIME data type.
-                // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
-                // To search for all documents available via installed storage providers,
-                // it would be "*/*".
-                intent.setType("application/pdf");
-                startActivityForResult(intent,READ_REQUEST_CODE);
-            }
+            // Filter to show only images, using the image MIME data type.
+            // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
+            // To search for all documents available via installed storage providers,
+            // it would be "*/*".
+            intent.setType("application/pdf");
+            startActivityForResult(intent,READ_REQUEST_CODE);
         });
     }
 
@@ -75,6 +70,7 @@ public class GetMoreActivity extends AppCompatActivity {
             Uri uri;
             if (resultData != null) {
                 try {
+                    Toast.makeText(GetMoreActivity.this,getResources().getString(R.string.importing), Toast.LENGTH_LONG).show();
                     uri = resultData.getData();
                     String name="";
                     long fileSize;
@@ -112,10 +108,10 @@ public class GetMoreActivity extends AppCompatActivity {
                     }
                     //if (j > 0) name = name.substring(0, name.length() - 4) + j + ".pdf";
                     InputStream is = getContentResolver().openInputStream(uri);
-                    boolean ok = outFile.setWritable(true, true); // ownerOnly was false(world write permissions!) always returns false???? but works
-                    /*if (!ok){
-                        Toast.makeText(GetMoreActivity.this,getResources().getString(R.string.writePermission), Toast.LENGTH_LONG).show();
-                    }*/
+                    boolean ok = outFile.setWritable(true, false); // ownerOnly was false(world write permissions!) always returns false???? but works
+                    //if (!ok){
+                    //    Toast.makeText(GetMoreActivity.this,getResources().getString(R.string.writePermission), Toast.LENGTH_LONG).show();
+                    //}
                     OutputStream os = new FileOutputStream(outFile);
                     byte[] buffer = new byte[1024];
                     int length;
@@ -126,6 +122,10 @@ public class GetMoreActivity extends AppCompatActivity {
                     is.close();
                     String newPath =  outFile.getPath();
 
+                    // check if was written
+                    if (!outFile.exists()) {
+                        Toast.makeText(GetMoreActivity.this,getResources().getString(R.string.createFile), Toast.LENGTH_LONG).show();
+                    }
                     PDFMap map = new PDFMap(newPath, "", "", "", null, getResources().getString(R.string.loading), "", "");
                     DBHandler db = new DBHandler(GetMoreActivity.this);
                     db.addMap(map);
