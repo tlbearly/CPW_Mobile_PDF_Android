@@ -24,7 +24,6 @@ import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
@@ -38,8 +37,6 @@ import androidx.core.content.ContextCompat;
 import com.github.barteksc.pdfviewer.PDFView;
 import com.github.barteksc.pdfviewer.listener.OnDrawListener;
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
-import com.github.barteksc.pdfviewer.listener.OnRenderListener;
-import com.github.barteksc.pdfviewer.listener.OnTapListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -47,6 +44,8 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
 import java.io.File;
+import java.util.Locale;
+import java.util.Objects;
 
 import static android.graphics.Color.argb;
 
@@ -247,7 +246,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         try {
             // GET MEDIA BOX or PAGE BOUNDARIES for example: "0 0 612 792"
             try {
-                mediaBox = i.getExtras().getString("MEDIABOX");
+                mediaBox = Objects.requireNonNull(i.getExtras()).getString("MEDIABOX");
             } catch (NullPointerException e) {
                 Toast.makeText(PDFActivity.this, "Could not read page size.", Toast.LENGTH_SHORT).show();
              finish();
@@ -277,7 +276,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         try {
             // GET MARGINS - origin is at bottom left. BBox[23 570 768 48]
             try {
-                viewPort = i.getExtras().getString("VIEWPORT");
+                viewPort = Objects.requireNonNull(i.getExtras()).getString("VIEWPORT");
             } catch (NullPointerException e) {
                 Toast.makeText(PDFActivity.this, "Trouble reading viewport from Geo PDF.", Toast.LENGTH_LONG).show();
             }
@@ -419,176 +418,170 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         File file = new File(path);
         if (file.canRead()) {
             // LOAD IT, load only first page
-            pdfView.fromFile(file).defaultPage(0).pages(0).onRender(new OnRenderListener() {
-                @Override
-                public void onInitiallyRendered(int pages, float pageWidth, float pageHeight) {
-                    pdfView.fitToWidth(); // optionally pass page number
-                }
+            //
+// LISTEN FOR TAP TO ADD WAY POINT OR DISPLAY PT DATA
+//
+            pdfView.fromFile(file).defaultPage(0).pages(0).onRender((pages, pageWidth, pageHeight) -> {
+                pdfView.fitToWidth(); // optionally pass page number
             })
-                    .onTap(new OnTapListener() {
+                    .onTap(e -> {
+                        // if no way points are show return
+                        if (!showAllWayPts) return false;
+                        // show wait icon
+                        wait.setVisibility(View.VISIBLE);
+                        boolean found = false;
+                        newWP = false; // if added a new way point show balloon too
+                        float x, y;
+                        float zoom = pdfView.getZoom();
+                        double toScreenCordX = (pdfView.getOptimalPageWidth() * zoom) / mediaBoxWidth;
+                        double toScreenCordY = (pdfView.getOptimalPageHeight() * zoom) / mediaBoxHeight;
+                        double marginL = toScreenCordX * marginLeft;
+                        double marginT = toScreenCordY * marginTop;
+                        double marginx = toScreenCordX * marginXworld;
+                        double marginy = toScreenCordY * marginYworld;
+                        x = (e.getX() - pdfView.getCurrentXOffset());
+                        y = (e.getY() - pdfView.getCurrentYOffset());
+                        double wayPtX, wayPtY;
                         //
-                        // LISTEN FOR TAP TO ADD WAY POINT OR DISPLAY PT DATA
+                        // Check if clicked on way pt popup balloon of the single way point that is showing the balloon
                         //
-                        @Override
-                        public boolean onTap(MotionEvent e) {
-                            // if no way points are show return
-                            if (!showAllWayPts) return false;
-                            // show wait icon
-                            wait.setVisibility(View.VISIBLE);
-                            boolean found = false;
-                            newWP = false; // if added a new way point show balloon too
-                            float x, y;
-                            float zoom = pdfView.getZoom();
-                            double toScreenCordX = (pdfView.getOptimalPageWidth() * zoom) / mediaBoxWidth;
-                            double toScreenCordY = (pdfView.getOptimalPageHeight() * zoom) / mediaBoxHeight;
-                            double marginL = toScreenCordX * marginLeft;
-                            double marginT = toScreenCordY * marginTop;
-                            double marginx = toScreenCordX * marginXworld;
-                            double marginy = toScreenCordY * marginYworld;
-                            x = (e.getX() - pdfView.getCurrentXOffset());
-                            y = (e.getY() - pdfView.getCurrentYOffset());
-                            double wayPtX, wayPtY;
-                            //
-                            // Check if clicked on way pt popup balloon of the single way point that is showing the balloon
-                            //
-                            if (clickedWP != -1) {
-                                wayPtX = (((wayPts.get(clickedWP).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
-                                wayPtY = ((((90 - wayPts.get(clickedWP).getY()) - (90 - lat2)) / latDiff) * ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
-                                String desc = wayPts.get(clickedWP).getDesc();
+                        if (clickedWP != -1) {
+                            wayPtX = (((wayPts.get(clickedWP).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
+                            wayPtY = ((((90 - wayPts.get(clickedWP).getY()) - (90 - lat2)) / latDiff) * ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
+                            String desc = wayPts.get(clickedWP).getDesc();
+                            if (desc.length() > 13) desc = desc.substring(0, 12);
+                            float textWidth = txtCol.measureText(desc);
+                            int emoji_width1 = Math.round(getResources().getDimension(R.dimen.emoji_width));//used to be 80
+                            int marg = Math.round(getResources().getDimension(R.dimen.ten_dp));//10
+                            // Test for balloon popup going off right side of screen
+                            int offsetBox;
+                            offsetBox = (int) Math.round((pdfView.getOptimalPageWidth() * zoom) - (wayPtX + (textWidth / 2) + marg + emoji_width1));
+                            // Test for balloon popup going off the left side of screen
+                            if (offsetBox >= 0) {
+                                offsetBox = 0;
+                                if ((wayPtX - (textWidth / 2) - marg) < 0)
+                                    offsetBox = (int) (-1 * Math.round(wayPtX - (textWidth / 2) - marg));
+                            }
+                            if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
+                                    y < (wayPtY - startY + marg) && y >= (wayPtY - startY - boxHt - marg)) {
+                                // Open EditWayPointActivity
+                                Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
+                                //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                i1.putExtra("CLICKED", clickedWP);
+                                i1.putExtra("NAME", mapName);
+                                i1.putExtra("PATH", path);
+                                i1.putExtra("BOUNDS", strBounds);
+                                i1.putExtra("MEDIABOX", strMediaBox);
+                                i1.putExtra("VIEWPORT", strViewPort);
+                                startActivity(i1);
+                                // hide wait icon
+                                wait.setVisibility(View.GONE);
+                                return false;
+                            }
+                        }
+
+                        // check if clicked on any balloon when all way points are showing their labels
+                        if (showAllWayPtLabels) {
+                            for (int j = 0; j < wayPts.size(); j++) {
+                                wayPtX = (((wayPts.get(j).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
+                                wayPtY = ((((90 - wayPts.get(j).getY()) - (90 - lat2)) / latDiff) * ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
+                                String desc;
+                                desc = wayPts.get(j).getDesc();
                                 if (desc.length() > 13) desc = desc.substring(0, 12);
                                 float textWidth = txtCol.measureText(desc);
-                                int emoji_width = Math.round(getResources().getDimension(R.dimen.emoji_width));//used to be 80
+                                int emoji_width1 = Math.round(getResources().getDimension(R.dimen.emoji_width));//used to be 80
                                 int marg = Math.round(getResources().getDimension(R.dimen.ten_dp));//10
                                 // Test for balloon popup going off right side of screen
                                 int offsetBox;
-                                offsetBox = (int) Math.round((pdfView.getOptimalPageWidth() * zoom) - (wayPtX + (textWidth / 2) + marg + emoji_width));
+                                offsetBox = (int) Math.round((pdfView.getOptimalPageWidth() * zoom) - (wayPtX + (textWidth / 2) + marg + emoji_width1));
                                 // Test for balloon popup going off the left side of screen
                                 if (offsetBox >= 0) {
                                     offsetBox = 0;
                                     if ((wayPtX - (textWidth / 2) - marg) < 0)
                                         offsetBox = (int) (-1 * Math.round(wayPtX - (textWidth / 2) - marg));
                                 }
-                                if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width) + offsetBox) &&
+                                if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
                                         y < (wayPtY - startY + marg) && y >= (wayPtY - startY - boxHt - marg)) {
                                     // Open EditWayPointActivity
-                                    Intent i = new Intent(PDFActivity.this, EditWayPointActivity.class);
+                                    Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
                                     //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                    i.putExtra("CLICKED", clickedWP);
-                                    i.putExtra("NAME", mapName);
-                                    i.putExtra("PATH", path);
-                                    i.putExtra("BOUNDS", strBounds);
-                                    i.putExtra("MEDIABOX", strMediaBox);
-                                    i.putExtra("VIEWPORT", strViewPort);
-                                    startActivity(i);
+                                    i1.putExtra("CLICKED", j);
+                                    i1.putExtra("NAME", mapName);
+                                    i1.putExtra("PATH", path);
+                                    i1.putExtra("BOUNDS", strBounds);
+                                    i1.putExtra("MEDIABOX", strMediaBox);
+                                    i1.putExtra("VIEWPORT", strViewPort);
+                                    startActivity(i1);
                                     // hide wait icon
                                     wait.setVisibility(View.GONE);
                                     return false;
                                 }
                             }
-
-                            // check if clicked on any balloon when all way points are showing their labels
-                            if (showAllWayPtLabels) {
-                                for (int j = 0; j < wayPts.size(); j++) {
-                                    wayPtX = (((wayPts.get(j).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
-                                    wayPtY = ((((90 - wayPts.get(j).getY()) - (90 - lat2)) / latDiff) * ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
-                                    String desc;
-                                    desc = wayPts.get(j).getDesc();
-                                    if (desc.length() > 13) desc = desc.substring(0, 12);
-                                    float textWidth = txtCol.measureText(desc);
-                                    int emoji_width = Math.round(getResources().getDimension(R.dimen.emoji_width));//used to be 80
-                                    int marg = Math.round(getResources().getDimension(R.dimen.ten_dp));//10
-                                    // Test for balloon popup going off right side of screen
-                                    int offsetBox;
-                                    offsetBox = (int) Math.round((pdfView.getOptimalPageWidth() * zoom) - (wayPtX + (textWidth / 2) + marg + emoji_width));
-                                    // Test for balloon popup going off the left side of screen
-                                    if (offsetBox >= 0) {
-                                        offsetBox = 0;
-                                        if ((wayPtX - (textWidth / 2) - marg) < 0)
-                                            offsetBox = (int) (-1 * Math.round(wayPtX - (textWidth / 2) - marg));
-                                    }
-                                    if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width) + offsetBox) &&
-                                            y < (wayPtY - startY + marg) && y >= (wayPtY - startY - boxHt - marg)) {
-                                        // Open EditWayPointActivity
-                                        Intent i = new Intent(PDFActivity.this, EditWayPointActivity.class);
-                                        //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                        i.putExtra("CLICKED", j);
-                                        i.putExtra("NAME", mapName);
-                                        i.putExtra("PATH", path);
-                                        i.putExtra("BOUNDS", strBounds);
-                                        i.putExtra("MEDIABOX", strMediaBox);
-                                        i.putExtra("VIEWPORT", strViewPort);
-                                        startActivity(i);
-                                        // hide wait icon
-                                        wait.setVisibility(View.GONE);
-                                        return false;
-                                    }
-                                }
-                            }
-
-                            //
-                            // Check if clicked on existing way pt
-                            //
-                            double longitude = (((x - marginL) / ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx)) * longDiff) + (long1 + 180) - 180;
-                            double latitude = ((((y - marginT) / ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) * latDiff) + (90 - lat2) - 90) * -1;
-
-                            // If showing all balloons, and click to add new point it should add it and not hide the currently selected balloon.
-                            if (showAllWayPtLabels) clickedWP = -1;
-
-                            //TextView bTxt = (TextView)findViewById(R.id.debug);
-                            //bTxt.setTextColor(Color.WHITE);
-                            //bTxt.setText("X offset: "+pdfView.getCurrentXOffset()+" Tap at: " +x+", "+y+" Long: "+String.format("%.4f",longitude)+ " Lat: "+String.format("%.4f",latitude));
-
-                            // If clicked on existing way point show balloon with name
-                            for (int i = wayPts.size() - 1; i > -1; i--) {
-                                // convert this way pt lat, long to screen coordinates
-                                wayPtX = (((wayPts.get(i).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
-                                wayPtY = ((((90 - wayPts.get(i).getY()) - (90 - lat2)) / latDiff) * ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
-
-                                if (x > (wayPtX - margX) && x < (wayPtX + margX) &&
-                                        y < (wayPtY + margBottom) && y >= (wayPtY - margTop)) {
-                                    clickedWP = i;
-                                    found = true;
-                                    break;
-                                }
-                            }
-
-                            // Add new way pt
-                            if (clickedWP == -1 && !found) {
-                                // Make sure user click is not off the map!
-                                if (!(latitude > lat1 && latitude < lat2 && longitude > long1 && longitude < long2)) {
-                                    Toast.makeText(PDFActivity.this, " Off Map.", Toast.LENGTH_SHORT).show();
-                                    clickedWP = -1;
-                                }
-                                // Check if clicked too close to edge, Warn user
-                        /*else if (!(latitude > lat1 && latitude < (lat2-.01) && longitude > long1 && longitude < long2)){
-                            Toast.makeText(PDFActivity.this, " Too close to edge.", Toast.LENGTH_SHORT).show();
-                            clickedWP = -1;
-                        }*/
-                                else {
-                                    newWP = true;
-                                    String location = String.format("%.5f", latitude) + ", " + String.format("%.5f", longitude);
-                                    int num = wayPts.size() + 1;
-                                    WayPt wayPt = wayPts.add(mapName, "Way Point " + num, (float) longitude, (float) latitude, "blue", location);
-                                    String desc = wayPt.getDesc();
-                                    wayPts.SortPts();
-                                    try {
-                                        db.addWayPt(wayPt);
-                                    } catch (SQLException exc) {
-                                        Toast.makeText(PDFActivity.this, "Failed to add pt to database.", Toast.LENGTH_LONG).show();
-                                    }
-                                    for (int i = 0; i < wayPts.size(); i++) {
-                                        if (wayPts.get(i).getDesc().equals(desc)) {
-                                            clickedWP = i;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            // hide old balloon
-                            else if (!found)
-                                clickedWP = -1;
-                            return false;
                         }
+
+                        //
+                        // Check if clicked on existing way pt
+                        //
+                        double longitude = (((x - marginL) / ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx)) * longDiff) + (long1 + 180) - 180;
+                        double latitude = ((((y - marginT) / ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) * latDiff) + (90 - lat2) - 90) * -1;
+
+                        // If showing all balloons, and click to add new point it should add it and not hide the currently selected balloon.
+                        if (showAllWayPtLabels) clickedWP = -1;
+
+                        //TextView bTxt = (TextView)findViewById(R.id.debug);
+                        //bTxt.setTextColor(Color.WHITE);
+                        //bTxt.setText("X offset: "+pdfView.getCurrentXOffset()+" Tap at: " +x+", "+y+" Long: "+String.format("%.4f",longitude)+ " Lat: "+String.format("%.4f",latitude));
+
+                        // If clicked on existing way point show balloon with name
+                        for (int i1 = wayPts.size() - 1; i1 > -1; i1--) {
+                            // convert this way pt lat, long to screen coordinates
+                            wayPtX = (((wayPts.get(i1).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
+                            wayPtY = ((((90 - wayPts.get(i1).getY()) - (90 - lat2)) / latDiff) * ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
+
+                            if (x > (wayPtX - margX) && x < (wayPtX + margX) &&
+                                    y < (wayPtY + margBottom) && y >= (wayPtY - margTop)) {
+                                clickedWP = i1;
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        // Add new way pt
+                        if (clickedWP == -1 && !found) {
+                            // Make sure user click is not off the map!
+                            if (!(latitude > lat1 && latitude < lat2 && longitude > long1 && longitude < long2)) {
+                                Toast.makeText(PDFActivity.this, " Off Map.", Toast.LENGTH_SHORT).show();
+                                clickedWP = -1;
+                            }
+                            // Check if clicked too close to edge, Warn user
+                    /*else if (!(latitude > lat1 && latitude < (lat2-.01) && longitude > long1 && longitude < long2)){
+                        Toast.makeText(PDFActivity.this, " Too close to edge.", Toast.LENGTH_SHORT).show();
+                        clickedWP = -1;
+                    }*/
+                            else {
+                                newWP = true;
+                                String location = String.format(Locale.ENGLISH,"%.5f, %.5f", latitude,longitude);
+                                int num = wayPts.size() + 1;
+                                WayPt wayPt = wayPts.add(mapName, "Way Point " + num, (float) longitude, (float) latitude, "blue", location);
+                                String desc = wayPt.getDesc();
+                                wayPts.SortPts();
+                                try {
+                                    db.addWayPt(wayPt);
+                                } catch (SQLException exc) {
+                                    Toast.makeText(PDFActivity.this, "Failed to add pt to database.", Toast.LENGTH_LONG).show();
+                                }
+                                for (int i1 = 0; i1 < wayPts.size(); i1++) {
+                                    if (wayPts.get(i1).getDesc().equals(desc)) {
+                                        clickedWP = i1;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        // hide old balloon
+                        else if (!found)
+                            clickedWP = -1;
+                        return false;
                     }).onDraw(new OnDrawListener() {
                 @Override
                 public void onLayerDrawn(Canvas canvas, float pageWidth, float pageHeight, int displayedPage) {
