@@ -1,0 +1,7 @@
+Add Chrome to Emulator for debugging. Our CPW link in GetMoreActivity needs to open a browser to download maps.
+This will add the Chrome browser to the emulator.
+
+
+Tools / SDK Manager / Android SDK  + these two items:
+Chrome OS System Images   https://storage.googleapis.com/chrome_os_emulator/sys-img2-1.xml
+Chrome OS Repository      https://storage.googleapis.com/chrome_os_emulator/addon2-1.xml
