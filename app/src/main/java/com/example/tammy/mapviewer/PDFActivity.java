@@ -171,7 +171,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         //mCurrentDegree = 0f;
         wayPts = null;
         mapName = "";
-        db = DBWayPtHandler.getInstance(this);
+        //db = DBWayPtHandler.getInstance(this);
+        db = new DBWayPtHandler(this);
         //db2 = DBHandler.getInstance(this);
         markCurrent = false;
         clickedWP = -1; // index of way point that was clicked on

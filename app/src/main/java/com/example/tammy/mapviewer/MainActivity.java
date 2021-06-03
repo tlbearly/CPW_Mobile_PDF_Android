@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     // Displays list of imported pdf maps and an add more button. When an item is clicked, it loads the map.
     private ListView lv;
     private CustomAdapter myAdapter; // list of imported pdf maps
-    private DBHandler db;
+    private DBHandler dbHandler;
     //private String TAG = "MainActivity";
     boolean sortFlag = true;
     Toolbar toolbar;
@@ -68,7 +68,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
         setContentView(R.layout.activity_main);
-        db = DBHandler.getInstance(MainActivity.this);
+        //dbHandler = DBHandler.getInstance(MainActivity.this);
+        dbHandler = new DBHandler(MainActivity.this);
         // top menu with ... button
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -88,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // GET THE LIST FROM THE DATABASE
         //Runnable r = () -> { System.out.println("reading database...");
             try {
-                myAdapter = new CustomAdapter(MainActivity.this, db.getAllMaps(MainActivity.this));
+                myAdapter = new CustomAdapter(MainActivity.this, dbHandler.getAllMaps(MainActivity.this));
             } catch (SQLException e) {
                 Toast.makeText(MainActivity.this, "Error deleting database table: " + e.getMessage(), Toast.LENGTH_LONG).show();
             }
@@ -101,36 +102,34 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             showHideNoImportsMessage();
 
             sortFlag = true;
-            if (sortFlag){
-                // set selected sort by item
-                String sort = db.getMapSort();
-                int sortID = 0;
-                switch (sort) {
-                    case "namerev":
-                        sortID = 1;
-                        break;
-                    case "date":
-                        sortID = 2;
-                        break;
-                    case "daterev":
-                        sortID = 3;
-                        break;
-                    case "size":
-                        sortID = 4;
-                        break;
-                    case "sizerev":
-                        sortID = 5;
-                        break;
-                    case "proximity":
-                        sortID = 6;
-                        break;
-                    case "proximityrev":
-                        sortID = 7;
-                        break;
-                }
-                sortByDropdown.setSelection(sortID, true);
+            // set selected sort by item
+            String sort = dbHandler.getMapSort();
+            int sortID = 0;
+            switch (sort) {
+                case "namerev":
+                    sortID = 1;
+                    break;
+                case "date":
+                    sortID = 2;
+                    break;
+                case "daterev":
+                    sortID = 3;
+                    break;
+                case "size":
+                    sortID = 4;
+                    break;
+                case "sizerev":
+                    sortID = 5;
+                    break;
+                case "proximity":
+                    sortID = 6;
+                    break;
+                case "proximityrev":
+                    sortID = 7;
+                    break;
             }
-        //};
+            sortByDropdown.setSelection(sortID, true);
+        //}
         //Start the new thread to read maps from database
         //new Thread(r).start();
 
@@ -244,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         // Update distance to map.
                          myAdapter.getDistToMap();
 
-                         String sort = db.getMapSort();
+                         String sort = dbHandler.getMapSort();
                          if (sort.equals("proximity") || sort.equals("proximityrev") && sortFlag) {
                              myAdapter.SortByProximity();
                              myAdapter.notifyDataSetChanged();
@@ -364,8 +363,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 myAdapter.SortByName();
                 lv.setAdapter(myAdapter);
                 try {
-                    // save user sort preference in db
-                    db.setMapSort("name");
+                    // save user sort preference in database
+                    dbHandler.setMapSort("name");
                  }
                 catch (SQLException e){
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -376,8 +375,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 myAdapter.SortByNameReverse();
                 lv.setAdapter(myAdapter);
                 try {
-                    // save user sort preference in db
-                    db.setMapSort("namerev");
+                    // save user sort preference in database
+                    dbHandler.setMapSort("namerev");
                 }
                 catch (SQLException e){
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -388,7 +387,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 myAdapter.SortByDate();
                 lv.setAdapter(myAdapter);
                 try {
-                    db.setMapSort("date");
+                    dbHandler.setMapSort("date");
                 }
                 catch (SQLException e){
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -399,7 +398,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 myAdapter.SortByDateReverse();
                 lv.setAdapter(myAdapter);
                 try {
-                    db.setMapSort("daterev");
+                    dbHandler.setMapSort("daterev");
                 }
                 catch (SQLException e){
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -410,7 +409,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 myAdapter.SortBySize();
                 lv.setAdapter(myAdapter);
                 try {
-                    db.setMapSort("size");
+                    dbHandler.setMapSort("size");
                 }
                 catch (SQLException e){
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -421,7 +420,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 myAdapter.SortBySizeReverse();
                 lv.setAdapter(myAdapter);
                 try {
-                    db.setMapSort("sizerev");
+                    dbHandler.setMapSort("sizerev");
                 }
                 catch (SQLException e){
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -433,7 +432,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 myAdapter.SortByProximity();
                 lv.setAdapter(myAdapter); // scrolls to the top
                 try {
-                    db.setMapSort("proximity");
+                    dbHandler.setMapSort("proximity");
                 }
                 catch (SQLException e){
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -445,7 +444,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 myAdapter.SortByProximityReverse();
                 lv.setAdapter(myAdapter); // scrolls to the top
                 try {
-                    db.setMapSort("proximityrev");
+                    dbHandler.setMapSort("proximityrev");
                 }
                 catch (SQLException e){
                     Toast.makeText(getApplicationContext(), "Error writing to app database: "+e.getMessage(), Toast.LENGTH_LONG).show();
@@ -527,7 +526,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             switch (which){
                 case DialogInterface.BUTTON_POSITIVE:
                     //DELETE all imported maps clicked and recreate the database *****
-                    //db.deleteTable(MainActivity.this); // this removes the database table. Do this if added/removed fields to/from the database
+                    //dbHandler.deleteTable(MainActivity.this); // this removes the database table. Do this if added/removed fields to/from the database
                     myAdapter.removeAll();
                     // Display note if no records found
                     showHideNoImportsMessage();

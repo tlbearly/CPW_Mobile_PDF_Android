@@ -27,7 +27,7 @@ public class GetMoreActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_get_more);
 
-        // add link to download maps page
+        // add button to start up browser to download maps from CPW page
         Button linkButton = findViewById(R.id.downloadMapsBtn);
         linkButton.setOnClickListener(v -> {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://cpw.state.co.us/learn/Pages/Maps.aspx"));
@@ -46,7 +46,7 @@ public class GetMoreActivity extends AppCompatActivity {
             // file (as opposed to a list of contacts or timezones)
             intent.addCategory(Intent.CATEGORY_OPENABLE);
 
-            // Filter to show only images, using the image MIME data type.
+            // Filter to show only pdfs, using the pdf MIME data type.
             // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
             // To search for all documents available via installed storage providers,
             // it would be "*/*".
@@ -100,6 +100,7 @@ public class GetMoreActivity extends AppCompatActivity {
 
                     // remove _ags_ from file downloaded from hunting or fishing atlas
                     if (name.indexOf("_ags_") == 0) name = name.substring(5);
+                    // Create file name that does not exist in app directory. If it already exists at a digit after the name.
                     File outFile = new File(GetMoreActivity.this.getFilesDir() + "/" +name);
                     int j = 0;
                     while (outFile.exists()){
@@ -112,6 +113,7 @@ public class GetMoreActivity extends AppCompatActivity {
                     //if (!ok){
                     //    Toast.makeText(GetMoreActivity.this,getResources().getString(R.string.writePermission), Toast.LENGTH_LONG).show();
                     //}
+                    // Copy the file from file picker to app directory. Don't delete the original.
                     OutputStream os = new FileOutputStream(outFile);
                     byte[] buffer = new byte[1024];
                     int length;

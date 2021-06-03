@@ -29,7 +29,8 @@ public class EditWayPointActivity extends AppCompatActivity {
     String path;
     String bounds;
     String viewPort;
-    private DBWayPtHandler db = DBWayPtHandler.getInstance(this);
+    //private DBWayPtHandler db = DBWayPtHandler.getInstance(this);
+    private DBWayPtHandler db = new DBWayPtHandler(this);
     private int id;
     WayPt wayPt;
 

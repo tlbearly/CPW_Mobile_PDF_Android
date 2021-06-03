@@ -540,9 +540,10 @@ public class CustomAdapter extends BaseAdapter {
                 pdfMap.setMediabox(mediabox);
                 pdfMap.setBounds(bounds);
                 publishProgress(90);
-                DBHandler db = DBHandler.getInstance(c);
+                //DBHandler db = DBHandler.getInstance(c);
+                DBHandler db = new DBHandler(c);
                 db.updateMap(pdfMap);
-                db.close();
+                //db.close();
                 publishProgress(100);
                 fd.close(); // thumbnail file descriptor
             } catch (IOException ex) {
@@ -638,8 +639,10 @@ public class CustomAdapter extends BaseAdapter {
     public void checkIfExists() {
         // Check if the pdf exists in App directory. If not remove it from the database. Called by MainActivity.
         try {
-            DBHandler db = DBHandler.getInstance(c);
-            DBWayPtHandler wpdb = DBWayPtHandler.getInstance(c);
+            //DBHandler db = DBHandler.getInstance(c);
+            DBHandler db = new DBHandler(c);
+            //DBWayPtHandler wpdb = DBWayPtHandler.getInstance(c);
+            DBWayPtHandler wpdb = new DBWayPtHandler(c);
             for (int i = 0; i < pdfMaps.size(); i++) {
                 PDFMap map = pdfMaps.get(i);
                 File file = new File(map.getPath());
@@ -668,8 +671,8 @@ public class CustomAdapter extends BaseAdapter {
                 }
             }
             notifyDataSetChanged();
-            db.close();
-            wpdb.close();
+            //db.close();
+            //wpdb.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c,  c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
@@ -768,6 +771,11 @@ public class CustomAdapter extends BaseAdapter {
         return pdfMaps.get(i);
     }
 
+    // return array of pdfMaps so that we do not need to get DBHandler or DBWayPtHander here 5-27-21
+    public ArrayList<PDFMap> getPdfMaps() {
+        return pdfMaps;
+    }
+
     public void add(PDFMap pdfMap) {
         pdfMaps.add(pdfMap);
     }
@@ -775,7 +783,8 @@ public class CustomAdapter extends BaseAdapter {
     public void rename(int id, String name) {
         // Rename an imported map
         try {
-            DBHandler db = DBHandler.getInstance(c);
+            //DBHandler db = DBHandler.getInstance(c);
+            DBHandler db = new DBHandler(c);
             PDFMap map;
             for (int i = 0; i < pdfMaps.size(); i++) {
                 if (pdfMaps.get(i).getId() == id) {
@@ -819,7 +828,8 @@ public class CustomAdapter extends BaseAdapter {
     public void removeAll() {
         // remove all maps from the list and the database
         try {
-            DBHandler db = DBHandler.getInstance(c);
+            //DBHandler db = DBHandler.getInstance(c);
+            DBHandler db = new DBHandler(c);
             for (int i = pdfMaps.size()-1; i > -1;  i--) {
                 PDFMap map = pdfMaps.get(i);
                 Toast.makeText(c,"Deleting: "+map.getName(), Toast.LENGTH_LONG).show();
@@ -851,8 +861,10 @@ public class CustomAdapter extends BaseAdapter {
     public void removeItem(int id) {
         // remove item i from the list and the database
         try {
-            DBHandler db = DBHandler.getInstance(c);
-            DBWayPtHandler dbwaypt = DBWayPtHandler.getInstance(c);
+            //DBHandler db = DBHandler.getInstance(c);
+            DBHandler db = new DBHandler(c);
+            //DBWayPtHandler dbwaypt = DBWayPtHandler.getInstance(c);
+            DBWayPtHandler dbwaypt = new DBWayPtHandler(c);
             for (int i = 0; i < this.pdfMaps.size(); i++) {
                 if (pdfMaps.get(i).getId() == id) {
                     PDFMap map = pdfMaps.get(i);
@@ -882,8 +894,8 @@ public class CustomAdapter extends BaseAdapter {
                     break;
                 }
             }
-            db.close();
-            dbwaypt.close();
+            //db.close();
+            //dbwaypt.close();
         } catch (IndexOutOfBoundsException | SQLException e) {
             Toast.makeText(c, c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
