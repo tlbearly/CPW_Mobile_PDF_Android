@@ -38,10 +38,11 @@
     <string name="getmore_title1">Load Maps</string>
     <string name="device_storage_help">Browse your phone to find PDF maps that you downloaded. Will copy into this app.</string>
     <string name="getmore_title2">Find Maps</string>
-    <string name="downloadInstr">Show a list of resources for downloading geo-ref PDFs from CPW website in your browser. Then use the Import Maps button above to load maps into this app.</string>
+    <string name="downloadInstr">This will start up your browser and show a list of resources for downloading geospatial PDFs from the CPW website. Return to this app and use the Import Maps button above to load maps into this app.</string>
     <string name="download_maps">Download Maps</string>
-    <string name="web_download">Download a map from the CPW Maps Library, the Hunting Atlas, or the Fishing Atlas.</string>
+    <!--string name="web_download">Download a map from the CPW Maps Library, the Hunting Atlas, or the Fishing Atlas.</string-->
     <string name="importedmaps">Imported Maps</string>
+    <string name="start_browser">Leaving app, starting browser…</string>
 
     <string name="get_more">Get More</string>
     <string name="Mb"> Mb</string>

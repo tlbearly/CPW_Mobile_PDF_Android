@@ -36,7 +36,9 @@ android {
 
 dependencies {
     // compile fileTree(include: ['*.jar'], dir: 'libs') // now deprecated use api or implementation
+    // app/libs contains android-pdf-viewer from github.com/barteksc/android-pdf-viewer 2.8.2 or 3.2.0-beta.1
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+
     // Google Play Services for Location
     // androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', { // now deprecated
     androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
@@ -55,6 +57,7 @@ dependencies {
 
     // for displaying pdfs
     // Use lib from https://github.com/barteksc/AndroidPdfViewer
+    // This is in jcentral which is going away in February 2022.
     implementation 'com.github.barteksc:android-pdf-viewer:2.8.2'
 
     // for thumbnails

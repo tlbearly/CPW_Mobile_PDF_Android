@@ -30,6 +30,7 @@ public class GetMoreActivity extends AppCompatActivity {
         // add button to start up browser to download maps from CPW page
         Button linkButton = findViewById(R.id.downloadMapsBtn);
         linkButton.setOnClickListener(v -> {
+            Toast.makeText(GetMoreActivity.this,getResources().getString(R.string.start_browser), Toast.LENGTH_LONG).show();
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://cpw.state.co.us/learn/Pages/Maps.aspx"));
                 startActivity(browserIntent);
         });

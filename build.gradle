@@ -2,9 +2,11 @@
 // Move jcenter() to the bottom if you get the error: Error:Could not find play-services-basement.aar (com.google.android.gms:play-services-basement:11.0.1).
 //      Searched in the following locations:
 //      https://jcenter.bintray.com/com/google/android/gms/play-services-basement/11.0.1/play-services-basement-11.0.1.aar
+// jcenter repository is going away Feb 1, 2022. android-pdf-viewer has not been moved to mavenCentral yet. The last change to this code was in 2017.
 buildscript {
     repositories {
         google()
+        mavenCentral()
         jcenter()
     }
     dependencies {
@@ -18,6 +20,7 @@ buildscript {
 allprojects {
     repositories {
         google()
+        mavenCentral()
         jcenter()
     }
 }
