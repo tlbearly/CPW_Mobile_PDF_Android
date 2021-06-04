@@ -6,12 +6,11 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.widget.Toast;
 
 public class DBWayPtHandler extends SQLiteOpenHelper {
     //private static DBWayPtHandler mInstance = null;
     //private static DBWayPtHandler mInstance = null;
-    private Context c;
+    //private final Context c;
 
     private static final int DATABASE_VERSION = 1;
     // Database Name
@@ -39,7 +38,7 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
     }*/
     public DBWayPtHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        this.c = context;
+        //this.c = context;
     }
 
     @Override
@@ -57,14 +56,14 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         // For new version do new stuff here
     }
 
-    public void deleteTable(Context c){
+    /*public void deleteTable(Context c){
         SQLiteDatabase db = this.getWritableDatabase();
         // delete maps table
         db.execSQL("DROP TABLE IF EXISTS "+ TABLE_WAYPTS);
         // Create maps table again
         onCreate(db);
         Toast.makeText(c, "All imported way points were deleted.", Toast.LENGTH_LONG).show();
-    }
+    }*/
 
     // Adding way point
     public void addWayPt(WayPt wayPt) throws SQLException {
@@ -90,7 +89,7 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
     }
 
     // Getting one WayPt
-    public WayPt getWayPt(int id) throws SQLException {
+    /*public WayPt getWayPt(int id) throws SQLException {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(TABLE_WAYPTS, new String[]{KEY_ID,
@@ -98,21 +97,21 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
                 new String[]{String.valueOf(id)}, null, null, null, null);
         if (cursor != null)
             cursor.moveToFirst();
+        WayPt wayPt;
         try {
-            WayPt wayPt = new WayPt(Integer.parseInt(cursor.getString(0)),
+            wayPt = new WayPt(Integer.parseInt(cursor.getString(0)),
                     cursor.getString(1), cursor.getString(2), cursor.getFloat(3), cursor.getFloat(4),
                     cursor.getString(5), cursor.getString(6), cursor.getString(7));
-            cursor.close();
-            //db.close();
-            return wayPt;
-        }
-        catch (NullPointerException e) {
+        } catch (NullPointerException e) {
             Toast.makeText(c, "Error reading database.", Toast.LENGTH_LONG).show();
             cursor.close();
             //db.close();
             return null;
         }
-    }
+        cursor.close();
+        //db.close();
+        return wayPt;
+    }*/
 
     // Getting All Way Points from one PDF map
     public WayPts getWayPts(String mapName) throws SQLException {
@@ -151,10 +150,8 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         values.put(KEY_LOCATION, wayPt.getLocation());
 
         // updating row
-        int id = db.update(TABLE_WAYPTS, values, KEY_ID + " = ?",
+        return db.update(TABLE_WAYPTS, values, KEY_ID + " = ?",
                 new String[]{ String.valueOf(wayPt.getId()) });
-        //db.close();
-        return id;
     }
 
     // Deleting a Way Point
