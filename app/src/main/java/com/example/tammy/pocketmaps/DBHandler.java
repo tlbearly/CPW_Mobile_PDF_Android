@@ -1,4 +1,4 @@
-package com.example.tammy.mapviewer;
+package com.example.tammy.pocketmaps;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -283,7 +283,6 @@ public class DBHandler extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(KEY_MAP_SORT, "name");
         db.insert(TABLE_SETTINGS, null, values);
-        db.close(); // 5-21-21
     }
    /* public void resetSettings(){
         SQLiteDatabase db = this.getWritableDatabase();

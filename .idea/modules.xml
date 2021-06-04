@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/mapViewer.iml" filepath="$PROJECT_DIR$/mapViewer.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/mapViewer.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/mapViewer.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/PocketMaps.iml" filepath="$PROJECT_DIR$/.idea/modules/PocketMaps.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/PocketMaps.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/PocketMaps.app.iml" />
     </modules>
   </component>
 </project>

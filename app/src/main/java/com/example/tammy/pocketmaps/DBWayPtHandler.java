@@ -1,4 +1,4 @@
-package com.example.tammy.mapviewer;
+package com.example.tammy.pocketmaps;
 
 import android.content.ContentValues;
 import android.content.Context;

@@ -1,4 +1,4 @@
-package com.example.tammy.mapviewer;
+package com.example.tammy.pocketmaps;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -170,7 +170,7 @@ public class EditMapNameActivity extends AppCompatActivity {
                 case DialogInterface.BUTTON_POSITIVE:
                     //'DELETE' button clicked, remove map from imported maps
                     //mActionMode.finish(); // hide the edit menu
-                    Intent mainIntent = new Intent(EditMapNameActivity.this,MainActivity.class);
+                    Intent mainIntent = new Intent(EditMapNameActivity.this, MainActivity.class);
                     mainIntent.putExtra("ID",id);
                     mainIntent.putExtra("DELETE","true");
                     mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

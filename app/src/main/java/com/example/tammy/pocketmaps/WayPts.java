@@ -1,4 +1,4 @@
-package com.example.tammy.mapviewer;
+package com.example.tammy.pocketmaps;
 
 import java.util.ArrayList;
 import java.util.Collections;

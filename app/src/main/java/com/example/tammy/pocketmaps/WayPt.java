@@ -1,4 +1,4 @@
-package com.example.tammy.mapviewer;
+package com.example.tammy.pocketmaps;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

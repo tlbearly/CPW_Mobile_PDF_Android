@@ -1,4 +1,4 @@
-package com.example.tammy.mapviewer;
+package com.example.tammy.pocketmaps;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -134,7 +134,7 @@ public class GetMoreActivity extends AppCompatActivity {
                     db.addMap(map);
 
                     // CALL MAIN ACTIVITY TO DISPLAY LIST OF IMPORTED MAPS
-                    Intent mainIntent = new Intent(GetMoreActivity.this,MainActivity.class);
+                    Intent mainIntent = new Intent(GetMoreActivity.this, MainActivity.class);
                     mainIntent.putExtra("IMPORT_MAP", true);
                     mainIntent.putExtra("PATH", newPath);
                     mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
