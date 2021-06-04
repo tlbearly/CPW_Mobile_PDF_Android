@@ -42,7 +42,8 @@
     <string name="download_maps">Download Maps</string>
     <!--string name="web_download">Download a map from the CPW Maps Library, the Hunting Atlas, or the Fishing Atlas.</string-->
     <string name="importedmaps">Imported Maps</string>
-    <string name="start_browser">Leaving app, starting browser…</string>
+    <string name="start_browser">Leaving this app and starting your browser. Once you download your map, please return to this app to load it.</string>
+    <string name="notice">NOTICE</string>
 
     <string name="get_more">Get More</string>
     <string name="Mb"> Mb</string>

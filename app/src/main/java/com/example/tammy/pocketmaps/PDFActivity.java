@@ -613,44 +613,44 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
 
                     // debug:  place black dots at page width/height
-                    canvas.translate(0, 0);
-                    canvas.drawCircle(0, 0, 5f, black);
-                    canvas.drawCircle((float) (pdfView.getOptimalPageWidth() * zoom), (float) (pdfView.getOptimalPageHeight() * zoom), 5f, black);
+                    //canvas.translate(0, 0);
+                    //canvas.drawCircle(0, 0, 5f, black);
+                    //canvas.drawCircle((float) (pdfView.getOptimalPageWidth() * zoom), (float) (pdfView.getOptimalPageHeight() * zoom), 5f, black);
 
                     // debug: green dots at bbox
-                    double x1 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * bBoxX1));
-                    double y1 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * bBoxY1));
-                    canvas.drawCircle((float)x1-5f,(float)y1-5f,10f, green);
-                    double x2 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * bBoxX2));
-                    double y2 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * bBoxY2));
-                    canvas.drawCircle((float)x2-5f,(float)y2-5f,10f, green);
-                    x1 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * bBoxX2));
-                    y1 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * bBoxY1));
-                    canvas.drawCircle((float)x1-7f,(float)y1-7f,14f, green);
-                    x2 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * bBoxX1));
-                    y2 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * bBoxY2));
-                    canvas.drawCircle((float)x2-7f,(float)y2-7f,14f, green);
+                    //double x1 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * bBoxX1));
+                    //double y1 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * bBoxY1));
+                    //canvas.drawCircle((float)x1-5f,(float)y1-5f,10f, green);
+                    //double x2 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * bBoxX2));
+                    //double y2 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * bBoxY2));
+                    //canvas.drawCircle((float)x2-5f,(float)y2-5f,10f, green);
+                    //x1 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * bBoxX2));
+                    //y1 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * bBoxY1));
+                    //canvas.drawCircle((float)x1-7f,(float)y1-7f,14f, green);
+                    //x2 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * bBoxX1));
+                    //y2 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * bBoxY2));
+                    //canvas.drawCircle((float)x2-7f,(float)y2-7f,14f, green);
 
                     // debug: red dots at page margins
-                    canvas.drawCircle((float) marginL-5f, (float) marginT-5f, 10f, red);
+                    //canvas.drawCircle((float) marginL-5f, (float) marginT-5f, 10f, red);
                     // Toast.makeText(PDFActivity.this, "xRatio="+xRatio+"  left=" + x1+"  top="+y1+"  width="+pdfView.getOptimalPageWidth(), Toast.LENGTH_SHORT).show();
-                    x1 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * marginRight));
-                    y1 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * marginBottom));
-                    canvas.drawCircle((float) x1-5f, (float) y1-5f, 10f, red);
+                    //x1 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * marginRight));
+                    //y1 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * marginBottom));
+                    //canvas.drawCircle((float) x1-5f, (float) y1-5f, 10f, red);
 
                     // debug lat/long at corners for Poudre Park FS
-                    x1 = (((-105.37499 + 180) - (long1 + 180)) / longDiff) * ((pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
-                    y1 = ((((90 - 40.75) - (90 - lat2)) / latDiff) * ((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
-                    canvas.drawCircle((float) x1-5, (float) y1-5, 10f, red);
-                    x1 = (((-105.25 + 180) - (long1 + 180)) / longDiff) * ((pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
-                    y1 = ((((90 - 40.625) - (90 - lat2)) / latDiff) * ((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
-                    canvas.drawCircle((float) x1-5, (float) y1-5, 10f, red);
-                    x1 = (((-105.25 + 180) - (long1 + 180)) / longDiff) * ((pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
-                    y1 = ((((90 - 40.75) - (90 - lat2)) / latDiff) * ((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
-                    canvas.drawCircle((float) x1-5, (float) y1-5, 10f, red);
-                    x1 = (((-105.37499 + 180) - (long1 + 180)) / longDiff) * ((pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
-                    y1 = ((((90 - 40.625) - (90 - lat2)) / latDiff) * ((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
-                    canvas.drawCircle((float) x1-5, (float) y1-5, 10f, red);
+                    //x1 = (((-105.37499 + 180) - (long1 + 180)) / longDiff) * ((pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
+                    //y1 = ((((90 - 40.75) - (90 - lat2)) / latDiff) * ((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
+                    //canvas.drawCircle((float) x1-5, (float) y1-5, 10f, red);
+                    //x1 = (((-105.25 + 180) - (long1 + 180)) / longDiff) * ((pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
+                    //y1 = ((((90 - 40.625) - (90 - lat2)) / latDiff) * ((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
+                    //canvas.drawCircle((float) x1-5, (float) y1-5, 10f, red);
+                    //x1 = (((-105.25 + 180) - (long1 + 180)) / longDiff) * ((pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
+                    //y1 = ((((90 - 40.75) - (90 - lat2)) / latDiff) * ((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
+                    //canvas.drawCircle((float) x1-5, (float) y1-5, 10f, red);
+                    //x1 = (((-105.37499 + 180) - (long1 + 180)) / longDiff) * ((pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
+                    //y1 = ((((90 - 40.625) - (90 - lat2)) / latDiff) * ((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
+                    //canvas.drawCircle((float) x1-5, (float) y1-5, 10f, red);
 
 
 

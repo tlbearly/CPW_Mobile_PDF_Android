@@ -79,14 +79,14 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
             values.put(KEY_LOCATION, wayPt.getLocation()); // Lat, Long
             // Inserting Row
             db.insert(TABLE_WAYPTS, null, values);
-            db.close(); // Closing database connection
+            //db.close(); // Closing database connection
     }
 
     // Delete all WayPts for a given PDF map
     public void deleteWayPts(String mapName) throws SQLException {
         SQLiteDatabase db = this.getReadableDatabase();
         db.delete(TABLE_WAYPTS, "mapName=?", new String[]{mapName});
-        db.close();
+        //db.close();
     }
 
     // Getting one WayPt
@@ -103,13 +103,13 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
                     cursor.getString(1), cursor.getString(2), cursor.getFloat(3), cursor.getFloat(4),
                     cursor.getString(5), cursor.getString(6), cursor.getString(7));
             cursor.close();
-            db.close();
+            //db.close();
             return wayPt;
         }
         catch (NullPointerException e) {
             Toast.makeText(c, "Error reading database.", Toast.LENGTH_LONG).show();
             cursor.close();
-            db.close();
+            //db.close();
             return null;
         }
     }
@@ -132,7 +132,7 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
         cursor.close();
-        db.close();
+        //db.close();
         // return way points list
         return wayPtsList;
     }
@@ -153,7 +153,7 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         // updating row
         int id = db.update(TABLE_WAYPTS, values, KEY_ID + " = ?",
                 new String[]{ String.valueOf(wayPt.getId()) });
-        db.close();
+        //db.close();
         return id;
     }
 
@@ -162,7 +162,7 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_WAYPTS, KEY_ID + " = ?",
                 new String[] { String.valueOf(wayPt.getId()) });
-        db.close();
+        //db.close();
     }
 
     // Deleting a Way Point
@@ -170,6 +170,6 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_WAYPTS, KEY_MAPNAME + " = ?",
                 new String[]{mapName});
-        db.close();
+        //db.close();
     }
 }

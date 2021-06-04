@@ -1,6 +1,7 @@
 package com.example.tammy.pocketmaps;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -9,6 +10,7 @@ import android.provider.OpenableColumns;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
@@ -30,9 +32,12 @@ public class GetMoreActivity extends AppCompatActivity {
         // add button to start up browser to download maps from CPW page
         Button linkButton = findViewById(R.id.downloadMapsBtn);
         linkButton.setOnClickListener(v -> {
-            Toast.makeText(GetMoreActivity.this,getResources().getString(R.string.start_browser), Toast.LENGTH_LONG).show();
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://cpw.state.co.us/learn/Pages/Maps.aspx"));
-                startActivity(browserIntent);
+            AlertDialog.Builder builder = new AlertDialog.Builder(GetMoreActivity.this);
+            builder.setTitle(getString(R.string.notice));
+            builder.setMessage(getString(R.string.start_browser)).setPositiveButton("OK", dialogClickListener)
+                    .setNegativeButton("CANCEL",dialogClickListener).show();
+            //Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://cpw.state.co.us/learn/Pages/Maps.aspx"));
+            //    startActivity(browserIntent);
         });
 
         // Open Android File Picker for PDF files API 1
@@ -164,6 +169,23 @@ public class GetMoreActivity extends AppCompatActivity {
             }
         }
     }
+
+    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which){
+                case DialogInterface.BUTTON_POSITIVE:
+                    //Show browser
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://cpw.state.co.us/learn/Pages/Maps.aspx"));
+                    startActivity(browserIntent);
+                    break;
+
+                case DialogInterface.BUTTON_NEGATIVE:
+                    //CANCEL button clicked
+                    break;
+            }
+        }
+    };
 
     @Override
     protected void onDestroy(){

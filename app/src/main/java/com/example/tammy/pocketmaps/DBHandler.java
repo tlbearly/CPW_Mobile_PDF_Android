@@ -76,6 +76,9 @@ public class DBHandler extends SQLiteOpenHelper {
         }
     }
 
+    /*
+    * CRUD OPERATIONS: Create, Read, Update, and Delete
+     */
     private void createMapsTable (SQLiteDatabase db) throws SQLException {
         // Create Imported Maps Table
         String CREATE_MAPS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MAPS + "("
@@ -110,7 +113,7 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(KEY_DISTTOMAP, map.getDistToMap()); // Current distance to map
         // Inserting Row
         db.insert(TABLE_MAPS, null, values);
-        db.close(); // 5-21-21 Closing database connection
+        //db.close(); // 5-21-21 Closing database connection
     }
 
     // Getting one PDF Map
@@ -128,11 +131,11 @@ public class DBHandler extends SQLiteOpenHelper {
                     cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4),
                     cursor.getString(5), cursor.getString(6), cursor.getString (7), cursor.getString(8));
             cursor.close();
-            db.close();
+            //db.close();
             // return geo pdf map
             return map;
         }catch(NullPointerException e) {
-            db.close();
+            //db.close();
             //Toast.makeText(c, "Error reading database.", Toast.LENGTH_LONG).show();
             throw e;
             //return null;
@@ -179,7 +182,7 @@ public class DBHandler extends SQLiteOpenHelper {
             }
         }
         cursor.close();
-        db.close(); // 5-21-21
+        //db.close(); // 5-21-21
         // return map list
         return mapList;
     }
@@ -229,7 +232,7 @@ public class DBHandler extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
         cursor.close();
-        db.close(); // 5-21-21
+        //db.close(); // 5-21-21
 
         // remove database and add again
         deleteTableMaps();
@@ -260,7 +263,7 @@ public class DBHandler extends SQLiteOpenHelper {
         // updating row
         db.update(TABLE_MAPS, values, KEY_ID + " = ?",
             new String[]{String.valueOf(map.getId())});
-        db.close(); // 5-21-21
+        //db.close(); // 5-21-21
     }
 
     // Deleting a PDF Map
@@ -268,7 +271,7 @@ public class DBHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_MAPS, KEY_ID + " = ?",
                 new String[]{String.valueOf(map.getId())});
-        db.close(); // 5-21-21
+        //db.close(); // 5-21-21
     }
 
     //-----------------
@@ -290,7 +293,7 @@ public class DBHandler extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS "+ TABLE_SETTINGS);
         // Create settings table again
         createSettingsTable();
-        db.close();
+        //db.close();
       //  Toast.makeText(c, "Reverted to default settings.", Toast.LENGTH_LONG).show();
     }*/
 
@@ -304,7 +307,7 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(KEY_MAP_SORT, order);
         String id = "1";
         db.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
-        db.close(); // 5-21-21
+        //db.close(); // 5-21-21
     }
 
     public String getMapSort() {
@@ -325,7 +328,7 @@ public class DBHandler extends SQLiteOpenHelper {
                     order = cursor.getString(0);
                 }
                 cursor.close();
-                db.close(); // 5-21-21
+                //db.close(); // 5-21-21
                 return order;
             }
         }

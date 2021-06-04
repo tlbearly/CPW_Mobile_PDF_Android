@@ -146,7 +146,7 @@ public class CustomAdapter extends BaseAdapter {
             caRef.loading = true;
             // calls doInBackground
             // show progress bar
-            progressBar.setVisibility(View.VISIBLE);
+            this.progressBar.setVisibility(View.VISIBLE);
         }
 
        /* private boolean isInteger(String s) {
@@ -611,7 +611,7 @@ public class CustomAdapter extends BaseAdapter {
             // update the progress bar. The value you pass in publishProgress
             // is passed in the values parameter of this method
             super.onProgressUpdate(progress);
-            progressBar.setProgress(progress[0]);
+            this.progressBar.setProgress(progress[0]);
         }
 
         protected void onPostExecute(String result) {
@@ -621,7 +621,7 @@ public class CustomAdapter extends BaseAdapter {
             Activity activity = (Activity) caRef.c;
             if (activity.isFinishing()) return;
 
-            progressBar.setVisibility(View.GONE);
+            this.progressBar.setVisibility(View.GONE);
             caRef.loading = false;
             // Map Import Failed
             if (!result.equals(caRef.c.getResources().getString(R.string.importdone))) {
