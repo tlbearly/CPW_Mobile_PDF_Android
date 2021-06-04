@@ -43,6 +43,8 @@ import java.util.Locale;
  * This info is stored in a database. The list is displayed in MainActivity.
  * On click displays a selected Geo PDF Map in PDFActivity.
  * Uses itextpdf and pdfium to read the PDF.
+ *
+ *  TODO: Remove deprecated AsyncTask in ImportMapTask
  */
 
 public class CustomAdapter extends BaseAdapter {
