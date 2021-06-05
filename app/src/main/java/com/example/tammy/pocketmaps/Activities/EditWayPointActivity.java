@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps;
+package com.example.tammy.pocketmaps.Activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -16,6 +16,11 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.tammy.pocketmaps.Data.DBWayPtHandler;
+import com.example.tammy.pocketmaps.Model.WayPt;
+import com.example.tammy.pocketmaps.Model.WayPts;
+import com.example.tammy.pocketmaps.R;
 
 public class EditWayPointActivity extends AppCompatActivity {
     EditText editTxt;

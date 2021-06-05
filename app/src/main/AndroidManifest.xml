@@ -19,7 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.example.tammy.pocketmaps.StartActivity"
+            android:name="com.example.tammy.pocketmaps.Activities.StartActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_start"
             android:theme="@style/FullscreenTheme">
@@ -48,46 +48,46 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.example.tammy.pocketmaps.MainActivity"
+            android:name="com.example.tammy.pocketmaps.Activities.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
         <!-- force map to always be in portrait mode -->
         <activity
-            android:name="com.example.tammy.pocketmaps.PDFActivity"
+            android:name="com.example.tammy.pocketmaps.Activities.PDFActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:parentActivityName="com.example.tammy.pocketmaps.MainActivity"> <!-- This adds a back button -->
+            android:parentActivityName="com.example.tammy.pocketmaps.Activities.MainActivity"> <!-- This adds a back button -->
         </activity>
         <activity
-            android:name="com.example.tammy.pocketmaps.GetMoreActivity"
+            android:name="com.example.tammy.pocketmaps.Activities.GetMoreActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_get_more"
-            android:parentActivityName="com.example.tammy.pocketmaps.MainActivity"
+            android:parentActivityName="com.example.tammy.pocketmaps.Activities.MainActivity"
             android:theme="@style/FullscreenTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.tammy.pocketmaps.MainActivity" />
+                android:value="com.example.tammy.pocketmaps.Activities.MainActivity" />
         </activity>
         <activity
-            android:name="com.example.tammy.pocketmaps.EditMapNameActivity"
+            android:name="com.example.tammy.pocketmaps.Activities.EditMapNameActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label= "@string/title_activity_edit_map_name"
             android:theme="@style/FullscreenTheme"
-            android:parentActivityName="com.example.tammy.pocketmaps.MainActivity" >
+            android:parentActivityName="com.example.tammy.pocketmaps.Activities.MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.tammy.pocketmaps.MainActivity" />
+                android:value="com.example.tammy.pocketmaps.Activities.MainActivity" />
         </activity>
         <activity
-            android:name="com.example.tammy.pocketmaps.EditWayPointActivity"
+            android:name="com.example.tammy.pocketmaps.Activities.EditWayPointActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label= "@string/title_activity_edit_way_pt"
             android:theme="@style/FullscreenTheme"
-            android:parentActivityName="com.example.tammy.pocketmaps.PDFActivity" >
+            android:parentActivityName="com.example.tammy.pocketmaps.Activities.PDFActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.tammy.pocketmaps.PDFActivity" />
+                android:value="com.example.tammy.pocketmaps.Activities.PDFActivity" />
         </activity>
     </application>
 

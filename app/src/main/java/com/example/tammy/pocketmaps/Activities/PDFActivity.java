@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps;
+package com.example.tammy.pocketmaps.Activities;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -34,6 +34,10 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import com.example.tammy.pocketmaps.Data.DBWayPtHandler;
+import com.example.tammy.pocketmaps.Model.WayPt;
+import com.example.tammy.pocketmaps.Model.WayPts;
+import com.example.tammy.pocketmaps.R;
 import com.github.barteksc.pdfviewer.PDFView;
 import com.github.barteksc.pdfviewer.listener.OnDrawListener;
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;

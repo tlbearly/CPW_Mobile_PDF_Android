@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps;
+package com.example.tammy.pocketmaps.Model;
 
 import java.util.ArrayList;
 import java.util.Collections;

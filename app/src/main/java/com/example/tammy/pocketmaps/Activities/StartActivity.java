@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps;
+package com.example.tammy.pocketmaps.Activities;
 
 import android.Manifest;
 import android.content.Context;
@@ -15,6 +15,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import com.example.tammy.pocketmaps.R;
 
 import static androidx.appcompat.app.AlertDialog.Builder;
 

@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps;
+package com.example.tammy.pocketmaps.Activities;
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -26,6 +26,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.tammy.pocketmaps.Data.DBHandler;
+import com.example.tammy.pocketmaps.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;

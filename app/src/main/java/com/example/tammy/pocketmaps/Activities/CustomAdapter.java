@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps;
+package com.example.tammy.pocketmaps.Activities;
 
 import android.app.Activity;
 import android.content.Context;
@@ -19,6 +19,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.tammy.pocketmaps.Data.DBHandler;
+import com.example.tammy.pocketmaps.Data.DBWayPtHandler;
+import com.example.tammy.pocketmaps.Model.PDFMap;
+import com.example.tammy.pocketmaps.R;
 import com.itextpdf.text.pdf.PdfArray;
 import com.itextpdf.text.pdf.PdfDictionary;
 import com.itextpdf.text.pdf.PdfName;

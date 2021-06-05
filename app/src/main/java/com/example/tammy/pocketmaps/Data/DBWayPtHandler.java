@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps;
+package com.example.tammy.pocketmaps.Data;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -6,6 +6,9 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import com.example.tammy.pocketmaps.Model.WayPt;
+import com.example.tammy.pocketmaps.Model.WayPts;
 
 public class DBWayPtHandler extends SQLiteOpenHelper {
     //private static DBWayPtHandler mInstance = null;

@@ -2,7 +2,7 @@
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.example.tammy.pocketmaps.EditMapNameActivity">
+    tools:context="com.example.tammy.pocketmaps.Activities.EditMapNameActivity">
 
     <!--item
         android:id="@+id/edit_map_name"

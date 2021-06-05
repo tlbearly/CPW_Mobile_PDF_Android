@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps;
+package com.example.tammy.pocketmaps.Activities;
 
 import android.app.Activity;
 import android.content.DialogInterface;
@@ -12,6 +12,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.tammy.pocketmaps.Data.DBHandler;
+import com.example.tammy.pocketmaps.Model.PDFMap;
+import com.example.tammy.pocketmaps.R;
 
 import java.io.File;
 import java.io.FileNotFoundException;
