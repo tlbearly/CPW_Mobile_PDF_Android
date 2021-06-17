@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.Data;
+package com.example.tammy.pocketmaps.data;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -7,7 +7,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.example.tammy.pocketmaps.Model.PDFMap;
+import com.example.tammy.pocketmaps.model.PDFMap;
 import com.example.tammy.pocketmaps.R;
 
 import java.io.File;
@@ -177,7 +177,11 @@ public class DBHandler extends SQLiteOpenHelper {
                         map.setMiles(0.0);
                     }
                     else {
-                        map.setMiles(Double.parseDouble(map.getDistToMap()));
+                        try {
+                            map.setMiles(Double.parseDouble(map.getDistToMap()));
+                        }catch(NumberFormatException e){
+                            map.setMiles(-999.99);
+                        }
                     }
                     // Adding map to list
                     mapList.add(map);
@@ -223,7 +227,7 @@ public class DBHandler extends SQLiteOpenHelper {
                     long size = file.length() / 1024; // Get size and convert bytes into Kb.
                     if (size >= 1024) {
                         double sizeDbl = (double) size;
-                        fileSize = String.format(Locale.ENGLISH,"%.1f%s", (sizeDbl / 1024),c.getResources().getString(R.string.Mb));
+                        fileSize = String.format(Locale.US,"%.1f%s", (sizeDbl / 1024),c.getResources().getString(R.string.Mb));
                     } else {
                         fileSize = size + c.getResources().getString(R.string.Kb);
                     }

@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.Activities;
+package com.example.tammy.pocketmaps.activities;
 
 import android.Manifest;
 import android.content.Context;
@@ -32,6 +32,9 @@ public class StartActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // TODO: For Android 10 lay out app in full screen. setDecorFitsSystemWindows not found!!!!!!!!!!
+        //if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+        //    WindowCompat.setDecorFitsSystemWindows(getWindow(), false); // for os 10+ full screen
         setContentView(R.layout.activity_start);
         Builder builder;
 
@@ -122,8 +125,8 @@ public class StartActivity extends AppCompatActivity {
     }
     // Permission
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         Builder builder;
         if (grantResults.length == 0)return;
         if (requestCode == MY_PERMISSIONS_LOCATION) {// If request is cancelled, the result arrays are empty.

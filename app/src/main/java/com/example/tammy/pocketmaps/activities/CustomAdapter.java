@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.Activities;
+package com.example.tammy.pocketmaps.activities;
 
 import android.app.Activity;
 import android.content.Context;
@@ -19,9 +19,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.tammy.pocketmaps.Data.DBHandler;
-import com.example.tammy.pocketmaps.Data.DBWayPtHandler;
-import com.example.tammy.pocketmaps.Model.PDFMap;
+import com.example.tammy.pocketmaps.data.DBHandler;
+import com.example.tammy.pocketmaps.data.DBWayPtHandler;
+import com.example.tammy.pocketmaps.model.PDFMap;
 import com.example.tammy.pocketmaps.R;
 import com.itextpdf.text.pdf.PdfArray;
 import com.itextpdf.text.pdf.PdfDictionary;
@@ -318,9 +318,9 @@ public class CustomAdapter extends BaseAdapter {
                     bounds = bounds.replaceAll(",", "");
                     String[] latlong;
                     latlong = bounds.split(" ");
-                    // adjusted with the unit square - gives the correct lat long for BBox
+                    // Test - not working! adjusted with the unit square - gives the correct lat long for BBox
                     // bottom-left lat/long (given long + (height or width in decimal degrees) * unit square value
-                    double lat1 = Double.parseDouble(latlong[0]) + (Double.parseDouble(latlong[2]) - Double.parseDouble(latlong[0])) * Double.parseDouble(units[0]);
+                   /* double lat1 = Double.parseDouble(latlong[0]) + (Double.parseDouble(latlong[2]) - Double.parseDouble(latlong[0])) * Double.parseDouble(units[0]);
                     double long1 = Double.parseDouble(latlong[1]) + (Double.parseDouble(latlong[7]) - Double.parseDouble(latlong[1])) * (Double.parseDouble(units[1]) - 1);
                     // top-left lat/long (given lat + (height or width in decimal degrees) * unit square value
                     double lat2 = Double.parseDouble(latlong[2]) + (Double.parseDouble(latlong[2]) - Double.parseDouble(latlong[0])) * Double.parseDouble(units[2]);
@@ -333,6 +333,8 @@ public class CustomAdapter extends BaseAdapter {
                     double lat4 = Double.parseDouble(latlong[6]) + (Double.parseDouble(latlong[4]) - Double.parseDouble(latlong[4])) * (Double.parseDouble(units[6]) - 1);
                     double long4 = Double.parseDouble(latlong[7]) + (Double.parseDouble(latlong[1]) - Double.parseDouble(latlong[5])) * Double.parseDouble(units[7]);
                     Log.d("adjusted lat/long", lat1+", "+long1+ "  "+lat2+", "+long2+"  "+lat3+", "+long3+"  "+lat4+", "+long4);
+
+                    */
                 }
                 // View port not found geoPDF
                 else{
@@ -362,7 +364,7 @@ public class CustomAdapter extends BaseAdapter {
                     PdfName neatline = new PdfName("Neatline");
                     PdfArray lgiDictArray = page.getAsArray(lgiDict);
                     if (lgiDictArray == null)
-                        return "Import Failed - no LGIDict dictionary";
+                        return "Import Failed - not georeferenced? No LGIDict dictionary";
 
                     int max=0;
                     int id=0;
@@ -533,9 +535,9 @@ public class CustomAdapter extends BaseAdapter {
                 String fileSize;
                 double size = file.length() / 1024.0; // Get size and convert bytes into Kb.
                 if (size >= 1024) {
-                    fileSize = String.format(Locale.ENGLISH,"%.1f %s", (size / 1024.0), c.getResources().getString(R.string.Mb));
+                    fileSize = String.format(Locale.US,"%.1f %s", (size / 1024.0), c.getResources().getString(R.string.Mb));
                 } else {
-                    fileSize = String.format(Locale.ENGLISH,"%.0f %s", size, c.getResources().getString(R.string.Kb));
+                    fileSize = String.format(Locale.US,"%.0f %s", size, c.getResources().getString(R.string.Kb));
                 }
 
                 // IMPORT INTO the DATABASE
@@ -549,7 +551,7 @@ public class CustomAdapter extends BaseAdapter {
                 //DBHandler db = DBHandler.getInstance(c);
                 DBHandler db = new DBHandler(c);
                 db.updateMap(pdfMap);
-                //db.close();
+                db.close();
                 publishProgress(100);
                 fd.close(); // thumbnail file descriptor
             } catch (IOException ex) {
@@ -615,6 +617,7 @@ public class CustomAdapter extends BaseAdapter {
             // update the progress bar. The value you pass in publishProgress
             // is passed in the values parameter of this method
             super.onProgressUpdate(progress);
+            Log.d("CustomAdapter","onProgressUpdate, "+progress[0]+"%");
             this.progressBar.setProgress(progress[0]);
         }
 
@@ -653,7 +656,7 @@ public class CustomAdapter extends BaseAdapter {
                 PDFMap map = pdfMaps.get(i);
                 File file = new File(map.getPath());
                 if (!file.exists()) {
-                    Toast.makeText(c,  c.getResources().getString(R.string.file) + map.getName() +  c.getResources().getString(R.string.noLongerExists), Toast.LENGTH_LONG).show();
+                    Log.d("CustomAdapter",c.getResources().getString(R.string.file) + map.getName() +  c.getResources().getString(R.string.noLongerExists));
                     File f = new File(map.getPath());
                     if (f.exists()) {
                         boolean result = f.delete();
@@ -677,8 +680,8 @@ public class CustomAdapter extends BaseAdapter {
                 }
             }
             notifyDataSetChanged();
-            //db.close();
-            //wpdb.close();
+            db.close();
+            wpdb.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c,  c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
@@ -759,7 +762,7 @@ public class CustomAdapter extends BaseAdapter {
                 map.setMiles(dist);
                 String str = "    ";
 
-                String distStr = String.format(Locale.ENGLISH,"%s %.1f %s %s", str, dist, c.getResources().getString(R.string.miles), direction);
+                String distStr = String.format(Locale.US,"%s %.1f %s %s", str, dist, c.getResources().getString(R.string.miles), direction);
                 map.setDistToMap(distStr);
 
                // Log.d(TAG, "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
@@ -806,9 +809,9 @@ public class CustomAdapter extends BaseAdapter {
                         File newName = new File(sdcard, fileName);
                         boolean result = file.renameTo(newName);
                         if (!result)
-                            Toast.makeText(c, "Can't rename to: " + name, Toast.LENGTH_LONG).show();
+                            Log.d("CustomAdapter", "Can't rename to: " + name);
                         else
-                            Toast.makeText(c, "Map renamed to: " + name, Toast.LENGTH_LONG).show();
+                            Log.d("CustomAdapter", "Map renamed to: " + name);
                         map.setName(name);
                         map.setPath(sdcard + "/" + fileName);
                         db.updateMap(map);
@@ -900,8 +903,8 @@ public class CustomAdapter extends BaseAdapter {
                     break;
                 }
             }
-            //db.close();
-            //dbwaypt.close();
+            db.close();
+            dbwaypt.close();
         } catch (IndexOutOfBoundsException | SQLException e) {
             Toast.makeText(c, c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
         }

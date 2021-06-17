@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.Activities;
+package com.example.tammy.pocketmaps.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -51,13 +50,10 @@ public class EditMapNameActivity extends AppCompatActivity {
         TextView editBounds = findViewById(R.id.editBounds);
 
         // Clear rename map textview
-        clearBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                editTxt.setText("");
-                editFileName.setText("");
-                editFileSize.setText("");
-            }
+        clearBtn.setOnClickListener(view -> {
+            editTxt.setText("");
+            editFileName.setText("");
+            editFileSize.setText("");
         });
 
 
@@ -67,7 +63,7 @@ public class EditMapNameActivity extends AppCompatActivity {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event){
                 if (actionId == EditorInfo.IME_ACTION_DONE){
                     String name = editTxt.getText().toString();
-                    if (!name.substring(name.length()-4).equals(".pdf"))
+                    if (!name.endsWith(".pdf"))
                        name = name + ".pdf";
                     String txt = getFilesDir()+"/"+name;
                     editFileName.setText(txt);
@@ -204,31 +200,32 @@ public class EditMapNameActivity extends AppCompatActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
 
-        switch (item.getItemId()) {
-            case R.id.delete_map:
+        if (item.getItemId() == R.id.delete_map) {
+            //case R.id.delete_map:
                 // display alert dialog
                 AlertDialog.Builder builder = new AlertDialog.Builder(EditMapNameActivity.this);
                 builder.setTitle("Delete");
                 builder.setMessage("Delete the imported map?").setPositiveButton("DELETE", dialogClickListener)
-                        .setNegativeButton("CANCEL",dialogClickListener).show();
+                        .setNegativeButton("CANCEL", dialogClickListener).show();
                 return true;
-
-            case android.R.id.home:
-                // rename map
-                String name;
-                name = editTxt.getText().toString();
-                if (name.equals("")){
-                    Toast.makeText(EditMapNameActivity.this, "Cannot rename to blank!", Toast.LENGTH_LONG).show();
-                    return true;
-                }
-                Intent mainIntent = new Intent(EditMapNameActivity.this,MainActivity.class);
-                mainIntent.putExtra("NAME",name);
-                mainIntent.putExtra("ID",id);
-                mainIntent.putExtra("RENAME","true");
-                mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(mainIntent);
+        } else if (item.getItemId() == android.R.id.home) {
+            //case android.R.id.home:
+            // rename map
+            String name;
+            name = editTxt.getText().toString();
+            if (name.equals("")) {
+                Toast.makeText(EditMapNameActivity.this, "Cannot rename to blank!", Toast.LENGTH_LONG).show();
                 return true;
-            default:
+            }
+            Intent mainIntent = new Intent(EditMapNameActivity.this, MainActivity.class);
+            mainIntent.putExtra("NAME", name);
+            mainIntent.putExtra("ID", id);
+            mainIntent.putExtra("RENAME", "true");
+            mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(mainIntent);
+            return true;
+        } else {
+            //default:
                 return super.onOptionsItemSelected(item);
         }
     }

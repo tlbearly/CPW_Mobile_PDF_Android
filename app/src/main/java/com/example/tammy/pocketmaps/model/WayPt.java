@@ -1,9 +1,10 @@
-package com.example.tammy.pocketmaps.Model;
+package com.example.tammy.pocketmaps.model;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Comparator;
+import java.util.Locale;
 
 public class WayPt {
     // Holds one way point
@@ -25,7 +26,7 @@ public class WayPt {
         this.y = y;
         Calendar cal = Calendar.getInstance();
         java.util.Date date = cal.getTime();
-        DateFormat formattedDate = new SimpleDateFormat("MM/dd/yyyy hh:mm aa");
+        DateFormat formattedDate = new SimpleDateFormat("MM/dd/yyyy hh:mm aa", Locale.US);
         this.time = formattedDate.format(date);
         this.colorName = colorName;
         this.location = location;
@@ -111,15 +112,12 @@ public class WayPt {
     }
 
     // Sort arraylist of WayPts by lat (y) value more north points first
-    public static Comparator<WayPt> LatComparator = new Comparator<WayPt>() {
-        @Override
-        public int compare(WayPt p1, WayPt p2) {
-            float y1 = p1.getY();
-            float y2 = p2.getY();
-            // Return descending order
-            if (y1 < y2) return 1;
-            else
-                return -1;
-        }
+    public static Comparator<WayPt> LatComparator = (p1, p2) -> {
+        float y1 = p1.getY();
+        float y2 = p2.getY();
+        // Return descending order
+        if (y1 < y2) return 1;
+        else if (y1 == y2) return 0;
+        else return -1;
     };
 }

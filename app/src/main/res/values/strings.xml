@@ -7,7 +7,7 @@
     <string name="distToMap_placeholder">Distance to Map</string>
     <string name="onMap">On Map?</string>
     <string name="pdfimg">Image of PDF</string>
-    <string name="markCurrent">Mark current location as way pt.</string>
+    <string name="markCurrent">Mark current location</string>
     <string name="open_pdf">Open a new map</string>
     <string name="showWayPtLabels">Show all way pt labels</string>
     <string name="showWayPts">Show way points</string>
@@ -33,6 +33,7 @@
         <item>Closest Proximity</item>
         <item>Farthest Proximity</item>
     </string-array>
+    <string name="add_btn_desc">Import or download PDF maps</string>
 
     <!-- GetMoreActivity -->
     <string name="getmore_title1">Load Maps</string>

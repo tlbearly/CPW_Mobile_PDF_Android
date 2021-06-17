@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.Activities;
+package com.example.tammy.pocketmaps.activities;
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -8,7 +8,9 @@ import android.database.SQLException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,14 +22,16 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.example.tammy.pocketmaps.Data.DBHandler;
 import com.example.tammy.pocketmaps.R;
+import com.example.tammy.pocketmaps.data.DBHandler;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -58,20 +62,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     double updateProximityDist=160.9344; // default change in distance that triggers updating proximity .1 miles
     Spinner sortByDropdown;
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //Toast.makeText(MainActivity.this, "onCreate", Toast.LENGTH_SHORT).show()
+        Log.d("MainActivity","onCreate");
+        setContentView(R.layout.activity_main);
 
         // DEBUG ***********
         //latBefore = 38.5;
         //longBefore = -105.0;
 
 
-
-        setContentView(R.layout.activity_main);
-        //dbHandler = DBHandler.getInstance(MainActivity.this);
-        dbHandler = new DBHandler(MainActivity.this);
         // top menu with ... button
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -89,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         sortByDropdown.setOnItemSelectedListener(this);
 
         // GET THE LIST FROM THE DATABASE
-        //Runnable r = () -> { System.out.println("reading database...");
+/*
             try {
                 myAdapter = new CustomAdapter(MainActivity.this, dbHandler.getAllMaps(MainActivity.this));
             } catch (SQLException e) {
@@ -131,11 +133,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     break;
             }
             sortByDropdown.setSelection(sortID, true);
-        //}
-        //Start the new thread to read maps from database
-        //new Thread(r).start();
-
-
+*/
+        sortFlag = true;
 
         /*if (myAdapter.pdfMaps.size() == 0) {
             TextView msg = (TextView) findViewById(R.id.txtMessage);
@@ -146,52 +145,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         latBefore = 0.0;
         longBefore = 0.0;
 
-        // IMPORT NEW MAP INTO LIST
-        // CustomAdapter calls MapImportTask class in CustomAdapter.java
-        final Intent i = this.getIntent();
-        if (i.getExtras() != null && !i.getExtras().isEmpty()) {
-            if (i.getExtras().containsKey("IMPORT_MAP") && i.getExtras().containsKey("PATH")) {
-                boolean import_map = i.getExtras().getBoolean("IMPORT_MAP");
-                // IMPORT MAP SELECTED
-                if (import_map) {
-                    sortFlag = false; // hold off on sorting.
-                    // Scroll down to last item. The one just added.
-                    // String name = new File(i.getExtras().getString("PATH")).getName();
-                    // int pos = myAdapter.findName();
-                    int pos = myAdapter.getCount() - 1;
-                    if (pos > -1) lv.setSelection(pos);
-                    //Toast.makeText(MainActivity.this, "Map imported: "+i.getExtras().getString("PATH"), Toast.LENGTH_LONG).show();
-                }
-                i.removeExtra("PATH");
-                i.removeExtra("IMPORT_MAP");
-            }
-            // RENAME MAP
-            else if (i.getExtras().containsKey("RENAME") && i.getExtras().containsKey("NAME") && i.getExtras().containsKey("ID")) {
-                // Renamed map, update with new name
-                String name = i.getExtras().getString("NAME");
-                int id = i.getExtras().getInt("ID");
-                myAdapter.rename(id, name);
-                //Toast.makeText(MainActivity.this, "Map renamed to: " + name, Toast.LENGTH_LONG).show();
-                i.removeExtra("NAME");
-                i.removeExtra("ID");
-                i.removeExtra("RENAME");
-            }
-            // DELETE MAP
-            else if (i.getExtras().containsKey("DELETE") && i.getExtras().containsKey("ID")) {
-                // Delete map, remove from Imported Maps list, delete from database
-                selectedId = i.getExtras().getInt("ID");
-                myAdapter.removeItem(selectedId);
-                Toast.makeText(MainActivity.this, "Map removed", Toast.LENGTH_LONG).show();
-                i.removeExtra("ID");
-                i.removeExtra("DELETE");
-                // Display note if no records found
-                showHideNoImportsMessage();
-                /*if (myAdapter.pdfMaps.size() == 0) {
-                    TextView msg = (TextView) findViewById(R.id.txtMessage);
-                    msg.setText("No maps have been imported.\nUse the + button to import a map.");
-                }*/
-            }
-        }
+
 
         // FLOATING ACTION BUTTON CLICK
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -207,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // UPDATE CURRENT POSITION
         mLocationCallback = new LocationCallback() {
             @Override
-            public void onLocationResult(LocationResult locationResult) {
+            public void onLocationResult(@NonNull LocationResult locationResult) {
                 for (Location location : locationResult.getLocations()) {
                     // Update UI with location data
                     float[] results = new float[1];
@@ -217,8 +171,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
                     // for debugging ****************
-                    latBefore = latBefore + .5;
-                    longBefore = longBefore -.2;
+                    //latBefore = latBefore + .5;
+                    //longBefore = longBefore -.2;
 
                     if (myAdapter == null) return;
                     myAdapter.setLocation(location);
@@ -246,8 +200,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                          myAdapter.getDistToMap();
 
                          String sort = dbHandler.getMapSort();
-                         if (sort.equals("proximity") || sort.equals("proximityrev") && sortFlag) {
-                             myAdapter.SortByProximity();
+                         if ((sort.equals("proximity") || sort.equals("proximityrev")) && sortFlag) {
+                             if (sort.equals("proximity"))
+                                 myAdapter.SortByProximity();
+                             else
+                                 myAdapter.SortByProximityReverse();
                              myAdapter.notifyDataSetChanged();
 
                              // Refresh all data in visible table cells
@@ -315,23 +272,146 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     protected void onResume() {
         super.onResume();
+        fillList(); // get maps list from database
+        // Start Location Services
         if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
                 (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             startLocationUpdates();
         }
-        //Toast.makeText(MainActivity.this, "onResume", Toast.LENGTH_SHORT).show();
+        // Update myAdapter list and database if import/rename/delete happened
+        checkForActivityResult();
+        Log.d("MainActivity", "onResume");
     }
 
 
     @Override
     protected void onPause() {
         super.onPause();
+        //Toast.makeText(MainActivity.this, "onPause", Toast.LENGTH_SHORT).show();
         if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
                 (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             stopLocationUpdates();
         }
-        //Toast.makeText(MainActivity.this, "onPause", Toast.LENGTH_SHORT).show();
+        Log.d("MainActivity:onPause","Close dbWayPtHandler");
+        dbHandler.close();
     }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+    }
+
+
+
+    //--------------------
+    // Database Calls
+    //--------------------
+    private void fillList() {
+        // GET THE LIST FROM THE DATABASE
+        //Start the new thread to read maps from database
+        //new Thread(new Runnable() {
+        //    public void run() {
+        //Looper.prepare();
+        //dbHandler = DBHandler.getInstance(MainActivity.this);
+        Log.d("MainActivity:fillList", "New dbWayPtHandler");
+        dbHandler = new DBHandler(MainActivity.this);
+        try {
+            myAdapter = new CustomAdapter(MainActivity.this, dbHandler.getAllMaps(MainActivity.this));
+        } catch (SQLException e) {
+            Toast.makeText(MainActivity.this, "Error deleting database table: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+        lv = findViewById(R.id.lv);
+        lv.setAdapter(myAdapter);
+        registerForContextMenu(lv); // set up edit/trash context menu
+        // Make sure all the maps in the database still exist
+        myAdapter.checkIfExists();
+        // Display note if no records found
+        showHideNoImportsMessage();
+
+
+        // set selected sort by item
+        String sort = dbHandler.getMapSort();
+        int sortID = 0;
+        switch (sort) {
+            case "namerev":
+                sortID = 1;
+                break;
+            case "date":
+                sortID = 2;
+                break;
+            case "daterev":
+                sortID = 3;
+                break;
+            case "size":
+                sortID = 4;
+                break;
+            case "sizerev":
+                sortID = 5;
+                break;
+            case "proximity":
+                sortID = 6;
+                break;
+            case "proximityrev":
+                sortID = 7;
+                break;
+        }
+        sortByDropdown.setSelection(sortID, true);
+        // check of returned from another activity and change the maps list accordingly
+        // When return from GetMoreActivity or EditMapNameActivity update maps list
+    }
+
+    private void checkForActivityResult() {
+        // GetMoreActivity gets map to import
+        // EditWayPointActivity renames or deletes a map
+        // They return extras to pass back the results, update adapter and database here
+        Log.d("MainActivity","checkForActivityResult");
+        final Intent i = MainActivity.this.getIntent();
+        if (i.getExtras() != null && !i.getExtras().isEmpty()) {
+
+            // IMPORT NEW MAP INTO LIST
+            // CustomAdapter calls MapImportTask class in CustomAdapter.java
+            if (i.getExtras().containsKey("IMPORT_MAP") && i.getExtras().containsKey("PATH")) {
+                boolean import_map = i.getExtras().getBoolean("IMPORT_MAP");
+                // IMPORT MAP SELECTED
+                if (import_map) {
+                    sortFlag = false; // hold off on sorting.
+                    // Scroll down to last item. The one just added.
+                    // String name = new File(i.getExtras().getString("PATH")).getName();
+                    // int pos = myAdapter.findName();
+                    int pos = myAdapter.getCount() - 1;
+                    if (pos > -1) lv.setSelection(pos);
+                    //Toast.makeText(MainActivity.this, "Map imported: "+i.getExtras().getString("PATH"), Toast.LENGTH_LONG).show();
+                }
+                i.removeExtra("PATH");
+                i.removeExtra("IMPORT_MAP");
+            }
+
+            // RENAME MAP
+            else if (i.getExtras().containsKey("RENAME") && i.getExtras().containsKey("NAME") && i.getExtras().containsKey("ID")) {
+                // Renamed map, update with new name
+                String name = i.getExtras().getString("NAME");
+                int id = i.getExtras().getInt("ID");
+                myAdapter.rename(id, name);
+                //Toast.makeText(MainActivity.this, "Map renamed to: " + name, Toast.LENGTH_LONG).show();
+                i.removeExtra("NAME");
+                i.removeExtra("ID");
+                i.removeExtra("RENAME");
+            }
+
+            // DELETE MAP
+            else if (i.getExtras().containsKey("DELETE") && i.getExtras().containsKey("ID")) {
+                // Delete map, remove from Imported Maps list, delete from database
+                selectedId = i.getExtras().getInt("ID");
+                myAdapter.removeItem(selectedId);
+                Toast.makeText(MainActivity.this, "Map removed", Toast.LENGTH_LONG).show();
+                i.removeExtra("ID");
+                i.removeExtra("DELETE");
+                // Display note if no records found
+                showHideNoImportsMessage();
+            }
+        }
+    }
+
 
     //--------------------
     // Location Functions
@@ -340,14 +420,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //  LOCATION UPDATES
     private void startLocationUpdates() {
         LocationRequest mLocationRequest;
-        mLocationRequest = new LocationRequest();
+        mLocationRequest = LocationRequest.create();//new LocationRequest();
         mLocationRequest.setInterval(30000); //update location every 30 seconds
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // Was handled in StartActivity
             return;
         }
-        mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null /*looper*/);
+        mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null /*Looper.getMainLooper()*/);
     }
 
     private void stopLocationUpdates() {
@@ -359,6 +439,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //   Sort By DropDown
     // ...................
     private  void sortMaps(String sortBy) {
+        if (myAdapter == null) return;
+        Log.d("MainActivity","Sort by: "+sortBy);
         switch (sortBy) {
             case "name":
                 // Sort by Name

@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.example.tammy.pocketmaps.Activities.PDFActivity">
+    tools:context="com.example.tammy.pocketmaps.activities.PDFActivity">
     <item
         android:id="@+id/action_markCurrent"
         android:icon="@android:drawable/ic_input_add"
@@ -42,7 +42,7 @@
         android:icon="@android:drawable/ic_menu_always_landscape_portrait"
         android:title="@string/orientation"
         android:visible="true"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_portrait"
         android:checkable="true"
