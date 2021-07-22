@@ -2,6 +2,7 @@ package com.example.tammy.pocketmaps.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -37,6 +38,7 @@ public class EditWayPointActivity extends AppCompatActivity {
     private DBWayPtHandler dbWayPtHandler;
     private int id;
     WayPt wayPt;
+    boolean landscape;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,12 +50,19 @@ public class EditWayPointActivity extends AppCompatActivity {
             Toast.makeText(EditWayPointActivity.this, "Failed to get map values. Try again.",Toast.LENGTH_LONG).show();
             return;
         }
+
         id = i.getExtras().getInt("CLICKED");
         mapName = i.getExtras().getString("NAME");
         path = i.getExtras().getString("PATH");
         bounds = i.getExtras().getString("BOUNDS");
         //String mediaBox = i.getExtras().getString("MEDIABOX");
         viewPort = i.getExtras().getString("VIEWPORT");
+        landscape = i.getExtras().getBoolean("LANDSCAPE");
+        // if the map was locked in landscape, show this also in landscape
+        if (landscape){
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+        }
         wayPts = dbWayPtHandler.getWayPts(mapName);
         wayPts.SortPts();
         wayPt = wayPts.get(id);

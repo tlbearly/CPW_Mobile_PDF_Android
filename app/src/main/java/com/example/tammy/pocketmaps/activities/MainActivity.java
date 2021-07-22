@@ -57,16 +57,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     // location variables
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
-    double latNow, latBefore=0.0;
-    double longNow, longBefore=0.0;
-    double updateProximityDist=160.9344; // default change in distance that triggers updating proximity .1 miles
+    double latNow, latBefore = 0.0;
+    double longNow, longBefore = 0.0;
+    double updateProximityDist = 160.9344; // default change in distance that triggers updating proximity .1 miles
     Spinner sortByDropdown;
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("MainActivity","onCreate");
+        Log.d("MainActivity", "onCreate");
         setContentView(R.layout.activity_main);
 
         // DEBUG ***********
@@ -146,7 +146,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         longBefore = 0.0;
 
 
-
         // FLOATING ACTION BUTTON CLICK
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
@@ -167,8 +166,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     float[] results = new float[1];
                     latNow = location.getLatitude();
                     longNow = location.getLongitude(); // make it positive
-
-
 
                     // for debugging ****************
                     //latBefore = latBefore + .5;
@@ -278,6 +275,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             startLocationUpdates();
         }
+        else Toast.makeText(MainActivity.this,"Please turn on Location Services.",Toast.LENGTH_LONG).show();
         // Update myAdapter list and database if import/rename/delete happened
         checkForActivityResult();
         Log.d("MainActivity", "onResume");
@@ -425,6 +423,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // Was handled in StartActivity
+            Toast.makeText(MainActivity.this,"Fine Location Services are off.",Toast.LENGTH_LONG).show();
             return;
         }
         mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null /*Looper.getMainLooper()*/);

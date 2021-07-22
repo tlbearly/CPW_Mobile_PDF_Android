@@ -3,14 +3,16 @@
 //      Searched in the following locations:
 //      https://jcenter.bintray.com/com/google/android/gms/play-services-basement/11.0.1/play-services-basement-11.0.1.aar
 // TODO: jcenter repository is going away Feb 1, 2022. android-pdf-viewer has not been moved to mavenCentral yet. The last change to this code was in 2019. Create local jar file and add to libs.
+// maven { url 'https://jitpack.io' } is used for Android PDF Viewer
 buildscript {
     repositories {
         google()
         mavenCentral()
-        jcenter()
+        //maven { url 'https://jitpack.io' }
+       //jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.1'
+        classpath 'com.android.tools.build:gradle:4.2.2'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -21,7 +23,8 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        jcenter()
+        maven { url 'https://jitpack.io' }
+        //jcenter()
     }
 }
 

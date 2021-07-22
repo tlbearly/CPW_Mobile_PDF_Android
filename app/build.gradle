@@ -58,10 +58,12 @@ dependencies {
     // for displaying pdfs
     // Use lib from https://github.com/barteksc/AndroidPdfViewer
     // This is in jcentral which is going away in February 2022.
-    implementation 'com.github.barteksc:android-pdf-viewer:2.8.2'
+    //implementation 'com.github.barteksc:android-pdf-viewer:2.8.2'
+    // this one has been migrated to androidx jitpack and includes pdfium-android
+    implementation 'com.github.TalbotGooday:AndroidPdfViewer:3.1.0-beta.3'
 
     // for thumbnails
-    implementation 'com.github.barteksc:pdfium-android:1.9.0' //1.7.1'
+    //implementation 'com.github.barteksc:pdfium-android:1.9.0' //1.7.1'
 
     // iText for reading PDFs
     // itext7 only works with Android level 24 or higher Nougat (requires a license)

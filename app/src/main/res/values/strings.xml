@@ -36,9 +36,9 @@
     <string name="add_btn_desc">Import or download PDF maps</string>
 
     <!-- GetMoreActivity -->
-    <string name="getmore_title1">Load Maps</string>
-    <string name="device_storage_help">Browse your phone to find PDF maps that you downloaded. Will copy into this app.</string>
-    <string name="getmore_title2">Find Maps</string>
+    <string name="getmore_title1">Import Maps</string>
+    <string name="load_maps_help">Use File Picker to select PDF maps that you downloaded. They will be copied into this app.</string>
+    <string name="getmore_tdevice_storage_helpitle2">Find Maps</string>
     <string name="downloadInstr">This will start up your browser and show a list of resources for downloading geospatial PDFs from the CPW website. Return to this app and use the Import Maps button above to load maps into this app.</string>
     <string name="download_maps">Download Maps</string>
     <!--string name="web_download">Download a map from the CPW Maps Library, the Hunting Atlas, or the Fishing Atlas.</string-->
@@ -51,7 +51,7 @@
     <string name="Kb"> Kb</string>
     <string name="miles"> mi</string>
 
-    <string name="import_maps">Import Maps</string>
+    <string name="file_picker">File Picker</string>
     <string name="importdone">Import Done</string>
     <string name="DownloadMap">Add Map</string>
     <string name="title_activity_get_more">Add Map</string>
@@ -66,7 +66,7 @@
     <string name="splash_info">Take this app out in the field to display your current location on PDFs from the HuntingAtlas, FishingAtlas, CPW Maps Library, or any geo-referenced PDF. No need for internet or data connection! Plus use this app to download PDF maps (requires data connection).</string>
     <string name="contBtn">Continue</string>
     <string name="mapName">Map Name:\u0020</string>
-    <string name="CurPos">Current Lat/Long:\u0020</string>
+    <string name="CurPos">Current location:\u0020</string>
     <string name="fileDetails">File Details:</string>
     <string name="fileLocation">File Location:\u0020</string>
     <string name="fileSize">File Size:\u0020</string>

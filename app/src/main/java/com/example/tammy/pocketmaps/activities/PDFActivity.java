@@ -51,6 +51,7 @@ import com.google.android.gms.location.LocationServices;
 import java.io.File;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static android.graphics.Color.argb;
 
@@ -148,6 +149,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private RelativeLayout wait; // indeterminate progress bar
     private Boolean showAllWayPtLabels = false;
     private Boolean showAllWayPts = true;
+    AtomicReference<Double> optimalPageWidth = new AtomicReference<>((double) 0);
+    AtomicReference<Double> optimalPageHeight = new AtomicReference<>((double) 0);
 
     // Set global value bestQuality
     /*public void setPDFQuality(String quality){
@@ -167,7 +170,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         // current screen location adjusted by zoom level
         currentLocationX = 0; // start offscreen
         currentLocationY = 0;
-        landscape = false;
+
+            landscape = false;
         mLastAccelerometer = new float[3];
         mLastMagnetometer = new float[3];
         mLastAccelerometerSet = false;
@@ -178,7 +182,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         wayPts = null;
         mapName = "";
         //db = DBWayPtHandler.getInstance(this);
-        Log.d("PDFActivity:onCreate","New dbWayPtHandler");
+        //Log.d("PDFActivity:onCreate","New dbWayPtHandler");
         db = new DBWayPtHandler(this);
         //db2 = DBHandler.getInstance(this);
         markCurrent = false;
@@ -346,14 +350,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
         pdfView.enableAntialiasing(true); // improve rendering a little bit on low-res screens
 
-
         // SET UP LOCATION SERVICES
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // UPDATE CURRENT POSITION
         mLocationCallback = new LocationCallback() {
             @Override
-            public void onLocationResult(@NonNull LocationResult locationResult) {
+            public void onLocationResult(LocationResult locationResult) {
+                //Log.d("LocationCallback","updating location, refreshing way points");
                 for (Location location : locationResult.getLocations()) {
                     // Update UI with location data
                     //GeomagneticField geoField;
@@ -377,7 +381,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //TextView bTxt = (TextView)findViewById(R.id.debug);
                     //bTxt.setText(Float.toString(bearing)+"  adjust: "+Float.toString((geoField.getDeclination()))+ "  bear: "+Float.toString(location.getBearing()));
 
-                    // Redraw the current location point
+                    // Redraw the current location point & way points
                     pdfView.invalidate();
                 }
             }
@@ -436,11 +440,16 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 // LISTEN FOR TAP TO ADD WAY POINT OR DISPLAY PT DATA
 //
             //@SuppressLint("DefaultLocale")
-            pdfView.fromFile(file).defaultPage(0).pages(0).onRender((pages, pageWidth, pageHeight) -> {
-                pdfView.fitToWidth(); // optionally pass page number
+            // pdfView.fromFile(file).defaultPage(0).pages(0).onRender((pages, pageWidth, pageHeight) -> {
+            pdfView.fromFile(file).defaultPage(0).pages(0).onRender((onRenderListener) -> {
+                pdfView.fitToWidth(0); // optionally pass page number
+                //updatePageSize(); // get pdf page size
+                //optimalPageWidth.set((double)pdfView.getPageSize(0).getWidth()); // pdfView.getOptimalPageWidth();
+                //optimalPageHeight.set((double)pdfView.getPageSize(0).getHeight()); // pdfView.getOptimalPageHeight();
             })
                     .onTap(e -> {
-                        Log.d("PDFActivity","Clicked on map. clickedWP="+clickedWP);
+                        //Log.d("onTap","Clicked on map. clickedWP="+clickedWP);
+                        updatePageSize(); // get new pdf page width and height
                         // if no way points are show return
                         if (!showAllWayPts) return false;
                         // show wait icon
@@ -449,8 +458,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         newWP = false; // if added a new way point show balloon too
                         float x, y;
                         float zoom = pdfView.getZoom();
-                        double toScreenCordX = (pdfView.getOptimalPageWidth() * zoom) / mediaBoxWidth;
-                        double toScreenCordY = (pdfView.getOptimalPageHeight() * zoom) / mediaBoxHeight;
+                        double toScreenCordX = (optimalPageWidth.get() * zoom) / mediaBoxWidth;
+                        double toScreenCordY = (optimalPageHeight.get() * zoom) / mediaBoxHeight;
                         double marginL = toScreenCordX * marginLeft;
                         double marginT = toScreenCordY * marginTop;
                         double marginx = toScreenCordX * marginXworld;
@@ -462,9 +471,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         // Check if clicked on way pt popup balloon of the single way point that is showing the balloon
                         //
                         if (clickedWP != -1) {
-                            Log.d("PDFActivity:onTap","Check if clicked on way point balloon.");
-                            wayPtX = (((wayPts.get(clickedWP).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
-                            wayPtY = ((((90 - wayPts.get(clickedWP).getY()) - (90 - lat2)) / latDiff) * ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
+                            wayPtX = (((wayPts.get(clickedWP).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (optimalPageWidth.get() * zoom) - marginx) + marginL;
+                            wayPtY = ((((90 - wayPts.get(clickedWP).getY()) - (90 - lat2)) / latDiff) * ((double) (optimalPageHeight.get() * zoom) - marginy)) + marginT;
                             String desc = wayPts.get(clickedWP).getDesc();
                             if (desc.length() > 13) desc = desc.substring(0, 12);
                             float textWidth = txtCol.measureText(desc);
@@ -472,7 +480,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             int marg = Math.round(getResources().getDimension(R.dimen.ten_dp));//10
                             // Test for balloon popup going off right side of screen
                             int offsetBox;
-                            offsetBox = (int) Math.round((pdfView.getOptimalPageWidth() * zoom) - (wayPtX + (textWidth / 2) + marg + emoji_width1));
+                            offsetBox = (int) Math.round((optimalPageWidth.get() * zoom) - (wayPtX + (textWidth / 2) + marg + emoji_width1));
                             // Test for balloon popup going off the left side of screen
                             if (offsetBox >= 0) {
                                 offsetBox = 0;
@@ -481,7 +489,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             }
                             if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
                                     y < (wayPtY - startY + marg) && y >= (wayPtY - startY - boxHt - marg)) {
-                                Log.d("PDFActivity:onTap","Clicked on way pt balloon.");
+                                //Log.d("onTap","Clicked on way pt balloon.");
                                 // Open EditWayPointActivity
                                 Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
                                 //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -491,6 +499,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 i1.putExtra("BOUNDS", strBounds);
                                 i1.putExtra("MEDIABOX", strMediaBox);
                                 i1.putExtra("VIEWPORT", strViewPort);
+                                i1.putExtra("LANDSCAPE", landscape);
                                 startActivity(i1);
                                 // hide wait icon
                                 wait.setVisibility(View.GONE);
@@ -502,8 +511,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         if (showAllWayPtLabels) {
                             //Log.d("PDFActivity","Show all way point labels.");
                             for (int j = 0; j < wayPts.size(); j++) {
-                                wayPtX = (((wayPts.get(j).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
-                                wayPtY = ((((90 - wayPts.get(j).getY()) - (90 - lat2)) / latDiff) * ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
+                                wayPtX = (((wayPts.get(j).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (optimalPageWidth.get() * zoom) - marginx) + marginL;
+                                wayPtY = ((((90 - wayPts.get(j).getY()) - (90 - lat2)) / latDiff) * ((double) (optimalPageHeight.get() * zoom) - marginy)) + marginT;
                                 String desc;
                                 desc = wayPts.get(j).getDesc();
                                 if (desc.length() > 13) desc = desc.substring(0, 12);
@@ -512,7 +521,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 int marg = Math.round(getResources().getDimension(R.dimen.ten_dp));//10
                                 // Test for balloon popup going off right side of screen
                                 int offsetBox;
-                                offsetBox = (int) Math.round((pdfView.getOptimalPageWidth() * zoom) - (wayPtX + (textWidth / 2) + marg + emoji_width1));
+                                offsetBox = (int) Math.round((optimalPageWidth.get() * zoom) - (wayPtX + (textWidth / 2) + marg + emoji_width1));
                                 // Test for balloon popup going off the left side of screen
                                 if (offsetBox >= 0) {
                                     offsetBox = 0;
@@ -521,7 +530,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 }
                                 if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
                                         y < (wayPtY - startY + marg) && y >= (wayPtY - startY - boxHt - marg)) {
-                                    Log.d("PDFActivity:onTap","Clicked on way pt balloon (all labels showing).");
+                                    //Log.d("onTap","Clicked on way pt balloon (all labels showing).");
                                     // Open EditWayPointActivity
                                     Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
                                     //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -542,8 +551,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         //
                         // Check if clicked on existing way pt
                         //
-                        double longitude = (((x - marginL) / ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx)) * longDiff) + (long1 + 180) - 180;
-                        double latitude = ((((y - marginT) / ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) * latDiff) + (90 - lat2) - 90) * -1;
+                        double longitude = (((x - marginL) / ((double) (optimalPageWidth.get() * zoom) - marginx)) * longDiff) + (long1 + 180) - 180;
+                        double latitude = ((((y - marginT) / ((double) (optimalPageHeight.get() * zoom) - marginy)) * latDiff) + (90 - lat2) - 90) * -1;
 
                         // If showing all balloons, and click to add new point it should add it and not hide the currently selected balloon.
                         if (showAllWayPtLabels) clickedWP = -1;
@@ -554,22 +563,22 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                         // If clicked on existing way point show balloon with name
                         for (int i1 = wayPts.size() - 1; i1 > -1; i1--) {
-                            Log.d("PDFActivity","Clicked on existing way point.");
                             // convert this way pt lat, long to screen coordinates
-                            wayPtX = (((wayPts.get(i1).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
-                            wayPtY = ((((90 - wayPts.get(i1).getY()) - (90 - lat2)) / latDiff) * ((double) (pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
+                            wayPtX = (((wayPts.get(i1).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (optimalPageWidth.get() * zoom) - marginx) + marginL;
+                            wayPtY = ((((90 - wayPts.get(i1).getY()) - (90 - lat2)) / latDiff) * ((double) (optimalPageHeight.get() * zoom) - marginy)) + marginT;
 
                             if (x > (wayPtX - margX) && x < (wayPtX + margX) &&
                                     y < (wayPtY + margBottom) && y >= (wayPtY - margTop)) {
                                 clickedWP = i1;
                                 found = true;
+                                //Log.d("onTap","Clicked on existing way point.");
                                 break;
                             }
                         }
 
                         // Add new way pt
                         if (clickedWP == -1) {
-                            Log.d("PDFActivity", "onDraw");
+                            //Log.d("onTap", "map click detected (not on existing way pt.)");
                             // Make sure user click is not off the map!
                             if (!(latitude > lat1 && latitude < lat2 && longitude > long1 && longitude < long2)) {
                                 Toast.makeText(PDFActivity.this, " Off Map.", Toast.LENGTH_LONG).show();
@@ -581,21 +590,24 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         clickedWP = -1;
                     }*/
                             else {
-                                Log.d("PDFActivity"," Add new way point.");
+                                //Log.d("onTap","Add new way point to database.");
                                 newWP = true;
                                 String location = String.format(Locale.US,"%.5f, %.5f", latitude,longitude);
                                 int num = wayPts.size() + 1;
                                 WayPt wayPt = wayPts.add(mapName, "Way Point " + num, (float) longitude, (float) latitude, "blue", location);
-                                String desc = wayPt.getDesc();
+                                //String desc = wayPt.getDesc();
                                 wayPts.SortPts();
                                 try {
                                     db.addWayPt(wayPt);
                                 } catch (SQLException exc) {
                                     Toast.makeText(PDFActivity.this, "Failed to save way point.", Toast.LENGTH_LONG).show();
                                 }
+                                // get the index of the new way point
                                 for (int i1 = 0; i1 < wayPts.size(); i1++) {
-                                    if (wayPts.get(i1).getDesc().equals(desc)) {
+                                    //if (wayPts.get(i1).getDesc().equals(desc)) {
+                                    if (wayPts.get(i1).getX() == (float) longitude && wayPts.get(i1).getY() == (float) latitude) {
                                         clickedWP = i1;
+                                        //Log.d("onTap","Added to database, clickedWP="+clickedWP);
                                         break;
                                     }
                                 }
@@ -606,7 +618,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             clickedWP = -1;
                         return false;
                     }).onDraw((canvas, pageWidth, pageHeight, displayedPage) -> {
-                //Log.d("PDFActivity", "onDraw");
+                //Log.d("onDraw", "enter onDraw");
+                updatePageSize(); // get new pdf page width and height
                 // Display current lat/long position
                 TextView pTxt = findViewById(R.id.cur_pos);
                 pTxt.setTextColor(Color.WHITE);
@@ -624,8 +637,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 //Log.d("PDFActivity", "onDraw: current location.");
                 double zoom = pdfView.getZoom();
                 // convert to screen coordinates
-                double toScreenCordX = (pdfView.getOptimalPageWidth() * zoom) / mediaBoxWidth;
-                double toScreenCordY = (pdfView.getOptimalPageHeight() * zoom) / mediaBoxHeight;
+                double toScreenCordX = (optimalPageWidth.get() * zoom) / mediaBoxWidth;
+                double toScreenCordY = (optimalPageHeight.get() * zoom) / mediaBoxHeight;
                 double marginL = toScreenCordX * marginLeft;
                 double marginT = toScreenCordY * marginTop;
                 double marginx = toScreenCordX * marginXworld;
@@ -680,59 +693,45 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                 // Draw the current location as a point on the map. Color of the point is defined in paint & outline above.
                 //  CONVERT LAT LONG TO SCREEN COORDINATES
-                currentLocationX = (((longNow + 180) - (long1 + 180)) / longDiff) * ((pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
-                currentLocationY = ((((90 - latNow) - (90 - lat2)) / latDiff) * ((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
-                canvas.translate((float) currentLocationX, (float) currentLocationY);
-
-                // Transparent Arc showing bearing (top of user screen)
-                // drawArc (RecF(left,top,right,bottom), starting arc in degrees (drawn clockwise, 0=3 o'clock,90=6 o'clock, 180=9 o'clock), finish arc in degrees, use center? paint)
-                if (accuracy > 25) {
-                    accuracy = accuracy / 2;
-                    RectF rec = new RectF(-1 * accuracy, -1 * accuracy, accuracy, accuracy);
-                    canvas.drawArc(rec, 0, 360, true, cyanTrans); // transparent blue circle
-                } else {
-                    RectF rec = new RectF(-45f, -45f, 45f, 45f);
-                    int arcSize = 90;
-                    float startArc = bearing - 45;
-                    if (startArc < 0) startArc = 360 + startArc;
-                    canvas.drawArc(rec, startArc, arcSize, true, cyanTrans); // transparent blue arc
-                    //TextView bTxt = (TextView)findViewById(R.id.debug);
-                    //bTxt.setText("bearing="+(int)bearing+"  start="+(int)startArc);
-                }
-
-                //Log.d("latlong", "long="+longDiff+"    "+(int)Math.round(currentLocationY)+" long="+(int)Math.round(currentLocationX));
-                // DRAW POINT AT CURRENT LOCATION drawCircle(x,y,radius,paint)
-                // drawCircle(centerX,centerY,radius,paint)
-                canvas.drawCircle(0, 0, 20f, cyan); // final blue outline
-                canvas.drawCircle(0, 0, 19f, white); // larger white outline
-                canvas.drawCircle(0, 0, 15f, cyan); // blue center
+                currentLocationX = (((longNow + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                currentLocationY = ((((90 - latNow) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
+                //canvas.translate((float) currentLocationX, (float) currentLocationY);
 
 
                 // Add way point at current location
                 if (markCurrent) {
-                    Log.d("PDFActivity", "onDraw: way pt at current location");
+                    //Log.d("PDFActivity", "onDraw: way pt at current location");
                     markCurrent = false;
-                    @SuppressLint("DefaultLocale") String location = String.format("%.5f", latNow) + ", " + String.format("%.5f", longNow);
+                    float theLat = (float) latNow;
+                    float theLong = (float) longNow;
+                    @SuppressLint("DefaultLocale") String location = String.format("%.5f", theLat) + ", " + String.format("%.5f", theLong);
                     int num = wayPts.size() + 1;
-                    WayPt wayPt = wayPts.add(mapName, "Way Point " + num, (float) longNow, (float) latNow, "red", location);
+                    WayPt wayPt = wayPts.add(mapName, "Way Point " + num, theLong, theLat, "red", location);
                     wayPts.SortPts();
                     try {
                         db.addWayPt(wayPt);
                     } catch (SQLException exc) {
                         Toast.makeText(PDFActivity.this, "Failed to add pt to database.", Toast.LENGTH_LONG).show();
                     }
-
+                    for (int i1 = 0; i1 < wayPts.size(); i1++) {
+                        if (wayPts.get(i1).getX() == theLong && wayPts.get(i1).getY() == theLat) {
+                            clickedWP = i1;
+                            //Log.d("onDraw","Added way pt at current location, clickedWP="+clickedWP);
+                            break;
+                        }
+                    }
                 }
                 // Draw Way Points
                 if (showAllWayPts) {
                     //Log.d("PDFActivity", "onDraw: show all way pts");
-                    canvas.translate((float) -currentLocationX, (float) -currentLocationY);
+                    //canvas.translate((float) -currentLocationX, (float) -currentLocationY);
                     for (int i12 = 0; i12 < wayPts.size(); i12++) {
+                        //Log.d("PDFActivity","drawing way point "+i12);
                         double xLong = wayPts.get(i12).getX();//*(float)zoom;
                         double yLat = wayPts.get(i12).getY();//*(float)zoom;
                         // convert lat, long to screen coordinates
-                        float x = (float) ((((xLong + 180) - (long1 + 180)) / longDiff) * (((pdfView.getOptimalPageWidth() * zoom) - marginx)) + marginL);
-                        float y = (float) ((((90 - yLat) - (90 - lat2)) / latDiff) * (((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT);
+                        float x = (float) ((((xLong + 180) - (long1 + 180)) / longDiff) * (((optimalPageWidth.get() * zoom) - marginx)) + marginL);
+                        float y = (float) ((((90 - yLat) - (90 - lat2)) / latDiff) * (((optimalPageHeight.get() * zoom) - marginy)) + marginT);
 
                         float inner_radius = getResources().getDimension(R.dimen.pin_inner_radius);
                         float pin_stem = pin_ht - pin_radius;
@@ -757,7 +756,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         canvas.drawLine(x + 1, y - pin_stem, x + 1, y, white);
                         canvas.drawLine(x + 2, y - pin_stem, x + 2, y, white);
 
-
                         // Show all Way Point Labels
                         if (showAllWayPtLabels) {
                             String desc = wayPts.get(i12).getDesc();
@@ -765,7 +763,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                             float textWidth = txtCol.measureText(desc);
                             // Test for balloon popup going off right side of screen
-                            int offsetBox = (int) Math.round((pdfView.getOptimalPageWidth() * zoom) - (x + (textWidth / 2) + marg + emoji_width));
+                            int offsetBox = (int) Math.round((optimalPageWidth.get() * zoom) - (x + (textWidth / 2) + marg + emoji_width));
                             // Test for balloon popup going off the left side of screen
                             if (offsetBox >= 0) {
                                 offsetBox = 0;
@@ -796,20 +794,20 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                 // Draw popup if way point was clicked on
                 if ((newWP || clickedWP != -1) && !showAllWayPtLabels) {
-                    Log.d("PDFActivity", "onDraw: draw way pt and popup balloon");
+                    //Log.d("PDFActivity", "onDraw: draw way pt and popup balloon. newWP="+newWP+" clickedWP="+clickedWP);
                     int i12 = clickedWP;
                     double xLong = wayPts.get(i12).getX();//*(float)zoom;
                     double yLat = wayPts.get(i12).getY();//*(float)zoom;
 
                     // convert lat, long to screen coordinates
-                    float x = (float) ((((xLong + 180) - (long1 + 180)) / longDiff) * (((pdfView.getOptimalPageWidth() * zoom) - marginx)) + marginL);
-                    float y = (float) ((((90 - yLat) - (90 - lat2)) / latDiff) * (((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT);
+                    float x = (float) ((((xLong + 180) - (long1 + 180)) / longDiff) * (((optimalPageWidth.get() * zoom) - marginx)) + marginL);
+                    float y = (float) ((((90 - yLat) - (90 - lat2)) / latDiff) * (((optimalPageHeight.get() * zoom) - marginy)) + marginT);
                     String desc = wayPts.get(i12).getDesc();
                     if (desc.length() > 13) desc = desc.substring(0, 12);
 
                     float textWidth = txtCol.measureText(desc);
                     // Test for balloon popup going off right side of screen
-                    int offsetBox = (int) Math.round((pdfView.getOptimalPageWidth() * zoom) - (x + (textWidth / 2) + marg + emoji_width));
+                    int offsetBox = (int) Math.round((optimalPageWidth.get() * zoom) - (x + (textWidth / 2) + marg + emoji_width));
                     // Test for balloon popup going off the left side of screen
                     if (offsetBox >= 0) {
                         offsetBox = 0;
@@ -830,11 +828,45 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
                     drawTriangle(canvas, recCol, (int) (x), (int) (y - startY - 3), marg);
                     // add right arrow emoji in lsLayout defined above
+                    canvas.save();
                     canvas.translate((x + (textWidth / 2)) + offsetBox + 10, y - startY - boxHt - 12);
                     lsLayout.draw(canvas);
-                    canvas.save();
+                    //canvas.save();
                     canvas.restore();
                 }
+
+                //-----------------------
+                // Draw Current Location
+                //-----------------------
+                // Transparent Arc showing bearing (top of user screen)
+                //  CONVERT LAT LONG TO SCREEN COORDINATES
+                currentLocationX = (((longNow + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                currentLocationY = ((((90 - latNow) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
+                canvas.translate((float) currentLocationX, (float) currentLocationY);
+                // drawArc (RecF(left,top,right,bottom), starting arc in degrees (drawn clockwise, 0=3 o'clock,90=6 o'clock, 180=9 o'clock), finish arc in degrees, use center? paint)
+                // Draw the current location as a point on the map. Color of the point is defined in paint & outline above.
+                if (accuracy > 25) {
+                    accuracy = accuracy / 2;
+                    RectF rec = new RectF(-1 * accuracy, -1 * accuracy, accuracy, accuracy);
+                    canvas.drawArc(rec, 0, 360, true, cyanTrans); // transparent blue circle
+                } else {
+                    RectF rec = new RectF(-45f, -45f, 45f, 45f);
+                    int arcSize = 90;
+                    float startArc = bearing - 45;
+                    if (startArc < 0) startArc = 360 + startArc;
+                    canvas.drawArc(rec, startArc, arcSize, true, cyanTrans); // transparent blue arc
+                    //TextView bTxt = (TextView)findViewById(R.id.debug);
+                    //bTxt.setText("bearing="+(int)bearing+"  start="+(int)startArc);
+                }
+
+                //Log.d("latlong", "long="+longDiff+"    "+(int)Math.round(currentLocationY)+" long="+(int)Math.round(currentLocationX));
+
+                // DRAW POINT AT CURRENT LOCATION drawCircle(x,y,radius,paint)
+                // drawCircle(centerX,centerY,radius,paint)
+                canvas.drawCircle(0, 0, 20f, cyan); // final blue outline
+                canvas.drawCircle(0, 0, 19f, white); // larger white outline
+                canvas.drawCircle(0, 0, 15f, cyan); // blue center
+                canvas.translate((float) -currentLocationX, (float) -currentLocationY);
 
                 // hide wait icon
                 wait.setVisibility(View.GONE);
@@ -844,7 +876,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                 //Toast.makeText(PDFActivity.this,"Re-Draw "+count, Toast.LENGTH_SHORT).show();
             }).onLoad(nbPages -> {
-                Log.d("PDFActivity", "onLoad");
+                //Log.d("PDFActivity", "onLoad");
                 // Do not rotate pdf when they rotate the screen. It loses their location! pdfView cannot zoom to a point on the screen.
                 // Lock current screen rotation
                 if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
@@ -928,12 +960,21 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         canvas.drawLine(x + halfWidth, y + 3, x, y + halfWidth, outline);
     }
 
+    protected void updatePageSize(){
+        //pdfView.fitToWidth(0); // optionally pass page number
+
+        optimalPageWidth.set((double)pdfView.getPageSize(0).getWidth()); // pdfView.getOptimalPageWidth();
+        optimalPageHeight.set((double)pdfView.getPageSize(0).getHeight()); // pdfView.getOptimalPageHeight();
+        Log.d("page size","width="+optimalPageWidth.get()+" height="+optimalPageHeight.get());
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         startLocationUpdates();
 
         // Update Way Points
+        // TODO: add landscape orientation to db and restore orientation
         wayPts = db.getWayPts(mapName);
         wayPts.SortPts();
         clickedWP = -1; // hide balloon
@@ -942,10 +983,27 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_UI);
     }
 
+   /* @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        // Save UI state changes to the savedInstanceState.
+        // This bundle will be passed to onCreate if the process is
+        // killed and restarted.
+        savedInstanceState.putBoolean("landscape", landscape);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        // Restore UI state from the savedInstanceState.
+        // This bundle has also been passed to onCreate.
+        landscape = savedInstanceState.getBoolean("landscape");
+    }*/
+
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d("PDFActivity:onPause","close dbWayPtHandler, stop location updates");
+        //Log.d("PDFActivity:onPause","close dbWayPtHandler, stop location updates");
         db.close();
         stopLocationUpdates();
 
@@ -963,12 +1021,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private void startLocationUpdates() {
         LocationRequest mLocationRequest;
         mLocationRequest = LocationRequest.create();
-        // old mLocationRequest = new LocationRequest(); // deprecated
+        //mLocationRequest = new LocationRequest(); // deprecated
         mLocationRequest.setInterval(1000); //update location every 1 seconds
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if ((ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
                 (ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
-            mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.getMainLooper());
+            mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback,  Looper.getMainLooper());
         }
     }
 
@@ -1112,7 +1170,15 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         int id = item.getItemId();
 
         if (id == R.id.action_markCurrent){
-            markCurrent = true;
+            TextView pTxt = findViewById(R.id.cur_pos);
+            String str = getString(R.string.CurPos) + String.format(Locale.US,"%.05f", latNow) + ", " + String.format(Locale.US,"%.05f", longNow);
+            // check if current location is on this map
+            if (pTxt.getText().equals(str))
+                markCurrent = true;
+            else {
+                markCurrent = false;
+                Toast.makeText(PDFActivity.this,"Current location not on map", Toast.LENGTH_LONG).show();
+            }
         }
         else if (id == R.id.action_open){
             // open a new map
@@ -1120,6 +1186,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         }
         else if (id == R.id.action_deleteAll){
             try {
+                clickedWP = -1;
+                newWP = false;
                 db.deleteWayPts(mapName);
                 wayPts.removeAll();
             }catch (SQLException e){
