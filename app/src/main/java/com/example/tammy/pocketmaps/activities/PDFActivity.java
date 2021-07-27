@@ -23,7 +23,6 @@ import android.os.Looper;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -439,7 +438,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             //
 // LISTEN FOR TAP TO ADD WAY POINT OR DISPLAY PT DATA
 //
-            //@SuppressLint("DefaultLocale")
             // pdfView.fromFile(file).defaultPage(0).pages(0).onRender((pages, pageWidth, pageHeight) -> {
             pdfView.fromFile(file).defaultPage(0).pages(0).onRender((onRenderListener) -> {
                 pdfView.fitToWidth(0); // optionally pass page number
@@ -451,7 +449,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         //Log.d("onTap","Clicked on map. clickedWP="+clickedWP);
                         updatePageSize(); // get new pdf page width and height
                         // if no way points are show return
-                        if (!showAllWayPts) return false;
+                        if (!showAllWayPts) {
+                            //Toast.makeText(PDFActivity.this,"Way points are hidden.",Toast.LENGTH_LONG).show();
+                            return false;
+                        }
                         // show wait icon
                         wait.setVisibility(View.VISIBLE);
                         boolean found = false;
@@ -704,7 +705,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     markCurrent = false;
                     float theLat = (float) latNow;
                     float theLong = (float) longNow;
-                    @SuppressLint("DefaultLocale") String location = String.format("%.5f", theLat) + ", " + String.format("%.5f", theLong);
+                    String location = String.format(Locale.US,"%.5f", theLat) + ", " + String.format(Locale.US,"%.5f", theLong);
                     int num = wayPts.size() + 1;
                     WayPt wayPt = wayPts.add(mapName, "Way Point " + num, theLong, theLat, "red", location);
                     wayPts.SortPts();
@@ -961,11 +962,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     }
 
     protected void updatePageSize(){
-        //pdfView.fitToWidth(0); // optionally pass page number
-
         optimalPageWidth.set((double)pdfView.getPageSize(0).getWidth()); // pdfView.getOptimalPageWidth();
         optimalPageHeight.set((double)pdfView.getPageSize(0).getHeight()); // pdfView.getOptimalPageHeight();
-        Log.d("page size","width="+optimalPageWidth.get()+" height="+optimalPageHeight.get());
+        //Log.d("page size","width="+optimalPageWidth.get()+" height="+optimalPageHeight.get());
     }
 
     @Override
@@ -974,7 +973,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         startLocationUpdates();
 
         // Update Way Points
-        // TODO: add landscape orientation to db and restore orientation
         wayPts = db.getWayPts(mapName);
         wayPts.SortPts();
         clickedWP = -1; // hide balloon

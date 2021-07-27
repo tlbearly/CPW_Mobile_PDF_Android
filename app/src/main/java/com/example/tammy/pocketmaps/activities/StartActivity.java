@@ -4,17 +4,18 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.text.TextUtils;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.WindowCompat;
 
 import com.example.tammy.pocketmaps.R;
 
@@ -32,9 +33,9 @@ public class StartActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // TODO: For Android 10 lay out app in full screen. setDecorFitsSystemWindows not found!!!!!!!!!!
-        //if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-        //    WindowCompat.setDecorFitsSystemWindows(getWindow(), false); // for os 10+ full screen
+        // For Android 10 lay out app in full screen.
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), false); // for os 10+ full screen
         setContentView(R.layout.activity_start);
         Builder builder;
 
@@ -104,23 +105,15 @@ public class StartActivity extends AppCompatActivity {
     // PERMISSIONS
     // location service enabled?
     public static boolean isLocationEnabled(Context context) {
-        int locationMode;
-        String locationProviders;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
-            try {
-                locationMode = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
-            } catch (android.provider.Settings.SettingNotFoundException e) {
-                e.printStackTrace();
-                return false;
-            }
-
-            return locationMode != Settings.Secure.LOCATION_MODE_OFF;
-
-        }else{
-            //LOCATION_PROVIDERS_ALLOWED - This constant was deprecated in API level 19.
-            locationProviders = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
-            return !TextUtils.isEmpty(locationProviders);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            // This is new method provided in API 28
+            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            return lm.isLocationEnabled();
+        } else {
+            // This is Deprecated in API 28
+            int locationMode = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE,
+                    Settings.Secure.LOCATION_MODE_OFF);
+            return (locationMode != Settings.Secure.LOCATION_MODE_OFF);
         }
     }
     // Permission

@@ -2,6 +2,7 @@ package com.example.tammy.pocketmaps.model;
 
 import java.io.File;
 import java.util.Comparator;
+import java.util.Locale;
 
 /**
  * Created by tammy on 12/11/2017.
@@ -119,16 +120,16 @@ public class PDFMap {
 
     // Sort arraylist of PDFMaps by pdf file name a-z
     public static Comparator<PDFMap> NameComparator = (m1, m2) -> {
-        String name1 = m1.getName().toLowerCase();
-        String name2 = m2.getName().toLowerCase();
+        String name1 = m1.getName().toLowerCase(Locale.US);
+        String name2 = m2.getName().toLowerCase(Locale.US);
         // Return ascending order
         return name1.compareTo(name2);
     };
 
     // Sort arraylist of PDFMaps by pdf file name reverse z-a
     public static Comparator<PDFMap> NameComparatorReverse = (m1, m2) -> {
-        String name1 = m1.getName().toLowerCase();
-        String name2 = m2.getName().toLowerCase();
+        String name1 = m1.getName().toLowerCase(Locale.US);
+        String name2 = m2.getName().toLowerCase(Locale.US);
         // Return ascending order
         return name2.compareTo(name1);
     };

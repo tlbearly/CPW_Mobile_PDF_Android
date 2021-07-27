@@ -8,7 +8,7 @@ buildscript {
     repositories {
         google()
         mavenCentral()
-        //maven { url 'https://jitpack.io' }
+        maven { url 'https://jitpack.io' }
        //jcenter()
     }
     dependencies {
@@ -25,6 +25,11 @@ allprojects {
         mavenCentral()
         maven { url 'https://jitpack.io' }
         //jcenter()
+    }
+
+    // compile with extra debug notes
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
     }
 }
 

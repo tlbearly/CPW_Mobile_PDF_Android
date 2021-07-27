@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <include domain="sharedpref" path="."/>
+    <!-- App data isn't included in user's backup
+         unless client-side encryption is enabled. -->
+    <include domain="file" path="."
+        requireFlags="clientSideEncryption" />
+    <include domain="database" path="."/>
+</full-backup-content>

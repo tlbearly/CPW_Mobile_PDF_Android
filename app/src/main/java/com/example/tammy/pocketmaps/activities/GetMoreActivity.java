@@ -78,27 +78,31 @@ public class GetMoreActivity extends AppCompatActivity {
                         outFile = new File(GetMoreActivity.this.getFilesDir() + "/" + name.substring(0, name.length() - 4) + j + ".pdf");
                     }
                     //if (j > 0) name = name.substring(0, name.length() - 4) + j + ".pdf";
-                    InputStream is = null;
+                    InputStream is;
                     try {
                         is = getContentResolver().openInputStream(uri);
                     } catch (FileNotFoundException fileNotFoundException) {
                         fileNotFoundException.printStackTrace();
                         Toast.makeText(GetMoreActivity.this, getResources().getString(R.string.createFile), Toast.LENGTH_LONG).show();
+                        return;
                     }
-                    outFile.setWritable(true, true); // ownerOnly was false(world write permissions!) always returns false???? but works
-                    //if (!ok){
-                    //    Toast.makeText(GetMoreActivity.this,getResources().getString(R.string.writePermission), Toast.LENGTH_LONG).show();
-                    //}
+                    try {
+                        outFile.setWritable(true, true); // ownerOnly was false(world write permissions!) always returns false???? but works
+                    }catch (Exception e){
+                        Toast.makeText(GetMoreActivity.this,getResources().getString(R.string.writePermission)+" error: "+e.getMessage(), Toast.LENGTH_LONG).show();
+                        return;
+                    }
                     // Copy the file from file picker to app directory. Don't delete the original.
-                    OutputStream os = null;
+                    OutputStream os;
                     try {
                         os = new FileOutputStream(outFile);
                     } catch (FileNotFoundException fileNotFoundException) {
                         fileNotFoundException.printStackTrace();
                         Toast.makeText(GetMoreActivity.this, getResources().getString(R.string.createFile), Toast.LENGTH_LONG).show();
+                        return;
                     }
                     byte[] buffer = new byte[1024];
-                    int length = 0;
+                    int length;
                     while (true) {
                         try {
                             assert is != null;
@@ -106,9 +110,9 @@ public class GetMoreActivity extends AppCompatActivity {
                         } catch (IOException | NullPointerException exception) {
                             exception.printStackTrace();
                             Toast.makeText(GetMoreActivity.this, getResources().getString(R.string.createFile), Toast.LENGTH_LONG).show();
+                            return;
                         }
                         try {
-                            assert os != null;
                             os.write(buffer, 0, length);
                         } catch (IOException | NullPointerException exception) {
                             exception.printStackTrace();
@@ -116,7 +120,6 @@ public class GetMoreActivity extends AppCompatActivity {
                         }
                     }
                     try {
-                        assert os != null;
                         os.close();
                     } catch (IOException | NullPointerException exception) {
                         exception.printStackTrace();
