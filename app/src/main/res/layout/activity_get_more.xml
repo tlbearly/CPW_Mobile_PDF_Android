@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_weight="1"
-    android:background="@android:color/white"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
     <LinearLayout
@@ -22,6 +20,7 @@
             android:layout_marginStart="10dp"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="10dp"
+            android:gravity="center_horizontal"
             android:text="@string/getmore_title1" />
 
 
@@ -31,7 +30,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:layout_marginBottom="10dp"
-            android:text="@string/device_storage_help" />
+            android:gravity="center_horizontal"
+            android:text="@string/load_maps_help" />
 
         <Button
             android:id="@+id/importBtn"
@@ -41,7 +41,7 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="20dp"
             android:background="@drawable/grey_button"
-            android:text="@string/import_maps" />
+            android:text="@string/file_picker" />
 
         <TextView
             android:id="@+id/textView11"
@@ -54,7 +54,8 @@
             android:layout_marginEnd="10dp"
             android:layout_marginRight="10dp"
             android:layout_marginBottom="10dp"
-            android:text="@string/getmore_title2" />
+            android:gravity="center_horizontal"
+            android:text="@string/download_maps" />
 
         <TextView
             android:id="@+id/textView12"
@@ -63,6 +64,7 @@
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
             android:layout_marginBottom="10dp"
+            android:gravity="center_horizontal"
             android:text="@string/downloadInstr" />
 
         <Button
@@ -73,25 +75,5 @@
             android:layout_gravity="center_horizontal"
             android:background="@drawable/grey_button"
             android:text="@string/download_maps" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal"/>
     </LinearLayout>
 </ScrollView>

@@ -8,9 +8,6 @@
     <dimen name="pin_cl_radius">3.5dp</dimen><!-- catch light radius -->
     <dimen name="pin_pt_radius">4dp</dimen><!-- xy point radius -->
     <dimen name="pin_height">35dp</dimen><!-- length of pin from the point to the center of the pin head. One radius short of total height -->
-    <dimen name="pin_x_click_box">25dp</dimen><!--  +-x distance around the push pin that registers a user selection -->
-    <dimen name="pin_y_T_click_box">65dp</dimen><!--  y distance above the push pin that registers a user selection -->
-    <dimen name="pin_y_B_click_box">20dp</dimen><!--  y distance below the push pin that registers a user selection -->
     <dimen name="balloon_txt_size">18sp</dimen>
     <dimen name="balloon_margin">15dp</dimen><!-- height of triangle, margins around text inside balloon -->
     <dimen name="emoji_width">40dp</dimen><!-- width of right arrow in push pin balloon -->

@@ -21,7 +21,7 @@
     <style name="FullscreenTheme" parent="AppTheme">
         <item name="android:actionBarStyle">@style/FullscreenActionBarStyle</item>
         <item name="android:windowActionBarOverlay">true</item>
-        <item name="android:windowBackground">@null</item>
+        <item name="android:windowBackground">@color/white</item> <!--@null-->
         <item name="metaButtonBarStyle">?android:attr/buttonBarStyle</item>
         <item name="metaButtonBarButtonStyle">?android:attr/buttonBarButtonStyle</item>
     </style>
@@ -59,12 +59,12 @@
         <item name="android:maxHeight">20dip</item>
     </style>
 
-    <style name="MyProgressBar" parent="@style/Widget.AppCompat.ProgressBar.Horizontal">
+    <!--style name="MyProgressBar" parent="@style/Widget.AppCompat.ProgressBar.Horizontal">
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:background">#cccccc</item>
         <item name="android:maxHeight">10dp</item>
         <item name="android:minHeight">10dp</item>
         <item name="android:layout_margin">10dp</item>
-    </style>
+    </style-->
 
 </resources>

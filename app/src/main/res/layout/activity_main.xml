@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.example.tammy.mapviewer.MainActivity">
+    tools:context="com.example.tammy.pocketmaps.activities.MainActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -28,6 +28,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
+        android:contentDescription="@string/add_btn_desc"
         android:tint="@color/common_google_signin_btn_text_dark_pressed"
         app:srcCompat="@android:drawable/ic_input_add" />
 
