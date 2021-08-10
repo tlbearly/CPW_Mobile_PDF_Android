@@ -4,6 +4,7 @@
     <string name="onMap">On Map?</string>
     <string name="pdfimg">Image of PDF</string>
     <string name="markCurrent">Mark current location</string>
+    <string name="add_way_pt">Add a way point</string>
     <string name="open_pdf">Open a new map</string>
     <string name="showWayPtLabels">Show all way pt labels</string>
     <string name="showWayPts">Show way points</string>

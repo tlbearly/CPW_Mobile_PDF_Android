@@ -2,7 +2,6 @@ package com.example.tammy.pocketmaps.activities;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -32,7 +31,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -69,6 +67,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     Paint black;
     Paint outline;
     Paint blue;
+    boolean addWayPtFlag;
     // current screen location adjusted by zoom level
     double currentLocationX; // start offscreen
     double currentLocationY;
@@ -150,6 +149,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private Boolean showAllWayPts = true;
     AtomicReference<Double> optimalPageWidth = new AtomicReference<>((double) 0);
     AtomicReference<Double> optimalPageHeight = new AtomicReference<>((double) 0);
+    MenuItem wayPtMenuItem;
 
     // Set global value bestQuality
     /*public void setPDFQuality(String quality){
@@ -166,11 +166,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         wait = findViewById(R.id.loadingPanel);
         wait.setVisibility(View.VISIBLE);
 
+        addWayPtFlag=false;
+
         // current screen location adjusted by zoom level
         currentLocationX = 0; // start offscreen
         currentLocationY = 0;
 
-            landscape = false;
+        landscape = false;
         mLastAccelerometer = new float[3];
         mLastMagnetometer = new float[3];
         mLastAccelerometerSet = false;
@@ -448,13 +450,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     .onTap(e -> {
                         //Log.d("onTap","Clicked on map. clickedWP="+clickedWP);
                         updatePageSize(); // get new pdf page width and height
-                        // if no way points are show return
-                        if (!showAllWayPts) {
+                        // if no way points are shown return and not adding a new way point
+                        if (!showAllWayPts && !addWayPtFlag) {
                             //Toast.makeText(PDFActivity.this,"Way points are hidden.",Toast.LENGTH_LONG).show();
                             return false;
                         }
                         // show wait icon
-                        wait.setVisibility(View.VISIBLE);
+                        //wait.setVisibility(View.VISIBLE);
                         boolean found = false;
                         newWP = false; // if added a new way point show balloon too
                         float x, y;
@@ -472,8 +474,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         // Check if clicked on way pt popup balloon of the single way point that is showing the balloon
                         //
                         if (clickedWP != -1) {
-                            wayPtX = (((wayPts.get(clickedWP).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (optimalPageWidth.get() * zoom) - marginx) + marginL;
-                            wayPtY = ((((90 - wayPts.get(clickedWP).getY()) - (90 - lat2)) / latDiff) * ((double) (optimalPageHeight.get() * zoom) - marginy)) + marginT;
+                            wayPtX = (((wayPts.get(clickedWP).getX() + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                            wayPtY = ((((90 - wayPts.get(clickedWP).getY()) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
                             String desc = wayPts.get(clickedWP).getDesc();
                             if (desc.length() > 13) desc = desc.substring(0, 12);
                             float textWidth = txtCol.measureText(desc);
@@ -512,8 +514,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         if (showAllWayPtLabels) {
                             //Log.d("PDFActivity","Show all way point labels.");
                             for (int j = 0; j < wayPts.size(); j++) {
-                                wayPtX = (((wayPts.get(j).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (optimalPageWidth.get() * zoom) - marginx) + marginL;
-                                wayPtY = ((((90 - wayPts.get(j).getY()) - (90 - lat2)) / latDiff) * ((double) (optimalPageHeight.get() * zoom) - marginy)) + marginT;
+                                wayPtX = (((wayPts.get(j).getX() + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                                wayPtY = ((((90 - wayPts.get(j).getY()) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
                                 String desc;
                                 desc = wayPts.get(j).getDesc();
                                 if (desc.length() > 13) desc = desc.substring(0, 12);
@@ -552,8 +554,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         //
                         // Check if clicked on existing way pt
                         //
-                        double longitude = (((x - marginL) / ((double) (optimalPageWidth.get() * zoom) - marginx)) * longDiff) + (long1 + 180) - 180;
-                        double latitude = ((((y - marginT) / ((double) (optimalPageHeight.get() * zoom) - marginy)) * latDiff) + (90 - lat2) - 90) * -1;
+                        double longitude = (((x - marginL) / ((optimalPageWidth.get() * zoom) - marginx)) * longDiff) + (long1 + 180) - 180;
+                        double latitude = ((((y - marginT) / ((optimalPageHeight.get() * zoom) - marginy)) * latDiff) + (90 - lat2) - 90) * -1;
 
                         // If showing all balloons, and click to add new point it should add it and not hide the currently selected balloon.
                         if (showAllWayPtLabels) clickedWP = -1;
@@ -565,8 +567,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         // If clicked on existing way point show balloon with name
                         for (int i1 = wayPts.size() - 1; i1 > -1; i1--) {
                             // convert this way pt lat, long to screen coordinates
-                            wayPtX = (((wayPts.get(i1).getX() + 180) - (long1 + 180)) / longDiff) * ((double) (optimalPageWidth.get() * zoom) - marginx) + marginL;
-                            wayPtY = ((((90 - wayPts.get(i1).getY()) - (90 - lat2)) / latDiff) * ((double) (optimalPageHeight.get() * zoom) - marginy)) + marginT;
+                            wayPtX = (((wayPts.get(i1).getX() + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                            wayPtY = ((((90 - wayPts.get(i1).getY()) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
 
                             if (x > (wayPtX - margX) && x < (wayPtX + margX) &&
                                     y < (wayPtY + margBottom) && y >= (wayPtY - margTop)) {
@@ -579,6 +581,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                         // Add new way pt
                         if (clickedWP == -1) {
+                            // Check if way point menu item is active and set it to inactive
+                            if (wayPtMenuItem != null)
+                                wayPtMenuItem.setIcon(R.mipmap.ic_grey_pin_forgnd);
                             //Log.d("onTap", "map click detected (not on existing way pt.)");
                             // Make sure user click is not off the map!
                             if (!(latitude > lat1 && latitude < lat2 && longitude > long1 && longitude < long2)) {
@@ -592,6 +597,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     }*/
                             else {
                                 //Log.d("onTap","Add new way point to database.");
+                                // ignore taps unless pressed add way point button first
+                                if (!addWayPtFlag) return false;
+                                wait.setVisibility(View.VISIBLE);
                                 newWP = true;
                                 String location = String.format(Locale.US,"%.5f, %.5f", latitude,longitude);
                                 int num = wayPts.size() + 1;
@@ -612,6 +620,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                         break;
                                     }
                                 }
+                                // reset add way point button
+                                addWayPtFlag=false;
                             }
                         }
                         // hide old balloon
@@ -1121,7 +1131,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     MenuItem action_landscape;
     MenuItem action_showAll;
     MenuItem action_showWayPts;
-    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+    /*DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
         @SuppressLint("SourceLockedOrientationActivity")
         @Override
         public void onClick(DialogInterface dialog, int which) {
@@ -1145,7 +1155,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     break;
             }
         }
-    };
+    };*/
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         mapMenu = menu;
@@ -1156,6 +1166,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         action_landscape = menu.findItem(R.id.action_landscape);
         action_showAll = menu.findItem(R.id.action_showAll);
         action_showWayPts = menu.findItem(R.id.action_showWayPts);
+        wayPtMenuItem = menu.findItem(R.id.action_add_way_pt);
         return true;
     }
 
@@ -1232,12 +1243,26 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             //db2.setMapOrient("landscape"); // update user preference
             landscape = true;
         }
-        else if (id == R.id.action_lock_orient){
+        /*else if (id == R.id.action_lock_orient){
             AlertDialog.Builder builder = new AlertDialog.Builder(PDFActivity.this);
             builder.setTitle("Lock Orientation:");
             builder.setMessage("Lock map orientation in which mode?").setPositiveButton("LANDSCAPE", dialogClickListener)
                         .setNegativeButton("PORTRAIT", dialogClickListener).show();
             return true;
+        }*/
+        else if (id == R.id.action_add_way_pt) {
+            addWayPtFlag = true;
+            clickedWP = -1; // hide balloon popups
+            newWP = false;
+            showAllWayPts = true;
+            wayPtMenuItem.setIcon(R.mipmap.ic_cyan_pin_forgnd);
+        }
+        else if (id == R.id.action_add_way_pt_menu) {
+            addWayPtFlag = true;
+            clickedWP = -1; // hide balloon popups
+            newWP = false;
+            showAllWayPts = true;
+            wayPtMenuItem.setIcon(R.mipmap.ic_cyan_pin_forgnd);
         }
 
         return super.onOptionsItemSelected(item);

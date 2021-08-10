@@ -1,6 +1,5 @@
 package com.example.tammy.pocketmaps.activities;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.SQLException;
@@ -19,10 +18,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.tammy.pocketmaps.R;
 import com.example.tammy.pocketmaps.data.DBHandler;
 import com.example.tammy.pocketmaps.data.DBWayPtHandler;
 import com.example.tammy.pocketmaps.model.PDFMap;
-import com.example.tammy.pocketmaps.R;
 import com.itextpdf.text.pdf.PdfArray;
 import com.itextpdf.text.pdf.PdfDictionary;
 import com.itextpdf.text.pdf.PdfName;
@@ -36,7 +35,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Locale;
@@ -63,6 +61,8 @@ public class CustomAdapter extends BaseAdapter {
     Double latNow, longNow;
     static String viewport, mediabox, bounds;
     private Boolean loading = false;
+    ProgressBar progressBar;
+    int progress = 0;
     //final private String TAG = "CustomAdapter"; // debug logs
 
 
@@ -116,19 +116,34 @@ public class CustomAdapter extends BaseAdapter {
         longNow = location.getLongitude();
     }
 
-    private class ImportMapTask extends AsyncTask<Integer, Integer, String> {
-        private final WeakReference<CustomAdapter> customAdapterRef;
-        ProgressBar progressBar;
+    private void showProgressBar() {
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void dismissProgressBar() {
+        progressBar.setVisibility(View.GONE);
+    }
+
+    private void updateProgressBar(int progress){
+        Log.d("progressBar ", String.valueOf(progress));
+        progressBar.setVisibility(View.VISIBLE);
+        progressBar.setProgress(progress);
+    }
+
+    private static class ImportMapTask extends AsyncTask<Integer, Integer, String> {
+        //private final WeakReference<CustomAdapter> customAdapterRef;
+        //ProgressBar progressBar;
         String filePath;
         PDFMap pdfMap;
+        CustomAdapter ca;
 
-        ImportMapTask(CustomAdapter context, PDFMap pdfMap, ProgressBar pb) {
+        ImportMapTask(CustomAdapter customadapter, PDFMap pdfMap) {
             // calls onPreExecute
             // only retain a weak reference to the CustomAdapter class
-            customAdapterRef = new WeakReference<>(context);
+            //customAdapterRef = new WeakReference<>(context);
             this.pdfMap = pdfMap;
-            this.progressBar = pb;
             this.filePath = pdfMap.getPath();
+            this.ca = customadapter;
         }
 
         //protected ImportMapTask(Context c, PDFMap pdfMap, ProgressBar pb) {
@@ -142,8 +157,11 @@ public class CustomAdapter extends BaseAdapter {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            ca.showProgressBar();
+            Log.d("onPreExecute","showProgressBar");
+
             // get a reference to the CustomAdapter if it is still there
-            CustomAdapter caRef = customAdapterRef.get();
+            /*CustomAdapter caRef = customAdapterRef.get();
             if (caRef == null) return;
             Activity activity = (Activity) caRef.c;
             if (activity.isFinishing()) return;
@@ -152,35 +170,15 @@ public class CustomAdapter extends BaseAdapter {
             // calls doInBackground
             // show progress bar
             this.progressBar.setVisibility(View.VISIBLE);
+             */
         }
-
-       /* private boolean isInteger(String s) {
-            // Given a string, return true if it only contains integers.
-            boolean isValidInteger = false;
-            try
-            {
-                parseInt(s);
-                // s is a valid integer
-                isValidInteger = true;
-            }
-            catch (NumberFormatException ex)
-            {
-                // s is not an integer
-            }
-            return isValidInteger;
-        }*/
 
         @Override
         protected String doInBackground(Integer... params) {
-            // get a reference to the CustomAdapter if it is still there
-            CustomAdapter caRef = customAdapterRef.get();
-            if (caRef == null) return "";
-            Activity activity = (Activity) caRef.c;
-            if (activity.isFinishing()) return "";
-            Context c = caRef.c;
+            // preform background computation to read lat long, page size, boundaries from pdf
 
-            // preform background computation
-            publishProgress(10); // calls onProgressUpdate
+            //ca.updateProgressBar(10); // calls onProgressUpdate
+            publishProgress(10);
             // Get PDF
             File file = new File(filePath);
 
@@ -471,7 +469,7 @@ public class CustomAdapter extends BaseAdapter {
             // --------------------
             byte[] thumbnail;
             int pageNum = 0;
-            PdfiumCore pdfiumCore = new PdfiumCore(c);
+            PdfiumCore pdfiumCore = new PdfiumCore(ca.c);
             try {
                 ParcelFileDescriptor fd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
                 PdfDocument pdfDocument = pdfiumCore.newDocument(fd);
@@ -487,7 +485,7 @@ public class CustomAdapter extends BaseAdapter {
                         Bitmap.Config.RGB_565);
                 pdfiumCore.renderPageBitmap(pdfDocument, bitmap, pageNum, 0, 0,
                         width, height);
-                publishProgress(60);
+                publishProgress(70);
 
                 // scale it down
                 Bitmap scaled = Bitmap.createScaledBitmap(bitmap,100, (int) Math.round(100.0 * (double)height/(double)width),false);
@@ -495,7 +493,7 @@ public class CustomAdapter extends BaseAdapter {
                 //the same method above adding 'true' as last param
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 scaled.compress(Bitmap.CompressFormat.PNG, 0, stream);
-                publishProgress(70);
+                publishProgress(80);
                 thumbnail = stream.toByteArray();
                 bitmap.recycle(); // free memory
                 scaled.recycle();
@@ -503,30 +501,31 @@ public class CustomAdapter extends BaseAdapter {
                 // Save thumbnail to a file in app directory (/data/data/com.example.tammy.pdfsample/files), save the path to it.
                 File img;
                 try {
-                    publishProgress(80);
+                    publishProgress(85);
                     // Save thumbnail image in local storage where this App is.
-                    String path = c.getFilesDir().getAbsolutePath();
+                    String path = ca.c.getFilesDir().getAbsolutePath();
                     img = new File(path + "/CPWthumbnail" + pdfMap.getId() + ".png");
                     if (!img.exists()) {
                             boolean fileDoesNotExist = img.createNewFile();
                             if (!fileDoesNotExist)
-                                Toast.makeText(c, c.getResources().getString(R.string.problemThumbnailSavingFile), Toast.LENGTH_LONG).show();
+                                Toast.makeText(ca.c, ca.c.getResources().getString(R.string.problemThumbnailSavingFile), Toast.LENGTH_LONG).show();
                     }
                     FileOutputStream fos = new FileOutputStream(img);
                     fos.write(thumbnail);
                     fos.close();
                     pdfMap.setThumbnail(path + "/CPWthumbnail" + pdfMap.getId() + ".png");
                 } catch (IOException e){
-                    Toast.makeText(c, c.getResources().getString(R.string.problemThumbnailDiskFull) + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(ca.c, ca.c.getResources().getString(R.string.problemThumbnailDiskFull) + e.getMessage(), Toast.LENGTH_LONG).show();
                     pdfMap.setThumbnail(null);
                 } catch (SecurityException e){
-                    Toast.makeText(c, c.getResources().getString(R.string.problemThumbnailSecurity) + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(ca.c, ca.c.getResources().getString(R.string.problemThumbnailSecurity) + e.getMessage(), Toast.LENGTH_LONG).show();
                     pdfMap.setThumbnail(null);
                 } catch (Exception e) {
-                    Toast.makeText(c, c.getResources().getString(R.string.problemThumbnailSaving) + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(ca.c, ca.c.getResources().getString(R.string.problemThumbnailSaving) + e.getMessage(), Toast.LENGTH_LONG).show();
                     pdfMap.setThumbnail(null);
                 }
-                publishProgress(60);
+
+                publishProgress(90);
 
                 // Get Map Name
                 String name = file.getName();
@@ -536,9 +535,9 @@ public class CustomAdapter extends BaseAdapter {
                 String fileSize;
                 double size = file.length() / 1024.0; // Get size and convert bytes into Kb.
                 if (size >= 1024) {
-                    fileSize = String.format(Locale.US,"%.1f %s", (size / 1024.0), c.getResources().getString(R.string.Mb));
+                    fileSize = String.format(Locale.US,"%.1f %s", (size / 1024.0), ca.c.getResources().getString(R.string.Mb));
                 } else {
-                    fileSize = String.format(Locale.US,"%.0f %s", size, c.getResources().getString(R.string.Kb));
+                    fileSize = String.format(Locale.US,"%.0f %s", size, ca.c.getResources().getString(R.string.Kb));
                 }
 
                 // IMPORT INTO the DATABASE
@@ -548,9 +547,9 @@ public class CustomAdapter extends BaseAdapter {
                 pdfMap.setViewport(viewport);
                 pdfMap.setMediabox(mediabox);
                 pdfMap.setBounds(bounds);
-                publishProgress(90);
+                publishProgress(95);
                 //DBHandler db = DBHandler.getInstance(c);
-                DBHandler db = new DBHandler(c);
+                DBHandler db = new DBHandler(ca.c);
                 db.updateMap(pdfMap);
                 db.close();
                 publishProgress(100);
@@ -560,7 +559,7 @@ public class CustomAdapter extends BaseAdapter {
                 pdfMap.setName("deleting...");
                 return "Import Failed " + ex.getMessage();
             }
-            return c.getResources().getString(R.string.importdone); //"Import Done";
+            return ca.c.getResources().getString(R.string.importdone); //"Import Done";
         }
 
         // 10-10-18 Test getting thumbnail from iText
@@ -618,31 +617,35 @@ public class CustomAdapter extends BaseAdapter {
             // update the progress bar. The value you pass in publishProgress
             // is passed in the values parameter of this method
             super.onProgressUpdate(progress);
+            ca.progress = progress[0];
+            ca.notifyDataSetChanged();
+            //ca.updateProgressBar(progress[0]);
             Log.d("CustomAdapter","onProgressUpdate, "+progress[0]+"%");
-            this.progressBar.setProgress(progress[0]);
+            //this.progressBar.setProgress(progress[0]);
         }
 
         protected void onPostExecute(String result) {
             // result of background computation is sent here
             // get a reference to the CustomAdapter if it is still there
-            CustomAdapter caRef = customAdapterRef.get();
-            Activity activity = (Activity) caRef.c;
-            if (activity.isFinishing()) return;
+            //CustomAdapter caRef = customAdapterRef.get();
+            //Activity activity = (Activity) caRef.c;
+            //if (activity.isFinishing()) return;
 
-            this.progressBar.setVisibility(View.GONE);
-            caRef.loading = false;
+            //ca.dismissProgressBar();//this.progressBar.setVisibility(View.GONE);
+            //caRef.loading = false;
             // Map Import Failed
-            if (!result.equals(caRef.c.getResources().getString(R.string.importdone))) {
-                Toast.makeText(caRef.c, result, Toast.LENGTH_LONG).show();
-                caRef.removeItem(pdfMap.getId());
+            if (!result.equals(ca.c.getResources().getString(R.string.importdone))) {
+                Toast.makeText(ca.c, result, Toast.LENGTH_LONG).show();
+                ca.removeItem(pdfMap.getId());
             }
             // Map Import Success
             else {
                 // Display message and load map
                 //Toast.makeText(c, "Map copied to App folder.", Toast.LENGTH_LONG).show();
                 //notifyDataSetChanged(); // Refresh list of pdf maps
-                caRef.openPDFView(pdfMap.getPath(), pdfMap.getName(), pdfMap.getBounds(), pdfMap.getMediabox(), pdfMap.getViewport());
+                ca.openPDFView(pdfMap.getPath(), pdfMap.getName(), pdfMap.getBounds(), pdfMap.getMediabox(), pdfMap.getViewport());
             }
+            ca.loading = false;
         }
     }
 
@@ -840,6 +843,7 @@ public class CustomAdapter extends BaseAdapter {
         try {
             //DBHandler db = DBHandler.getInstance(c);
             DBHandler db = new DBHandler(c);
+            DBWayPtHandler wpdb = new DBWayPtHandler(c);
             for (int i = pdfMaps.size()-1; i > -1;  i--) {
                 PDFMap map = pdfMaps.get(i);
                 Toast.makeText(c,"Deleting: "+map.getName(), Toast.LENGTH_LONG).show();
@@ -851,6 +855,7 @@ public class CustomAdapter extends BaseAdapter {
                     }
                 }
                 db.deleteMap(map);
+                wpdb.deleteWayPt(map.getName());// delete way points
                 pdfMaps.remove(i);
                 // delete thumbnail image also
                 File img = new File(map.getThumbnail());
@@ -863,6 +868,7 @@ public class CustomAdapter extends BaseAdapter {
             }
             notifyDataSetChanged();
             db.close();
+            wpdb.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, "Problem removing map: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
@@ -871,9 +877,7 @@ public class CustomAdapter extends BaseAdapter {
     public void removeItem(int id) {
         // remove item i from the list and the database
         try {
-            //DBHandler db = DBHandler.getInstance(c);
             DBHandler db = new DBHandler(c);
-            //DBWayPtHandler dbwaypt = DBWayPtHandler.getInstance(c);
             DBWayPtHandler dbwaypt = new DBWayPtHandler(c);
             for (int i = 0; i < this.pdfMaps.size(); i++) {
                 if (pdfMaps.get(i).getId() == id) {
@@ -931,8 +935,8 @@ public class CustomAdapter extends BaseAdapter {
         locIcon = view.findViewById(R.id.locationIcon);
         locIcon.setVisibility(View.GONE);
         ImageView img = view.findViewById(R.id.pdfImage);
-        ProgressBar pb = view.findViewById(R.id.loadProgress);
-        pb.setVisibility(View.GONE);
+        progressBar = view.findViewById(R.id.loadProgress);
+        progressBar.setVisibility(View.GONE);
 
         //  load thumbnail from file
         String path = pdfMap.getThumbnail();
@@ -959,8 +963,15 @@ public class CustomAdapter extends BaseAdapter {
             nameTxt.setText(c.getResources().getString(R.string.loading));
             // call AsyncTask to read pdf binary and update progress bar and import into database
             if (!loading) {
-                ImportMapTask importMap = new ImportMapTask(this, pdfMap, pb);
+                loading = true;
+                progressBar.setVisibility(View.VISIBLE);
+                progressBar.setProgress(10);
+                ImportMapTask importMap = new ImportMapTask(this, pdfMap);
                 importMap.execute();
+            }
+            else {
+                progressBar.setVisibility(View.VISIBLE);
+                progressBar.setProgress(progress);
             }
         } else {
             nameTxt.setText(pdfMap.getName());

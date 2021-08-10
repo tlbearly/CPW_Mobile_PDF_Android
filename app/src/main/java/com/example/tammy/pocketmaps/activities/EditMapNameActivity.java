@@ -201,15 +201,13 @@ public class EditMapNameActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
 
         if (item.getItemId() == R.id.delete_map) {
-            //case R.id.delete_map:
-                // display alert dialog
-                AlertDialog.Builder builder = new AlertDialog.Builder(EditMapNameActivity.this);
-                builder.setTitle("Delete");
-                builder.setMessage("Delete the imported map?").setPositiveButton("DELETE", dialogClickListener)
-                        .setNegativeButton("CANCEL", dialogClickListener).show();
-                return true;
+            // display alert dialog
+            AlertDialog.Builder builder = new AlertDialog.Builder(EditMapNameActivity.this);
+            builder.setTitle("Delete");
+            builder.setMessage("Delete the imported map?").setPositiveButton("DELETE", dialogClickListener)
+                .setNegativeButton("CANCEL", dialogClickListener).show();
+            return true;
         } else if (item.getItemId() == android.R.id.home) {
-            //case android.R.id.home:
             // rename map
             String name;
             name = editTxt.getText().toString();

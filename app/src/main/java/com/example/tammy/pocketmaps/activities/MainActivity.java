@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     double updateProximityDist = 160.9344; // default change in distance that triggers updating proximity .1 miles
     Spinner sortByDropdown;
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -269,6 +269,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     protected void onResume() {
         super.onResume();
+        // Importing a Map hides this button, show it again
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setVisibility(View.VISIBLE);
         fillList(); // get maps list from database
         // Start Location Services
         if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
@@ -276,8 +279,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             startLocationUpdates();
         }
         else Toast.makeText(MainActivity.this,"Please turn on Location Services.",Toast.LENGTH_LONG).show();
-        // Update myAdapter list and database if import/rename/delete happened
-        checkForActivityResult();
         Log.d("MainActivity", "onResume");
     }
 
@@ -311,12 +312,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         //    public void run() {
         //Looper.prepare();
         //dbHandler = DBHandler.getInstance(MainActivity.this);
-        Log.d("MainActivity:fillList", "New dbWayPtHandler");
+        Log.d("MainActivity:fillList", "New dbHandler");
         dbHandler = new DBHandler(MainActivity.this);
         try {
             myAdapter = new CustomAdapter(MainActivity.this, dbHandler.getAllMaps(MainActivity.this));
         } catch (SQLException e) {
-            Toast.makeText(MainActivity.this, "Error deleting database table: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this, "Error reading database table: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
         lv = findViewById(R.id.lv);
         lv.setAdapter(myAdapter);
@@ -354,6 +355,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 break;
         }
         sortByDropdown.setSelection(sortID, true);
+        // Update myAdapter list and database if import/rename/delete happened
+        checkForActivityResult();
         // check of returned from another activity and change the maps list accordingly
         // When return from GetMoreActivity or EditMapNameActivity update maps list
     }
@@ -373,6 +376,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 // IMPORT MAP SELECTED
                 if (import_map) {
                     sortFlag = false; // hold off on sorting.
+                    FloatingActionButton fab = findViewById(R.id.fab);
+                    fab.setVisibility(View.GONE);
                     // Scroll down to last item. The one just added.
                     // String name = new File(i.getExtras().getString("PATH")).getName();
                     // int pos = myAdapter.findName();

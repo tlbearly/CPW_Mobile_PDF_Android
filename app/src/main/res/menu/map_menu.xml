@@ -9,6 +9,12 @@
         android:visible="true"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_add_way_pt_menu"
+        android:icon="@android:drawable/ic_input_add"
+        android:title="@string/add_way_pt"
+        android:visible="true"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_showWayPts"
         android:icon="@android:drawable/ic_dialog_info"
         android:title="@string/showWayPts"
@@ -37,9 +43,15 @@
         android:title="@string/open_pdf"
         android:visible="true"
         app:showAsAction="never" />
-    <item
+    <!--item
         android:id="@+id/action_lock_orient"
         android:icon="@android:drawable/ic_menu_always_landscape_portrait"
+        android:title="@string/orientation"
+        android:visible="true"
+        app:showAsAction="ifRoom" /-->
+    <item
+        android:id="@+id/action_add_way_pt"
+        android:icon="@mipmap/ic_grey_pin_forgnd"
         android:title="@string/orientation"
         android:visible="true"
         app:showAsAction="ifRoom" />

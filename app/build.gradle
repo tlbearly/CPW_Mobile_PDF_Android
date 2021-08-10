@@ -21,12 +21,17 @@ android {
         }
     }
     buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
         release {
+            // Now uses R8 instead of proguard
             // ProGuard shrinks the size of the APK file and removes unused code.
             // shrinkResource as removes unused code from libraries
             // set to true for release, will slow down build time so should not be used on debug version.
-            shrinkResources false
-            minifyEnabled false
+            //shrinkResources false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             // use next line for even more code shrinking
             //proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
