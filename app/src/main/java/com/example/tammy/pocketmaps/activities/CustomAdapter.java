@@ -771,6 +771,7 @@ public class CustomAdapter extends BaseAdapter {
 
                // Log.d(TAG, "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
             }
+            //ca.loading = false;
         }
     }
 
