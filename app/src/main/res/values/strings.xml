@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CPW Pocket Maps</string>
+    <string name="app_name">CPW Mobile PDF</string>
     <string name="name">Name</string>
     <string name="onMap">On Map?</string>
     <string name="pdfimg">Image of PDF</string>
@@ -9,6 +9,7 @@
     <string name="showWayPtLabels">Show all way pt labels</string>
     <string name="showWayPts">Show way points</string>
     <string name="deleteAllWayPts">Delete all way points</string>
+    <string name="wayPtInstr">Tap to add way point</string>
     <string name="portrait">Lock in Portrait</string>
     <string name="landscape">Lock in Landscape</string>
     <string name="orientation">Orientation</string>
@@ -51,7 +52,6 @@
     <string name="delete">Delete</string>
     <!--string name="rename">Rename</string-->
     <string name="ok">OK</string>
-    <string name="title_activity_start">CPW Pocket Maps</string>
     <string name="splash">Colorado Parks and Wildlife</string>
     <string name="splash_info">Take this app out in the field to display your current location on PDFs from the HuntingAtlas, FishingAtlas, CPW Maps Library, or any geo-referenced PDF. No need for internet or data connection! Plus, access a list of resources for downloading PDF maps (requires data connection).</string>
     <string name="contBtn">Continue</string>

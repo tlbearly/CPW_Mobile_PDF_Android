@@ -1,5 +1,7 @@
 package com.example.tammy.pocketmaps.activities;
 
+import static android.graphics.Color.argb;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -49,8 +51,6 @@ import java.io.File;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static android.graphics.Color.argb;
 
 /* show the map */
 public class PDFActivity extends AppCompatActivity implements SensorEventListener {
@@ -1246,7 +1246,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         /*else if (id == R.id.action_lock_orient){
             AlertDialog.Builder builder = new AlertDialog.Builder(PDFActivity.this);
             builder.setTitle("Lock Orientation:");
-            builder.setMessage("Lock map orientation in which mode?").setPositiveButton("LANDSCAPE", dialogClickListener)
+            builder.setMessage("Locgetk map orientation in which mode?").setPositiveButton("LANDSCAPE", dialogClickListener)
                         .setNegativeButton("PORTRAIT", dialogClickListener).show();
             return true;
         }*/
@@ -1256,6 +1256,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             newWP = false;
             showAllWayPts = true;
             wayPtMenuItem.setIcon(R.mipmap.ic_cyan_pin_forgnd);
+            Toast.makeText(PDFActivity.this, getResources().getString(R.string.wayPtInstr), Toast.LENGTH_LONG).show();
         }
         else if (id == R.id.action_add_way_pt_menu) {
             addWayPtFlag = true;
@@ -1263,6 +1264,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             newWP = false;
             showAllWayPts = true;
             wayPtMenuItem.setIcon(R.mipmap.ic_cyan_pin_forgnd);
+            Toast.makeText(PDFActivity.this, getResources().getString(R.string.wayPtInstr), Toast.LENGTH_LONG).show();
         }
 
         return super.onOptionsItemSelected(item);
