@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.model;
+package com.example.tammy.cpwmobilepdf.model;
 
 import java.io.File;
 import java.util.Comparator;

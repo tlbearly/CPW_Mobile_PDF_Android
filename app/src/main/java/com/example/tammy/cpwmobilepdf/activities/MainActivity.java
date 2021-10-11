@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.activities;
+package com.example.tammy.cpwmobilepdf.activities;
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -30,8 +30,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.example.tammy.pocketmaps.R;
-import com.example.tammy.pocketmaps.data.DBHandler;
+import com.example.tammy.cpwmobilepdf.R;
+import com.example.tammy.cpwmobilepdf.data.DBHandler;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -606,8 +606,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     // ...................
     //     ... MENU
     // ...................
-   // MenuItem nameItem;
-   // MenuItem dateItem;
     DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
@@ -650,6 +648,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     .setNegativeButton("CANCEL",dialogClickListener).show();
             return true;
         }
+        else if (id == R.id.action_help){
+            Intent intent = new Intent(MainActivity.this, GetMoreActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+        }
+
         return super.onOptionsItemSelected(item);
     }
 }

@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.activities;
+package com.example.tammy.cpwmobilepdf.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,10 +17,10 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.tammy.pocketmaps.R;
-import com.example.tammy.pocketmaps.data.DBWayPtHandler;
-import com.example.tammy.pocketmaps.model.WayPt;
-import com.example.tammy.pocketmaps.model.WayPts;
+import com.example.tammy.cpwmobilepdf.R;
+import com.example.tammy.cpwmobilepdf.data.DBWayPtHandler;
+import com.example.tammy.cpwmobilepdf.model.WayPt;
+import com.example.tammy.cpwmobilepdf.model.WayPts;
 
 public class EditWayPointActivity extends AppCompatActivity {
     EditText editTxt;
@@ -44,7 +44,7 @@ public class EditWayPointActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         dbWayPtHandler = new DBWayPtHandler(this);
-        // Read the way point id that was clicked on and the map name
+        // Read the waypoint id that was clicked on and the map name
         Intent i = this.getIntent();
         if (i.getExtras() == null){
             Toast.makeText(EditWayPointActivity.this, "Failed to get map values. Try again.",Toast.LENGTH_LONG).show();
@@ -94,7 +94,7 @@ public class EditWayPointActivity extends AppCompatActivity {
         }
         ImageButton clearBtn = findViewById(R.id.clear_waypt);
 
-        // Clear way point name
+        // Clear waypoint name
         clearBtn.setOnClickListener(view -> editTxt.setText(""));
 
         // Listeners for Pin color radio buttons
@@ -155,7 +155,7 @@ public class EditWayPointActivity extends AppCompatActivity {
             // display alert dialog
             AlertDialog.Builder builder = new AlertDialog.Builder(EditWayPointActivity.this);
             builder.setTitle("Delete");
-            builder.setMessage("Delete this way point?").setPositiveButton("DELETE", dialogClickListener)
+            builder.setMessage("Delete this waypoint?").setPositiveButton("DELETE", dialogClickListener)
                     .setNegativeButton("CANCEL", dialogClickListener).show();
             return true;
         } else if (item.getItemId() == android.R.id.home) {

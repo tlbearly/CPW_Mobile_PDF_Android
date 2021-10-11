@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.activities;
+package com.example.tammy.cpwmobilepdf.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,7 +18,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.tammy.pocketmaps.R;
+import com.example.tammy.cpwmobilepdf.R;
 
 import java.io.File;
 import java.text.DecimalFormat;

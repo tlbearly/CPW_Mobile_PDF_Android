@@ -1,4 +1,6 @@
-package com.example.tammy.pocketmaps.activities;
+package com.example.tammy.cpwmobilepdf.activities;
+
+import static androidx.appcompat.app.AlertDialog.Builder;
 
 import android.Manifest;
 import android.content.Context;
@@ -17,9 +19,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
 
-import com.example.tammy.pocketmaps.R;
-
-import static androidx.appcompat.app.AlertDialog.Builder;
+import com.example.tammy.cpwmobilepdf.R;
 
 /**
  * Start the app, display splash screen and check for permissions and location services

@@ -5,12 +5,12 @@
     <string name="onMap">On Map?</string>
     <string name="pdfimg">Image of PDF</string>
     <string name="markCurrent">Mark current location</string>
-    <string name="add_way_pt">Add a way point</string>
+    <string name="add_way_pt">Add a waypoint</string>
     <string name="open_pdf">Open a new map</string>
-    <string name="showWayPtLabels">Show all way pt labels</string>
-    <string name="showWayPts">Show way points</string>
-    <string name="deleteAllWayPts">Delete all way points</string>
-    <string name="wayPtInstr">Tap to add way point</string>
+    <string name="showWayPtLabels">Show all waypoint labels</string>
+    <string name="showWayPts">Show waypoints</string>
+    <string name="deleteAllWayPts">Delete all waypoints</string>
+    <string name="wayPtInstr">Tap to add waypoint</string>
     <string name="portrait">Lock in Portrait</string>
     <string name="landscape">Lock in Landscape</string>
     <string name="orientation">Orientation</string>
@@ -68,11 +68,12 @@
     <string name="wayColor">Push Pin Color:\u0020</string>
     <string name="clear">Clear Name</string>
     <string name="title_activity_edit_map_name">Edit Map Name</string>
-    <string name="title_activity_edit_way_pt">Edit Way Point</string>
+    <string name="title_activity_edit_way_pt">Edit Waypoint</string>
     <string name="renameMap">Rename Map</string>
-    <string name="renameWayPt">Rename Way Pt.</string>
+    <string name="renameWayPt">Rename Waypoint</string>
     <!--string name="downloading">Downloading…</string-->
     <string name="loading">Loading…</string>
+    <string name="help">Help</string>
 
     <!-- Error Messages -->
     <string name="deleteFile">Problem removing map file from App.</string>

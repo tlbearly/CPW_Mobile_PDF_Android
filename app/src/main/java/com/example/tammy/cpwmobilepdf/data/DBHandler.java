@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.data;
+package com.example.tammy.cpwmobilepdf.data;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -7,8 +7,8 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.example.tammy.pocketmaps.model.PDFMap;
-import com.example.tammy.pocketmaps.R;
+import com.example.tammy.cpwmobilepdf.model.PDFMap;
+import com.example.tammy.cpwmobilepdf.R;
 
 import java.io.File;
 import java.util.ArrayList;

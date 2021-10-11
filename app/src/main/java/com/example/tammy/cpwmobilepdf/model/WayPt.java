@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.model;
+package com.example.tammy.cpwmobilepdf.model;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -7,13 +7,13 @@ import java.util.Comparator;
 import java.util.Locale;
 
 public class WayPt {
-    // Holds one way point
+    // Holds one waypoint
     private int id;
     private String name = ""; // pdf map name
     private String desc = ""; // description
     private float x = 0; // x screen coordinate
     private float y = 0; // y screen coordinate
-    private String time; // date and time way pt was created
+    private String time; // date and time waypoint was created
     private String location; // lat, long
     private String colorName; //  color of push pin image
 

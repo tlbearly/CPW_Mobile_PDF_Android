@@ -1,2 +1,2 @@
 include ':app'
-rootProject.name='PocketMaps'
+rootProject.name='CPWMobilePDF'

@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.activities;
+package com.example.tammy.cpwmobilepdf.activities;
 
 import android.content.Context;
 import android.content.Intent;
@@ -18,10 +18,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.tammy.pocketmaps.R;
-import com.example.tammy.pocketmaps.data.DBHandler;
-import com.example.tammy.pocketmaps.data.DBWayPtHandler;
-import com.example.tammy.pocketmaps.model.PDFMap;
+import com.example.tammy.cpwmobilepdf.R;
+import com.example.tammy.cpwmobilepdf.data.DBHandler;
+import com.example.tammy.cpwmobilepdf.data.DBWayPtHandler;
+import com.example.tammy.cpwmobilepdf.model.PDFMap;
 import com.itextpdf.text.pdf.PdfArray;
 import com.itextpdf.text.pdf.PdfDictionary;
 import com.itextpdf.text.pdf.PdfName;
@@ -451,7 +451,7 @@ public class CustomAdapter extends BaseAdapter {
                     double [] latlong1 = UTMtoLL(y1,x1,zone);
                     double [] latlong2 = UTMtoLL(y2,x2,zone);
                     bounds = String.format("%s %s %s %s %s %s", latlong2[1], latlong1[0], latlong1[1], latlong1[0], latlong1[1], latlong2[0]);
-                    // this one does not work!!! Can't add way points
+                    // this one does not work!!! Can't add waypoints
                     //bounds = String.valueOf(latlong1[1]) +" "+ String.valueOf(latlong1[0]) +" "+ String.valueOf(latlong2[1]) +" "+ String.valueOf(latlong1[0]) +" "+ String.valueOf(latlong2[1]) +" "+ String.valueOf(latlong2[0]);
 
                     //String description = lgiDictionary.getAsString(desc).toString();
@@ -856,7 +856,7 @@ public class CustomAdapter extends BaseAdapter {
                     }
                 }
                 db.deleteMap(map);
-                wpdb.deleteWayPt(map.getName());// delete way points
+                wpdb.deleteWayPt(map.getName());// delete waypoints
                 pdfMaps.remove(i);
                 // delete thumbnail image also
                 File img = new File(map.getThumbnail());

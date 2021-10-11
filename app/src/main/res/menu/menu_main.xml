@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.example.tammy.pocketmaps.activities.PDFActivity">
+    tools:context="com.example.tammy.cpwmobilepdf.activities.PDFActivity">
     <!--item
        android:id="@+id/action_sort_by_name"
        android:icon="@android:drawable/ic_input_add"
@@ -24,13 +24,13 @@
         android:title="@string/deleteAllDBrecords"
         android:visible="true"
         app:showAsAction="never" />
-   <!--item
-       android:id="@+id/action_open"
+   <item
+       android:id="@+id/action_help"
        android:icon="@android:drawable/ic_input_add"
-       android:title="@string/open_pdf"
+       android:title="@string/help"
        android:visible="true"
-       app:showAsAction="never" />
-   <group android:checkableBehavior="all">
+       app:showAsAction="never"/>
+   <!--group android:checkableBehavior="all">
        <item
            android:id="@+id/action_quality"
            android:orderInCategory="100"

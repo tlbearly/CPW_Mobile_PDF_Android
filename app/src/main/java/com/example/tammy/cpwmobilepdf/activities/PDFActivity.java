@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.activities;
+package com.example.tammy.cpwmobilepdf.activities;
 
 import static android.graphics.Color.argb;
 
@@ -19,6 +19,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.text.Layout;
@@ -36,10 +37,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-import com.example.tammy.pocketmaps.R;
-import com.example.tammy.pocketmaps.data.DBWayPtHandler;
-import com.example.tammy.pocketmaps.model.WayPt;
-import com.example.tammy.pocketmaps.model.WayPts;
+import com.example.tammy.cpwmobilepdf.R;
+import com.example.tammy.cpwmobilepdf.data.DBWayPtHandler;
+import com.example.tammy.cpwmobilepdf.model.WayPt;
+import com.example.tammy.cpwmobilepdf.model.WayPts;
 import com.github.barteksc.pdfviewer.PDFView;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -124,19 +125,19 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private DBWayPtHandler db;
     //private DBHandler db2;
     private Boolean markCurrent;
-    private int clickedWP; // index of way point that was clicked on
-    private Boolean newWP; // if added a new way point show balloon too
-    private TextPaint txtCol; // text color for way pt balloon popup
-    private int txtSize; // text size of way pt balloon popup
-    private int marg; // text margins in way pt balloon popup
-    private int boxHt; // height of way point balloon popup
-    private float pin_radius; // radius of way pt pin
+    private int clickedWP; // index of waypoint that was clicked on
+    private Boolean newWP; // if added a new waypoint show balloon too
+    private TextPaint txtCol; // text color for waypoint balloon popup
+    private int txtSize; // text size of waypoint balloon popup
+    private int marg; // text margins in waypoint balloon popup
+    private int boxHt; // height of waypoint balloon popup
+    private float pin_radius; // radius of waypoint pin
     private float pin_ht; // length of pin stem from point to center of pin head (circle)
-    private int startY; // bottom of the way pt balloon popup
-    private int margX; // distance on each side of way pt to register user click
-    private int margTop; // distance above way pt to register user click
-    private int margBottom; // distance below way pt to register user click
-    private StaticLayout lsLayout; // arrow right in way point balloon popup
+    private int startY; // bottom of the waypoint balloon popup
+    private int margX; // distance on each side of waypoint to register user click
+    private int margTop; // distance above waypoint to register user click
+    private int margBottom; // distance below waypoint to register user click
+    private StaticLayout lsLayout; // arrow right in waypoint balloon popup
     private String path;
     String bounds;
     private String strBounds;
@@ -187,15 +188,15 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         db = new DBWayPtHandler(this);
         //db2 = DBHandler.getInstance(this);
         markCurrent = false;
-        clickedWP = -1; // index of way point that was clicked on
-        newWP = false; // if added a new way point show balloon too
-        txtCol = new TextPaint(); // text color for way pt balloon popup
-        txtSize = Math.round(getResources().getDimension(R.dimen.balloon_txt_size)); // text size of way pt balloon popup ( used to be 30 pixels)
-        marg = Math.round(getResources().getDimension(R.dimen.balloon_margin)); // text margins in way pt balloon popup used to be 20pixels
-        boxHt = txtSize + (marg * 2); // height of way point balloon popup
+        clickedWP = -1; // index of waypoint that was clicked on
+        newWP = false; // if added a new waypoint show balloon too
+        txtCol = new TextPaint(); // text color for waypoint balloon popup
+        txtSize = Math.round(getResources().getDimension(R.dimen.balloon_txt_size)); // text size of waypoint balloon popup ( used to be 30 pixels)
+        marg = Math.round(getResources().getDimension(R.dimen.balloon_margin)); // text margins in waypoint balloon popup used to be 20pixels
+        boxHt = txtSize + (marg * 2); // height of waypoint balloon popup
         pin_radius = getResources().getDimension(R.dimen.pin_radius);
         pin_ht = getResources().getDimension(R.dimen.pin_height); // length of pin stem from point to center of pin head (circle)
-        startY = Math.round(pin_ht + pin_radius) + 12; // bottom of the way pt balloon popup
+        startY = Math.round(pin_ht + pin_radius) + 12; // bottom of the waypoint balloon popup
         margX = Math.round(getResources().getDimension(R.dimen.wayPtXmarg));
         margTop = Math.round(getResources().getDimension(R.dimen.wayPtTmarg));
         margBottom = Math.round(getResources().getDimension(R.dimen.wayPtBmarg));
@@ -326,7 +327,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             Toast.makeText(PDFActivity.this, "Trouble reading viewPort margins from Geo PDF. Read: " + viewPort, Toast.LENGTH_LONG).show();
         }
 
-        // Edit Way Point Activity needs to have these
+        // Edit Waypoint Activity needs to have these
         /*i.removeExtra("PATH");
         i.removeExtra("BOUNDS");
         i.removeExtra("NAME");
@@ -358,7 +359,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
-                //Log.d("LocationCallback","updating location, refreshing way points");
+                //Log.d("LocationCallback","updating location, refreshing waypoints");
                 for (Location location : locationResult.getLocations()) {
                     // Update UI with location data
                     //GeomagneticField geoField;
@@ -382,7 +383,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //TextView bTxt = (TextView)findViewById(R.id.debug);
                     //bTxt.setText(Float.toString(bearing)+"  adjust: "+Float.toString((geoField.getDeclination()))+ "  bear: "+Float.toString(location.getBearing()));
 
-                    // Redraw the current location point & way points
+                    // Redraw the current location point & waypoints
                     pdfView.invalidate();
                 }
             }
@@ -420,25 +421,35 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         blue.setAntiAlias(true);
         blue.setColor(Color.BLUE);
         blue.setStyle(Paint.Style.FILL);
-        // Way point popup text
+        // Waypoint popup text
         txtCol.setStyle(Paint.Style.FILL);
         txtCol.setColor(Color.BLACK);
         txtCol.setTextSize(txtSize);
         final int emoji_width = Math.round(getResources().getDimension(R.dimen.emoji_width));
         TextPaint txtPaint = new TextPaint(); // Size of the emoji arrow in push pin balloon
         txtPaint.setTextSize(emoji_width);
-        // Way point popup text arrow emoji
+        // Waypoint popup text arrow emoji
         //Initialise the layout & add a TextView with the emoji in it
         String emoji = new String(Character.toChars(0x279e)); //0x279d)); // 0x279c arrow right //0x27b2)); //0x1F369)); //Doughnut
         // StaticLayout was deprecated in API level 28 use StaticLayout.Builder
-        lsLayout = new StaticLayout(emoji, txtPaint, emoji_width, Layout.Alignment.ALIGN_CENTER, 1, 1, true);
+        // Check if we're running on Android 6.0 or higher
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            StaticLayout.Builder sb= StaticLayout.Builder.obtain(emoji, 0, emoji.length(), txtPaint, emoji_width)
+                    .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                    .setLineSpacing(1,1)
+                    .setIncludePad (true);
+            lsLayout = sb.build();
+        } else {
+            //StaticLayout layout = new StaticLayout(text, paint, width, Alignment.ALIGN_NORMAL, mSpacingMult, mSpacingAdd, false);
+            lsLayout = new StaticLayout(emoji, txtPaint, emoji_width, Layout.Alignment.ALIGN_CENTER, 1, 1, true);
+        }
 
         // GET THE PDF FILE
         File file = new File(path);
         if (file.canRead()) {
             // LOAD IT, load only first page
             //
-// LISTEN FOR TAP TO ADD WAY POINT OR DISPLAY PT DATA
+// LISTEN FOR TAP TO ADD WAYPOINT OR DISPLAY PT DATA
 //
             // pdfView.fromFile(file).defaultPage(0).pages(0).onRender((pages, pageWidth, pageHeight) -> {
             pdfView.fromFile(file).defaultPage(0).pages(0).onRender((onRenderListener) -> {
@@ -450,15 +461,15 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     .onTap(e -> {
                         //Log.d("onTap","Clicked on map. clickedWP="+clickedWP);
                         updatePageSize(); // get new pdf page width and height
-                        // if no way points are shown return and not adding a new way point
+                        // if no waypoints are shown return and not adding a new waypoint
                         if (!showAllWayPts && !addWayPtFlag) {
-                            //Toast.makeText(PDFActivity.this,"Way points are hidden.",Toast.LENGTH_LONG).show();
+                            //Toast.makeText(PDFActivity.this,"Waypoints are hidden.",Toast.LENGTH_LONG).show();
                             return false;
                         }
                         // show wait icon
                         //wait.setVisibility(View.VISIBLE);
                         boolean found = false;
-                        newWP = false; // if added a new way point show balloon too
+                        newWP = false; // if added a new waypoint show balloon too
                         float x, y;
                         float zoom = pdfView.getZoom();
                         double toScreenCordX = (optimalPageWidth.get() * zoom) / mediaBoxWidth;
@@ -471,7 +482,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         y = (e.getY() - pdfView.getCurrentYOffset());
                         double wayPtX, wayPtY;
                         //
-                        // Check if clicked on way pt popup balloon of the single way point that is showing the balloon
+                        // Check if clicked on waypoint popup balloon of the single waypoint that is showing the balloon
                         //
                         if (clickedWP != -1) {
                             wayPtX = (((wayPts.get(clickedWP).getX() + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
@@ -492,7 +503,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             }
                             if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
                                     y < (wayPtY - startY + marg) && y >= (wayPtY - startY - boxHt - marg)) {
-                                //Log.d("onTap","Clicked on way pt balloon.");
+                                //Log.d("onTap","Clicked on waypoint balloon.");
                                 // Open EditWayPointActivity
                                 Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
                                 //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -510,9 +521,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             }
                         }
 
-                        // check if clicked on any balloon when all way points are showing their labels
+                        // check if clicked on any balloon when all waypoints are showing their labels
                         if (showAllWayPtLabels) {
-                            //Log.d("PDFActivity","Show all way point labels.");
+                            //Log.d("PDFActivity","Show all waypoint labels.");
                             for (int j = 0; j < wayPts.size(); j++) {
                                 wayPtX = (((wayPts.get(j).getX() + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
                                 wayPtY = ((((90 - wayPts.get(j).getY()) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
@@ -533,7 +544,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 }
                                 if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
                                         y < (wayPtY - startY + marg) && y >= (wayPtY - startY - boxHt - marg)) {
-                                    //Log.d("onTap","Clicked on way pt balloon (all labels showing).");
+                                    //Log.d("onTap","Clicked on waypoint balloon (all labels showing).");
                                     // Open EditWayPointActivity
                                     Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
                                     //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -552,7 +563,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         }
 
                         //
-                        // Check if clicked on existing way pt
+                        // Check if clicked on existing waypoint
                         //
                         double longitude = (((x - marginL) / ((optimalPageWidth.get() * zoom) - marginx)) * longDiff) + (long1 + 180) - 180;
                         double latitude = ((((y - marginT) / ((optimalPageHeight.get() * zoom) - marginy)) * latDiff) + (90 - lat2) - 90) * -1;
@@ -564,9 +575,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         //bTxt.setTextColor(Color.WHITE);
                         //bTxt.setText("X offset: "+pdfView.getCurrentXOffset()+" Tap at: " +x+", "+y+" Long: "+String.format("%.4f",longitude)+ " Lat: "+String.format("%.4f",latitude));
 
-                        // If clicked on existing way point show balloon with name
+                        // If clicked on existing waypoint show balloon with name
                         for (int i1 = wayPts.size() - 1; i1 > -1; i1--) {
-                            // convert this way pt lat, long to screen coordinates
+                            // convert this waypoint lat, long to screen coordinates
                             wayPtX = (((wayPts.get(i1).getX() + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
                             wayPtY = ((((90 - wayPts.get(i1).getY()) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
 
@@ -574,17 +585,17 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                     y < (wayPtY + margBottom) && y >= (wayPtY - margTop)) {
                                 clickedWP = i1;
                                 found = true;
-                                //Log.d("onTap","Clicked on existing way point.");
+                                //Log.d("onTap","Clicked on existing waypoint.");
                                 break;
                             }
                         }
 
-                        // Add new way pt
+                        // Add new waypoint
                         if (clickedWP == -1) {
-                            // Check if way point menu item is active and set it to inactive
+                            // Check if waypoint menu item is active and set it to inactive
                             if (wayPtMenuItem != null)
                                 wayPtMenuItem.setIcon(R.mipmap.ic_grey_pin_forgnd);
-                            //Log.d("onTap", "map click detected (not on existing way pt.)");
+                            //Log.d("onTap", "map click detected (not on existing waypoint.)");
                             // Make sure user click is not off the map!
                             if (!(latitude > lat1 && latitude < lat2 && longitude > long1 && longitude < long2)) {
                                 Toast.makeText(PDFActivity.this, " Off Map.", Toast.LENGTH_LONG).show();
@@ -596,22 +607,22 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         clickedWP = -1;
                     }*/
                             else {
-                                //Log.d("onTap","Add new way point to database.");
-                                // ignore taps unless pressed add way point button first
+                                //Log.d("onTap","Add new waypoint to database.");
+                                // ignore taps unless pressed add waypoint button first
                                 if (!addWayPtFlag) return false;
                                 wait.setVisibility(View.VISIBLE);
                                 newWP = true;
                                 String location = String.format(Locale.US,"%.5f, %.5f", latitude,longitude);
                                 int num = wayPts.size() + 1;
-                                WayPt wayPt = wayPts.add(mapName, "Way Point " + num, (float) longitude, (float) latitude, "blue", location);
+                                WayPt wayPt = wayPts.add(mapName, "Waypoint " + num, (float) longitude, (float) latitude, "blue", location);
                                 //String desc = wayPt.getDesc();
                                 wayPts.SortPts();
                                 try {
                                     db.addWayPt(wayPt);
                                 } catch (SQLException exc) {
-                                    Toast.makeText(PDFActivity.this, "Failed to save way point.", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(PDFActivity.this, "Failed to save waypoint.", Toast.LENGTH_LONG).show();
                                 }
-                                // get the index of the new way point
+                                // get the index of the new waypoint
                                 for (int i1 = 0; i1 < wayPts.size(); i1++) {
                                     //if (wayPts.get(i1).getDesc().equals(desc)) {
                                     if (wayPts.get(i1).getX() == (float) longitude && wayPts.get(i1).getY() == (float) latitude) {
@@ -620,7 +631,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                         break;
                                     }
                                 }
-                                // reset add way point button
+                                // reset add waypoint button
                                 addWayPtFlag=false;
                             }
                         }
@@ -709,15 +720,15 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 //canvas.translate((float) currentLocationX, (float) currentLocationY);
 
 
-                // Add way point at current location
+                // Add waypoint at current location
                 if (markCurrent) {
-                    //Log.d("PDFActivity", "onDraw: way pt at current location");
+                    //Log.d("PDFActivity", "onDraw: waypoint at current location");
                     markCurrent = false;
                     float theLat = (float) latNow;
                     float theLong = (float) longNow;
                     String location = String.format(Locale.US,"%.5f", theLat) + ", " + String.format(Locale.US,"%.5f", theLong);
                     int num = wayPts.size() + 1;
-                    WayPt wayPt = wayPts.add(mapName, "Way Point " + num, theLong, theLat, "red", location);
+                    WayPt wayPt = wayPts.add(mapName, "Waypoint " + num, theLong, theLat, "red", location);
                     wayPts.SortPts();
                     try {
                         db.addWayPt(wayPt);
@@ -727,17 +738,17 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     for (int i1 = 0; i1 < wayPts.size(); i1++) {
                         if (wayPts.get(i1).getX() == theLong && wayPts.get(i1).getY() == theLat) {
                             clickedWP = i1;
-                            //Log.d("onDraw","Added way pt at current location, clickedWP="+clickedWP);
+                            //Log.d("onDraw","Added waypoint at current location, clickedWP="+clickedWP);
                             break;
                         }
                     }
                 }
-                // Draw Way Points
+                // Draw Waypoints
                 if (showAllWayPts) {
-                    //Log.d("PDFActivity", "onDraw: show all way pts");
+                    //Log.d("PDFActivity", "onDraw: show all waypoints");
                     //canvas.translate((float) -currentLocationX, (float) -currentLocationY);
                     for (int i12 = 0; i12 < wayPts.size(); i12++) {
-                        //Log.d("PDFActivity","drawing way point "+i12);
+                        //Log.d("PDFActivity","drawing waypoint "+i12);
                         double xLong = wayPts.get(i12).getX();//*(float)zoom;
                         double yLat = wayPts.get(i12).getY();//*(float)zoom;
                         // convert lat, long to screen coordinates
@@ -767,7 +778,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         canvas.drawLine(x + 1, y - pin_stem, x + 1, y, white);
                         canvas.drawLine(x + 2, y - pin_stem, x + 2, y, white);
 
-                        // Show all Way Point Labels
+                        // Show all Waypoint Labels
                         if (showAllWayPtLabels) {
                             String desc = wayPts.get(i12).getDesc();
                             if (desc.length() > 13) desc = desc.substring(0, 12);
@@ -803,9 +814,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     }
                 }
 
-                // Draw popup if way point was clicked on
+                // Draw popup if waypoint was clicked on
                 if ((newWP || clickedWP != -1) && !showAllWayPtLabels) {
-                    //Log.d("PDFActivity", "onDraw: draw way pt and popup balloon. newWP="+newWP+" clickedWP="+clickedWP);
+                    //Log.d("PDFActivity", "onDraw: draw waypoint and popup balloon. newWP="+newWP+" clickedWP="+clickedWP);
                     int i12 = clickedWP;
                     double xLong = wayPts.get(i12).getX();//*(float)zoom;
                     double yLat = wayPts.get(i12).getY();//*(float)zoom;
@@ -951,7 +962,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     }*/
 
     public void drawTriangle(Canvas canvas, Paint paint, int x, int y, int width) {
-        // ----  White triangle with black v. For way point balloon.
+        // ----  White triangle with black v. For waypoint balloon.
         // \  /
         //  \/
         int halfWidth = width / 2;
@@ -982,7 +993,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         super.onResume();
         startLocationUpdates();
 
-        // Update Way Points
+        // Update Waypoints
         wayPts = db.getWayPts(mapName);
         wayPts.SortPts();
         clickedWP = -1; // hide balloon

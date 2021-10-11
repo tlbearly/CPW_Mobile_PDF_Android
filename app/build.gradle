@@ -7,7 +7,7 @@ android {
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
     defaultConfig {
-        applicationId 'com.dnrcpw.pocketmaps'
+        applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 19
         targetSdkVersion 30
         versionCode 1

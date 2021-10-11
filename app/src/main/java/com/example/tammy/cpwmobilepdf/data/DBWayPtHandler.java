@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.data;
+package com.example.tammy.cpwmobilepdf.data;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -7,8 +7,8 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.example.tammy.pocketmaps.model.WayPt;
-import com.example.tammy.pocketmaps.model.WayPts;
+import com.example.tammy.cpwmobilepdf.model.WayPt;
+import com.example.tammy.cpwmobilepdf.model.WayPts;
 
 public class DBWayPtHandler extends SQLiteOpenHelper {
     //private static DBWayPtHandler mInstance = null;
@@ -65,19 +65,19 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS "+ TABLE_WAYPTS);
         // Create maps table again
         onCreate(db);
-        Toast.makeText(c, "All imported way points were deleted.", Toast.LENGTH_LONG).show();
+        Toast.makeText(c, "All imported waypoints were deleted.", Toast.LENGTH_LONG).show();
     }*/
 
-    // Adding way point
+    // Adding waypoint
     public void addWayPt(WayPt wayPt) throws SQLException {
             SQLiteDatabase db = this.getWritableDatabase();
             ContentValues values = new ContentValues();
             values.put(KEY_MAPNAME, wayPt.getName()); // Name of map
-            values.put(KEY_DESC, wayPt.getDesc()); // Way point description
+            values.put(KEY_DESC, wayPt.getDesc()); // Waypoint description
             values.put(KEY_X, wayPt.getX()); // x screen coordinate
             values.put(KEY_Y, wayPt.getY()); // y screen coordinate
             values.put(KEY_COLOR, wayPt.getColorName()); // Color name of push pin image
-            values.put(KEY_TIME, wayPt.getTime()); // Date and time of creation of way point
+            values.put(KEY_TIME, wayPt.getTime()); // Date and time of creation of waypoint
             values.put(KEY_LOCATION, wayPt.getLocation()); // Lat, Long
             // Inserting Row
             db.insert(TABLE_WAYPTS, null, values);
@@ -116,7 +116,7 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         return wayPt;
     }*/
 
-    // Getting All Way Points from one PDF map
+    // Getting All Waypoints from one PDF map
     public WayPts getWayPts(String mapName) throws SQLException {
         SQLiteDatabase db = this.getWritableDatabase();
         WayPts wayPtsList = new WayPts(mapName);
@@ -127,7 +127,7 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
             do {
-                // Adding way point to list if matches name
+                // Adding waypoint to list if matches name
                 if (mapName.equals(cursor.getString(1)))
                     wayPtsList.add(Integer.parseInt(cursor.getString(0)),cursor.getString(1),cursor.getString(2),cursor.getFloat(3),cursor.getFloat(4),cursor.getString(5),cursor.getString(6),cursor.getString(7));
 
@@ -135,11 +135,11 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         }
         cursor.close();
         //db.close();
-        // return way points list
+        // return waypoints list
         return wayPtsList;
     }
 
-    // Updating a Way Point
+    // Updating a Waypoint
     public int updateWayPt(WayPt wayPt) throws SQLException {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -157,7 +157,7 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
                 new String[]{ String.valueOf(wayPt.getId()) });
     }
 
-    // Deleting a Way Point
+    // Deleting a Waypoint
     public void deleteWayPt(WayPt wayPt) throws SQLException {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_WAYPTS, KEY_ID + " = ?",
@@ -165,7 +165,7 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         //db.close();
     }
 
-    // Deleting a Way Point
+    // Deleting a Waypoint
     public void deleteWayPt(String mapName) throws SQLException {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_WAYPTS, KEY_MAPNAME + " = ?",

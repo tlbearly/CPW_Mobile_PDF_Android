@@ -1,4 +1,4 @@
-package com.example.tammy.pocketmaps.activities;
+package com.example.tammy.cpwmobilepdf.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -15,9 +15,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.tammy.pocketmaps.R;
-import com.example.tammy.pocketmaps.data.DBHandler;
-import com.example.tammy.pocketmaps.model.PDFMap;
+import com.example.tammy.cpwmobilepdf.R;
+import com.example.tammy.cpwmobilepdf.data.DBHandler;
+import com.example.tammy.cpwmobilepdf.model.PDFMap;
 
 import java.io.File;
 import java.io.FileNotFoundException;
