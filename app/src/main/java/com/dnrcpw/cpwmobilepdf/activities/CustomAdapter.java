@@ -498,7 +498,7 @@ public class CustomAdapter extends BaseAdapter {
                 bitmap.recycle(); // free memory
                 scaled.recycle();
 
-                // Save thumbnail to a file in app directory (/data/data/com.example.tammy.pdfsample/files), save the path to it.
+                // Save thumbnail to a file in app directory (/data/data/com/dnrcpw/cpwmobilepdf/files), save the path to it.
                 File img;
                 try {
                     publishProgress(85);

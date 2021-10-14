@@ -24,7 +24,7 @@
         <!-- Recommended for Android 9 (API level 28) and lower. -->
         <!-- Required for Android 10 (API level 29) and higher. -->
         <!--service
-            android:name="com.example.tammy.cpwmobilepdf.activities.LocationService"
+            android:name="com.tammy.cpwmobilepdf.activities.LocationService"
             android:foregroundServiceType="location">
         </service-->
 

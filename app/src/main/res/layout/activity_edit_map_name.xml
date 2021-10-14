@@ -34,13 +34,15 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical|end"
                 android:layout_marginStart="10dp"
+                android:autofillHints="@string/renameMap"
                 android:ems="10"
                 android:hint="@string/renameMap"
                 android:inputType="text"
+                android:minHeight="48dp"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="@android:color/black"
-                android:autofillHints="@string/renameMap"
                 android:textStyle="bold">
+
                 <requestFocus />
             </EditText>
 
@@ -49,8 +51,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical|end"
+                android:background="@android:drawable/ic_menu_close_clear_cancel"
                 android:contentDescription="@string/clear"
-                android:background="@android:drawable/ic_menu_close_clear_cancel" />
+                android:minWidth="48dp"
+                android:minHeight="48dp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
