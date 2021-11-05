@@ -8,10 +8,13 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/splash_screen.xml" value="0.359375" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/activity_edit_map_name.xml" value="0.19270833333333334" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/activity_start.xml" value="0.19270833333333334" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/menu/map_menu.xml" value="0.19270833333333334" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/menu/menu_main.xml" value="0.18125" />
+        <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.2125" />
+        <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.2125" />
       </map>
     </option>
   </component>

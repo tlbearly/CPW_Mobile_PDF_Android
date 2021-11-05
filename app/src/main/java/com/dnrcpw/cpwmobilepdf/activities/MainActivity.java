@@ -1,6 +1,7 @@
 package com.dnrcpw.cpwmobilepdf.activities;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -8,8 +9,11 @@ import android.database.SQLException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -50,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     boolean sortFlag = true;
     Toolbar toolbar;
     Integer selectedId;
+    static final int MY_PERMISSIONS_LOCATION = 0;
    /* private final int IMPORT_REQUEST_CODE = 1;
     private final int RENAME_REQUEST_CODE = 2;
     private final int DELETE_REQUEST_CODE = 3;*/
@@ -89,62 +94,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         sortByDropdown.setAdapter(sortByAdapter);
         // set on click functions: onItemSelected and nothingSelected (must have these names)
         sortByDropdown.setOnItemSelectedListener(this);
-
-        // GET THE LIST FROM THE DATABASE
-/*
-            try {
-                myAdapter = new CustomAdapter(MainActivity.this, dbHandler.getAllMaps(MainActivity.this));
-            } catch (SQLException e) {
-                Toast.makeText(MainActivity.this, "Error deleting database table: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-            lv = findViewById(R.id.lv);
-            lv.setAdapter(myAdapter);
-            registerForContextMenu(lv); // set up edit/trash context menu
-            // Make sure all the maps in the database still exist
-            myAdapter.checkIfExists();
-            // Display note if no records found
-            showHideNoImportsMessage();
-
-            sortFlag = true;
-            // set selected sort by item
-            String sort = dbHandler.getMapSort();
-            int sortID = 0;
-            switch (sort) {
-                case "namerev":
-                    sortID = 1;
-                    break;
-                case "date":
-                    sortID = 2;
-                    break;
-                case "daterev":
-                    sortID = 3;
-                    break;
-                case "size":
-                    sortID = 4;
-                    break;
-                case "sizerev":
-                    sortID = 5;
-                    break;
-                case "proximity":
-                    sortID = 6;
-                    break;
-                case "proximityrev":
-                    sortID = 7;
-                    break;
-            }
-            sortByDropdown.setSelection(sortID, true);
-*/
         sortFlag = true;
-
-        /*if (myAdapter.pdfMaps.size() == 0) {
-            TextView msg = (TextView) findViewById(R.id.txtMessage);
-            msg.setText("No maps have been imported.\nUse the + button to import a map.");
-        }*/
 
         // Used to keep track of user movement
         latBefore = 0.0;
         longBefore = 0.0;
-
 
         // FLOATING ACTION BUTTON CLICK
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -155,6 +109,45 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         });
 
         // SET UP LOCATION SERVICES
+        AlertDialog.Builder builder;
+        // Ask for location permissions
+        if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) ||
+                (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED)) {
+            // Permission is not granted. Request the permission
+            if ((ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)) ||
+                    (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                            Manifest.permission.ACCESS_COARSE_LOCATION))) {
+                builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Location Permission Needed");
+                builder.setMessage("Permission to access this device's location is needed to show your current location on the map. Please click ALLOW when asked.")
+                        .setPositiveButton("OK", (dialog, id) -> {
+                            // User clicked OK button. Hide dialog. Ask again
+                            ActivityCompat.requestPermissions(MainActivity.this,
+                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                                    MY_PERMISSIONS_LOCATION);
+                        }).show();
+            } else {
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                        MY_PERMISSIONS_LOCATION);
+            }
+        }
+
+        // Check if location services are turned on
+        if (!isLocationEnabled(MainActivity.this)) {
+            builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setTitle("Notice");
+            builder.setMessage("Please turn ON Location Services. This can be done in your phone's Settings. If this is not turned on your current location will not appear on the map.")
+                    .setPositiveButton(R.string.ok, (dialog, id) -> {
+                        // User clicked OK button. Hide dialog.
+                    }).show();
+        }
+        else
+            setupLocation();
+    }
+
+    protected void setupLocation(){
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // UPDATE CURRENT POSITION
@@ -264,6 +257,91 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 }
             }
         };
+    }
+
+    // PERMISSIONS
+    // location service enabled?
+    public static boolean isLocationEnabled(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            // This is new method provided in API 28
+            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            return lm.isLocationEnabled();
+        } else {
+            // This is Deprecated in API 28
+            int locationMode = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE,
+                    Settings.Secure.LOCATION_MODE_OFF);
+            return (locationMode != Settings.Secure.LOCATION_MODE_OFF);
+        }
+    }
+    // Permission
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        AlertDialog.Builder builder;
+        if (grantResults.length == 0)return;
+        if (requestCode == MY_PERMISSIONS_LOCATION) {// If request is cancelled, the result arrays are empty.
+            //if (grantResults.length > 0
+            //    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            // permission was granted
+            //Toast.makeText(this,"Permission granted to access location.", Toast.LENGTH_LONG).show();
+            //}
+            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                // permission denied (this is the first time "never ask again" is not checked)
+                // so ask again explaining the usage of permission
+                // shouldShowRequestPermissionRationale will return true
+                if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("Location Permission Needed");
+                    builder.setMessage("This app will not run without permission to access this device's location. Please click ALLOW when asked.")
+                            .setPositiveButton("OK", (dialog, id) -> {
+                                // User clicked OK button. Hide dialog. Ask again
+                                dialog.dismiss();
+                                ActivityCompat.requestPermissions(MainActivity.this,
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                                        MY_PERMISSIONS_LOCATION);
+                            })
+                            .setNegativeButton("No, Exit App", (dialogInterface, i) -> {
+                                if (Build.VERSION.SDK_INT >= 21) {
+                                    finishAndRemoveTask();
+                                } else {
+                                    finish();
+                                }
+                            }).create().show();
+                }
+                // permission is denied (and never ask again is checked) go to Settings or exit
+                // shouldShowRequestPermissionRationale will return false
+                else {
+                    // Ask user to go to setting and manually allow permissions
+                    builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("Permissions Needed");
+                    builder.setMessage("You have denied some needed permissions. Go to Settings, click on Permissions and allow all permissions.  Then restart this app.")
+                            .setPositiveButton("Yes, Go to Settings", (dialog, id) -> {
+                                // User clicked OK button. Hide dialog. Ask again
+                                dialog.dismiss();
+                                // Go to app settings
+                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                        Uri.fromParts("package", getPackageName(), null));
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                if (Build.VERSION.SDK_INT >= 21) {
+                                    finishAndRemoveTask();
+                                } else {
+                                    finish();
+                                }
+                            })
+                            .setNegativeButton("No, Exit App", (dialog, i) -> {
+                                dialog.dismiss();
+                                if (Build.VERSION.SDK_INT >= 21) {
+                                    finishAndRemoveTask();
+                                } else {
+                                    finish();
+                                }
+                            }).create().show();
+                }
+            }
+            else
+                setupLocation();
+        }
     }
 
     @Override
@@ -649,7 +727,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             return true;
         }
         else if (id == R.id.action_help){
-            Intent intent = new Intent(MainActivity.this, GetMoreActivity.class);
+            Intent intent = new Intent(MainActivity.this, HelpActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
         }

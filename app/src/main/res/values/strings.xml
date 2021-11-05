@@ -54,7 +54,6 @@
     <!--string name="rename">Rename</string-->
     <string name="ok">OK</string>
     <string name="splash">Colorado Parks and Wildlife</string>
-    <string name="splash_info">Take this app out in the field to display your current location on PDFs from the HuntingAtlas, FishingAtlas, CPW Maps Library, or any geo-referenced PDF. No need for internet or data connection! Plus, access a list of resources for downloading PDF maps (requires data connection).</string>
     <string name="contBtn">Continue</string>
     <!--string name="mapName">Map Name:\u0020</string-->
     <string name="CurPos">Current location:\u0020</string>
@@ -74,7 +73,13 @@
     <!--string name="downloading">Downloading…</string-->
     <string name="loading">Loading…</string>
     <string name="help">Help</string>
-
+    <string name="help_doc">Take this app out in the field to display your current location on PDFs from the HuntingAtlas, FishingAtlas, CPW Maps Library, or any geo-referenced PDF. No need for internet or data connection! Plus, access a list of resources for downloading PDF maps (requires data connection).</string>
+    <string name="help_import_title">Import</string>
+    <string name="help_importmaps">Click on the + button to import or download a map. When you have downloaded PDF maps, import them by clicking on the File Picker button. Use the menu in the top-left to select from Recent, Documents, or Downloads folders. Or select the Google Drive icon if the file is located there. Click on the PDF file and it will import it and display the map. The map file is copied to the app directory so deleting the original will not affect the map library.</string>
+    <string name="help_download_title">Download</string>
+    <string name="help_download">To download a map, click on the + button then the Download Maps button. It will notify you that it is starting up your browser. It will load a page from the CPW website with resource to download geo-referenced PDFs.</string>
+    <string name="view_map">View Map</string>
+    <string name="help_map">In the Imported Maps list, click on a map. It will display the map in a new window. It will display you current lat, long at the top of the map. Your current location will be displayed on the map as a cyan circle outlined in white. Double tap or pinch to zoom. To add waypoints, click on the push pin at the top-right, then click on the map. If the waypoint label is showing, clicking on the map will hide it. Clicking on a waypoint will display it\'s label. Clicking on a waypoint label will let you edit the label and pushpin color.</string>
     <!-- Error Messages -->
     <string name="deleteFile">Problem removing map file from App.</string>
     <string name="deleteThumbnail">Problem removing thumbnail image from App.</string>

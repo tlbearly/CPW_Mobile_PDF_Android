@@ -86,8 +86,7 @@ dependencies {
     //You can download a trial version here: http://demo.itextsupport.com/newslicense/
     //compile group: 'com.itextpdf', name: 'itextg', version: '5.5.13' fails with API < 24, targeting 19
     implementation group: 'com.itextpdf', name: 'itextg', version: '5.5.10'
-
-
+    //implementation group: 'com.itextpdf', name: 'itextg', version: '5.5.12' //'5.5.13.2'
     // for file list
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
