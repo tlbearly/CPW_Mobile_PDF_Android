@@ -74,11 +74,17 @@
     <string name="loading">Loading…</string>
     <string name="help">Help</string>
     <string name="help_doc">Take this app out in the field to display your current location on PDFs from the HuntingAtlas, FishingAtlas, CPW Maps Library, or any geo-referenced PDF. No need for internet or data connection! Plus, access a list of resources for downloading PDF maps (requires data connection).</string>
-    <string name="help_import_title">Import</string>
+    <string name="help_import_title"><u>Import</u></string>
     <string name="help_importmaps">Click on the + button to import or download a map. When you have downloaded PDF maps, import them by clicking on the File Picker button. Use the menu in the top-left to select from Recent, Documents, or Downloads folders. Or select the Google Drive icon if the file is located there. Click on the PDF file and it will import it and display the map. The map file is copied to the app directory so deleting the original will not affect the map library.</string>
-    <string name="help_download_title">Download</string>
-    <string name="help_download">To download a map, click on the + button then the Download Maps button. It will notify you that it is starting up your browser. It will load a page from the CPW website with resource to download geo-referenced PDFs.</string>
-    <string name="view_map">View Map</string>
+    <string name="help_download_title"><u>Download</u></string>
+    <string name="help_download">To download a map, click on the + button then the Download Maps button. It will notify you that it is starting up your browser. It will load a page from the CPW website with resources to download geo-referenced PDFs. Depending on your settings the PDF map file will either download or be displayed. If it is displayed, click the menu button in the top-right and click then Download. Once it has downloaded, go back to this app and click the Import Map button, open the Downloads folder, and click on the map that was downloaded. Click on one of the following:</string>
+    <string name="help_cpw_mapslib_title">CPW Maps Library</string>
+    <string name="help_cpw_mapslib">Click on Maps Library Page. Select the GeoPDF file type so that it will be geo-referenced. Select on a map.</string>
+    <string name="help_atlas_title">Hunting or Fishing Atlas</string>
+    <string name="help_atlas">Click on the Colorado Hunting Atlas or the Colorado Fishing Atlas. Select you map layers and map boundary. Then press the down arrow icon. It will allow you to choose the map scale but, may change the map boundary. Setting a smaller map scale will show more detail. Changing the map size will show a larger map area. Enter a PDF file name and press the Create PDF button. Wait for it to be create then press Download PDF.</string>
+    <string name="help_USGS_title">USGS</string>
+    <string name="help_USGS"></string>
+    <string name="help_map_title">View Map</string>
     <string name="help_map">In the Imported Maps list, click on a map. It will display the map in a new window. It will display you current lat, long at the top of the map. Your current location will be displayed on the map as a cyan circle outlined in white. Double tap or pinch to zoom. To add waypoints, click on the push pin at the top-right, then click on the map. If the waypoint label is showing, clicking on the map will hide it. Clicking on a waypoint will display it\'s label. Clicking on a waypoint label will let you edit the label and pushpin color.</string>
     <!-- Error Messages -->
     <string name="deleteFile">Problem removing map file from App.</string>

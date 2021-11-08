@@ -58,7 +58,7 @@
             android:padding="10dp"
             android:layout_marginTop="20dp"
             android:text="@string/help_import_title"
-            android:textSize="18sp"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
         <TextView
@@ -77,7 +77,7 @@
             android:padding="10dp"
             android:layout_marginTop="20dp"
             android:text="@string/help_download_title"
-            android:textSize="18sp"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
         <TextView
@@ -88,6 +88,41 @@
             android:text="@string/help_download"
             android:textSize="18sp" />
 
+        <!-- Download with Maps Library -->
+        <TextView
+            android:id="@+id/textViewMapLibTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/help_cpw_mapslib_title"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/textViewMapLib"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/help_cpw_mapslib"
+            android:textSize="18sp" />
+
+        <!-- Download with Hunting/Fishing Atlas -->
+        <TextView
+            android:id="@+id/textViewAtlasTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_marginTop="20dp"
+            android:text="@string/help_atlas_title"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/textAtlas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/help_atlas"
+            android:textSize="18sp" />
+
         <!-- View Map -->
         <TextView
             android:id="@+id/textViewMaps"
@@ -95,7 +130,7 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:layout_marginTop="20dp"
-            android:text="@string/view_map"
+            android:text="@string/help_map_title"
             android:textSize="24sp"
             android:textStyle="bold" />
 
