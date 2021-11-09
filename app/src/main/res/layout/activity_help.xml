@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--android:background="@color/white"-->
 <!-- android:fitsSystemWindows="true" -->
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-
-    android:layout_marginBottom="40dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="20dp"
     tools:context="com.dnrcpw.cpwmobilepdf.activities.MainActivity">
 
     <LinearLayout
@@ -18,15 +17,35 @@
 
         <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="180dp"
-            android:layout_height="180dp"
-            android:layout_gravity="center_vertical|center_horizontal"
-            android:layout_marginTop="10dp"
-            android:contentDescription="@string/app_name"
-            app:srcCompat="@mipmap/ic_launcher_foreground"
-            tools:ignore="ImageContrastCheck" />
+        <androidx.cardview.widget.CardView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="10dp"
+            card_view:cardCornerRadius="15dp"
+            card_view:cardElevation="5dp">
+
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="180dp"
+                android:layout_height="180dp"
+                android:layout_gravity="center_vertical|center_horizontal"
+                android:contentDescription="@string/app_name"
+                app:srcCompat="@mipmap/ic_launcher_foreground"
+                tools:ignore="ImageContrastCheck" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/textViewHelpTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="0dp"
+            android:text="@string/help_title"
+            android:textSize="24sp"
+            android:textStyle="bold" />
 
         <!-- Intro -->
         <TextView
@@ -39,24 +58,70 @@
             android:textSize="18sp"
             app:layout_anchorGravity="center" />
 
-        <!-- Import Maps -->
+        <!-- Imported Maps -->
         <TextView
-            android:id="@+id/textViewImportMaps"
+            android:id="@+id/textViewImportedMaps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
             android:layout_marginTop="20dp"
-            android:text="@string/getmore_title1"
+            android:padding="10dp"
+            android:text="@string/title_activity_main"
             android:textSize="24sp"
             android:textStyle="bold" />
+        <TextView
+            android:id="@+id/textViewImportedMapsHelp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/help_importedmaps"
+            android:textSize="18sp" />
+
+        <!-- Edit Map -->
+        <TextView
+            android:id="@+id/textViewEditMaps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:padding="10dp"
+            android:text="@string/help_edit_map_title"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textViewEditMapsHelp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/help_edit_map"
+            android:textSize="18sp" />
+
+        <!-- Add Map -->
+        <TextView
+            android:id="@+id/textViewAddMaps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="0dp"
+            android:padding="10dp"
+            android:text="@string/title_activity_get_more"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/textViewAddMapHelp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/help_addmap"
+            android:textSize="18sp" />
+
 
         <!-- Import -->
         <TextView
             android:id="@+id/textViewImportTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
             android:padding="10dp"
-            android:layout_marginTop="20dp"
             android:text="@string/help_import_title"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -74,12 +139,13 @@
             android:id="@+id/textViewDownloadTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
             android:layout_marginTop="20dp"
+            android:padding="10dp"
             android:text="@string/help_download_title"
             android:textSize="20sp"
             android:textStyle="bold" />
 
+        <!-- Download with Maps Library -->
         <TextView
             android:id="@+id/textViewDownlaodHelp"
             android:layout_width="match_parent"
@@ -88,7 +154,6 @@
             android:text="@string/help_download"
             android:textSize="18sp" />
 
-        <!-- Download with Maps Library -->
         <TextView
             android:id="@+id/textViewMapLibTitle"
             android:layout_width="wrap_content"
@@ -110,8 +175,8 @@
             android:id="@+id/textViewAtlasTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
             android:layout_marginTop="20dp"
+            android:padding="10dp"
             android:text="@string/help_atlas_title"
             android:textSize="18sp" />
 
@@ -123,13 +188,56 @@
             android:text="@string/help_atlas"
             android:textSize="18sp" />
 
+        <!-- Forest Service -->
+        <TextView
+            android:id="@+id/textViewFSTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:padding="10dp"
+            android:text="@string/help_FS_title"
+            android:textSize="18sp" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:contentDescription="@string/help_FS_title"
+            app:srcCompat="@drawable/fs" />
+
+        <TextView
+            android:id="@+id/textViewFS"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/help_FS"
+            android:textSize="18sp" />
+
+        <!-- USGS -->
+        <TextView
+            android:id="@+id/textViewUSGSTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:padding="10dp"
+            android:text="@string/help_USGS_title"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/textUSGS"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/help_USGS"
+            android:textSize="18sp" />
+
         <!-- View Map -->
         <TextView
             android:id="@+id/textViewMaps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
             android:layout_marginTop="20dp"
+            android:padding="10dp"
             android:text="@string/help_map_title"
             android:textSize="24sp"
             android:textStyle="bold" />
