@@ -218,8 +218,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             if (i.getExtras() == null) {
                 Toast.makeText(PDFActivity.this, "Can't display map, no map specifications were found.", Toast.LENGTH_LONG).show();
                 finish();
+                return;
             }
-            //bestQuality = i.getExtras().getBoolean("BEST_QUALITY");
             path = i.getExtras().getString("PATH");
 
             // Display Map Name
@@ -234,6 +234,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             }catch (NullPointerException e){
                 Toast.makeText(PDFActivity.this,"Could not read page lat/long.",Toast.LENGTH_SHORT).show();
                 finish();
+                return;
             }
             assert bounds != null;
             bounds = bounds.trim(); // remove leading and trailing spaces
@@ -254,8 +255,15 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             long2 = Double.parseDouble(bounds.substring(pos + 1));
             longDiff = (long2 + 180) - (long1 + 180);
             latDiff = (90 - lat1) - (90 - lat2);
-        } catch (Exception e) {
+        } catch (AssertionError ae){
             Toast.makeText(PDFActivity.this, "Trouble reading lat/long from Geo PDF. Read: " + bounds, Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+        catch (Exception e) {
+            Toast.makeText(PDFActivity.this, "Trouble reading lat/long from Geo PDF. Read: " + bounds, Toast.LENGTH_LONG).show();
+            finish();
+            return;
         }
         try {
             // GET MEDIA BOX or PAGE BOUNDARIES for example: "0 0 612 792"
@@ -264,6 +272,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             } catch (NullPointerException e) {
                 Toast.makeText(PDFActivity.this, "Could not read page size.", Toast.LENGTH_SHORT).show();
                 finish();
+                return;
             }
             assert mediaBox != null;
             mediaBox = mediaBox.trim(); // remove leading and trailing spaces
@@ -283,9 +292,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             mediaBox = mediaBox.substring(pos + 1); // strip off 'X2 '
             pos = mediaBox.indexOf(" ");
             mediaBoxY2 = Double.parseDouble(mediaBox.substring(pos + 1));
+        } catch (AssertionError ae) {
+            Toast.makeText(PDFActivity.this, "Trouble reading mediaBox page boundaries from Geo PDF. Read: " + mediaBox, Toast.LENGTH_LONG).show();
+            finish();
+            return;
         } catch (Exception e) {
             Toast.makeText(PDFActivity.this, "Trouble reading mediaBox page boundaries from Geo PDF. Read: " + mediaBox, Toast.LENGTH_LONG).show();
             finish();
+            return;
         }
         try {
             // GET MARGINS - origin is at bottom left. BBox[23 570 768 48]
@@ -313,7 +327,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             pos = viewPort.indexOf(" ");
             bBoxY2 = Double.parseDouble(viewPort.substring(pos + 1));
 
-            // ******************************TRY switching top and bottom margin ****************************
             marginTop = mediaBoxY2 - bBoxY1;
             marginBottom = bBoxY2;
             marginLeft = bBoxX1;
@@ -323,8 +336,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             mediaBoxHeight = mediaBoxY2 - mediaBoxY1;
             marginXworld = marginLeft + marginRight;
             marginYworld = marginTop + marginBottom;
+        } catch (AssertionError ae) {
+            Toast.makeText(PDFActivity.this, "Trouble reading viewPort margins from Geo PDF. Read: " + viewPort, Toast.LENGTH_LONG).show();
+            finish();
+            return;
         } catch (Exception e) {
             Toast.makeText(PDFActivity.this, "Trouble reading viewPort margins from Geo PDF. Read: " + viewPort, Toast.LENGTH_LONG).show();
+            finish();
+            return;
         }
 
         // Edit Waypoint Activity needs to have these
@@ -503,21 +522,29 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             }
                             if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
                                     y < (wayPtY - startY + marg) && y >= (wayPtY - startY - boxHt - marg)) {
-                                //Log.d("onTap","Clicked on waypoint balloon.");
-                                // Open EditWayPointActivity
-                                Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
-                                //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                i1.putExtra("CLICKED", clickedWP);
-                                i1.putExtra("NAME", mapName);
-                                i1.putExtra("PATH", path);
-                                i1.putExtra("BOUNDS", strBounds);
-                                i1.putExtra("MEDIABOX", strMediaBox);
-                                i1.putExtra("VIEWPORT", strViewPort);
-                                i1.putExtra("LANDSCAPE", landscape);
-                                startActivity(i1);
-                                // hide wait icon
-                                wait.setVisibility(View.GONE);
-                                return false;
+                                try {
+                                    //Log.d("onTap","Clicked on waypoint balloon.");
+                                    // Open EditWayPointActivity
+                                    Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
+                                    //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                    i1.putExtra("CLICKED", clickedWP);
+                                    i1.putExtra("NAME", mapName);
+                                    i1.putExtra("PATH", path);
+                                    i1.putExtra("BOUNDS", strBounds);
+                                    i1.putExtra("MEDIABOX", strMediaBox);
+                                    i1.putExtra("VIEWPORT", strViewPort);
+                                    i1.putExtra("LANDSCAPE", landscape);
+                                    startActivity(i1);
+                                    // hide wait icon
+                                    wait.setVisibility(View.GONE);
+                                    return false;
+                                } catch (OutOfMemoryError memoryError){
+                                    Toast.makeText(PDFActivity.this, "Out of memory", Toast.LENGTH_SHORT).show();
+                                    return false;
+                                } catch (Exception error) {
+                                    Toast.makeText(PDFActivity.this, "Error: "+error.getMessage(), Toast.LENGTH_SHORT).show();
+                                    return false;
+                                }
                             }
                         }
 
@@ -544,20 +571,28 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 }
                                 if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
                                         y < (wayPtY - startY + marg) && y >= (wayPtY - startY - boxHt - marg)) {
-                                    //Log.d("onTap","Clicked on waypoint balloon (all labels showing).");
-                                    // Open EditWayPointActivity
-                                    Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
-                                    //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                    i1.putExtra("CLICKED", j);
-                                    i1.putExtra("NAME", mapName);
-                                    i1.putExtra("PATH", path);
-                                    i1.putExtra("BOUNDS", strBounds);
-                                    i1.putExtra("MEDIABOX", strMediaBox);
-                                    i1.putExtra("VIEWPORT", strViewPort);
-                                    startActivity(i1);
-                                    // hide wait icon
-                                    wait.setVisibility(View.GONE);
-                                    return false;
+                                    try {
+                                        //Log.d("onTap","Clicked on waypoint balloon (all labels showing).");
+                                        // Open EditWayPointActivity
+                                        Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
+                                        //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                        i1.putExtra("CLICKED", j);
+                                        i1.putExtra("NAME", mapName);
+                                        i1.putExtra("PATH", path);
+                                        i1.putExtra("BOUNDS", strBounds);
+                                        i1.putExtra("MEDIABOX", strMediaBox);
+                                        i1.putExtra("VIEWPORT", strViewPort);
+                                        startActivity(i1);
+                                        // hide wait icon
+                                        wait.setVisibility(View.GONE);
+                                        return false;
+                                    } catch (OutOfMemoryError memoryError){
+                                        Toast.makeText(PDFActivity.this, "Out of memory", Toast.LENGTH_SHORT).show();
+                                        return false;
+                                    } catch (Exception error) {
+                                        Toast.makeText(PDFActivity.this, "Error: "+error.getMessage(), Toast.LENGTH_SHORT).show();
+                                        return false;
+                                    }
                                 }
                             }
                         }
@@ -1276,6 +1311,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             showAllWayPts = true;
             wayPtMenuItem.setIcon(R.mipmap.ic_cyan_pin_forgnd);
             Toast.makeText(PDFActivity.this, getResources().getString(R.string.wayPtInstr), Toast.LENGTH_LONG).show();
+        }
+        else if (id == R.id.action_help){
+            Intent i = new Intent(PDFActivity.this, PDFHelpActivity.class);
+            startActivity(i);
         }
 
         return super.onOptionsItemSelected(item);

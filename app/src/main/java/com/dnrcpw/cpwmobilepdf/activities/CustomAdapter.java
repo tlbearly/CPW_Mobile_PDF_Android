@@ -176,39 +176,40 @@ public class CustomAdapter extends BaseAdapter {
         @Override
         protected String doInBackground(Integer... params) {
             // preform background computation to read lat long, page size, boundaries from pdf
-
-            //ca.updateProgressBar(10); // calls onProgressUpdate
-            publishProgress(10);
-            // Get PDF
-            File file = new File(filePath);
-
-            // Use iText 5 to read margins, page size, and lat long. iText 7 works with Android 26 and above. iText 5 works with older versions.
-            // PDF ISO standard.
-
-            // iText does this for us:
-            // Go to the end of the pdf file, back up 1mb and search for startxref. Read the offset to the first xref table.
-            // startxref
-            // offset number to first xref table
-            //%%EOF
-            // Read xref table containing offsets to each object in the file. This is the format:
-            // xref
-            // 0 104
-            // 0000000000 65535 f
-            // 0000000010 00000 n
-            // 0000973188 00000 n
-            // ...
-            // trailer
-            // <<
-            // /Size 104
-            // /Info 103 0 R
-            // /Root 102 0 R         Pointer to object 102. Points to /Pages --> /Kids --> /Contents /BBox /MediaBox
-            // /Prev 2874274         May contain /Prev if there is another xref table.
-            // >>
-            // Read the trailer. /Root points to an object number, "5 0 R"  is the object ID, 0 is the generation number, R = Reference to object.
-            // /Root 5 0 R --> .../Pages 1 0 R --> /Kids[15 0 R  16 0 R] --> /Contents.../MediaBox[...].../BBox[...].../Measure 79 0 R --> /Bounds[ ].../GPTS[lat long]/GCS 80 0 R --> GPS projection, ,UNIT["Degree",0.01745]
-            // trailer
-            //<</Size 82/Root 5 0 R/Info 3 0 R/ID[<481274B989C1D7419BA9E71CBA227123><D6AEE54D32AC354E980F653350D6C962>]/Prev 2874274>>
+            File file;
             try {
+                //ca.updateProgressBar(10); // calls onProgressUpdate
+                publishProgress(10);
+                // Get PDF
+                file = new File(filePath);
+
+                // Use iText 5 to read margins, page size, and lat long. iText 7 works with Android 26 and above. iText 5 works with older versions.
+                // PDF ISO standard.
+
+                // iText does this for us:
+                // Go to the end of the pdf file, back up 1mb and search for startxref. Read the offset to the first xref table.
+                // startxref
+                // offset number to first xref table
+                //%%EOF
+                // Read xref table containing offsets to each object in the file. This is the format:
+                // xref
+                // 0 104
+                // 0000000000 65535 f
+                // 0000000010 00000 n
+                // 0000973188 00000 n
+                // ...
+                // trailer
+                // <<
+                // /Size 104
+                // /Info 103 0 R
+                // /Root 102 0 R         Pointer to object 102. Points to /Pages --> /Kids --> /Contents /BBox /MediaBox
+                // /Prev 2874274         May contain /Prev if there is another xref table.
+                // >>
+                // Read the trailer. /Root points to an object number, "5 0 R"  is the object ID, 0 is the generation number, R = Reference to object.
+                // /Root 5 0 R --> .../Pages 1 0 R --> /Kids[15 0 R  16 0 R] --> /Contents.../MediaBox[...].../BBox[...].../Measure 79 0 R --> /Bounds[ ].../GPTS[lat long]/GCS 80 0 R --> GPS projection, ,UNIT["Degree",0.01745]
+                // trailer
+                //<</Size 82/Root 5 0 R/Info 3 0 R/ID[<481274B989C1D7419BA9E71CBA227123><D6AEE54D32AC354E980F653350D6C962>]/Prev 2874274>>
+
                 PdfReader reader = new PdfReader(filePath);
 
                 //int numPages = reader.getNumberOfPages();
@@ -398,18 +399,18 @@ public class CustomAdapter extends BaseAdapter {
                     if (displayDict == null){
                         projDict = lgiDictionary.getAsDict(projection);
                         projType = projDict.getAsString(projectionType);
-                        if (!projType.toString().toLowerCase(Locale.US).equals("ut")) return "Import Failed - unhandled projection "+projType.toString();
+                        if (!projType.toString().toLowerCase(Locale.US).equals("ut")) return "Import Failed - unknown projection: "+projType.toString();
                         units = projDict.getAsString(PdfNameUnits);
-                        if (!units.toString().toLowerCase(Locale.US).equals("m")) return "Import Failed - unknown unit "+units.toString();
+                        if (!units.toString().toLowerCase(Locale.US).equals("m")) return "Import Failed - unknown unit: "+units.toString();
                         PdfNumber z = projDict.getAsNumber(PdfNameZone);
                         if (z != null)
                             zone = Integer.parseInt(z.toString());
                     }
                     else{
                         projType = displayDict.getAsString(projectionType);
-                        if (!projType.toString().toLowerCase(Locale.US).equals("ut")) return "Import Failed - unhandled projection "+projType.toString();
+                        if (!projType.toString().toLowerCase(Locale.US).equals("ut")) return "Import Failed - unknown projection: "+projType.toString();
                         units = displayDict.getAsString(PdfNameUnits);
-                        if (!units.toString().toLowerCase(Locale.US).equals("m")) return "Import Failed - unknown unit "+units.toString();
+                        if (!units.toString().toLowerCase(Locale.US).equals("m")) return "Import Failed - unknown unit: "+units.toString();
                         PdfNumber z = displayDict.getAsNumber(PdfNameZone);
                         if (z != null)
                             zone = Integer.parseInt(z.toString());
@@ -459,7 +460,7 @@ public class CustomAdapter extends BaseAdapter {
                 publishProgress(40);
                 reader.close();
 
-            }catch(IOException ex){
+            }catch(Exception ex){
                 //Toast.makeText(c, "Trouble reading PDF. " + ex.getMessage(), Toast.LENGTH_LONG).show();
                 return ("Import Failed");
             }
@@ -637,6 +638,7 @@ public class CustomAdapter extends BaseAdapter {
             if (!result.equals(ca.c.getResources().getString(R.string.importdone))) {
                 Toast.makeText(ca.c, result, Toast.LENGTH_LONG).show();
                 ca.removeItem(pdfMap.getId());
+                ca.openMainView(); // Return to main activity
             }
             // Map Import Success
             else {
@@ -963,6 +965,9 @@ public class CustomAdapter extends BaseAdapter {
         if (pdfMap.getName().equals(c.getResources().getString(R.string.loading))) {
             nameTxt.setText(c.getResources().getString(R.string.loading));
             // call AsyncTask to read pdf binary and update progress bar and import into database
+            fileSizeTxt.setText("");
+            distToMapTxt.setText("");
+
             if (!loading) {
                 loading = true;
                 progressBar.setVisibility(View.VISIBLE);
@@ -1109,7 +1114,10 @@ public class CustomAdapter extends BaseAdapter {
     };
     */
 
-
+    private void openMainView() {
+        Intent i = new Intent(c, MainActivity.class);
+        c.startActivity(i);
+    }
     // OPEN PDF VIEW - load the map
     private void openPDFView(String path, String name, String bounds, String mediaBox, String viewPort) {
         Intent i = new Intent(c, PDFActivity.class);

@@ -48,6 +48,7 @@ public class EditWayPointActivity extends AppCompatActivity {
         Intent i = this.getIntent();
         if (i.getExtras() == null){
             Toast.makeText(EditWayPointActivity.this, "Failed to get map values. Try again.",Toast.LENGTH_LONG).show();
+            finish();
             return;
         }
 

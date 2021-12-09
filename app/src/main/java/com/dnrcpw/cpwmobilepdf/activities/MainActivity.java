@@ -261,7 +261,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     // PERMISSIONS
     // location service enabled?
-    public static boolean isLocationEnabled(Context context) {
+    public boolean isLocationEnabled(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             // This is new method provided in API 28
             LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -376,6 +376,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     protected void onStop(){
         super.onStop();
+
+        // try to free memory leaks. Did not seem to help!!!!!!
+        // Unregister mLocationCallback
+        // unregister  dialogClickListener !!!!!!!!!!!
     }
 
 
@@ -692,6 +696,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     //DELETE all imported maps clicked and recreate the database *****
                     //dbHandler.deleteTable(MainActivity.this); // this removes the database table. Do this if added/removed fields to/from the database
                     myAdapter.removeAll();
+                    // Disable "Delete all Imported Maps" if there aren't any maps
+                    MenuItem delMapsMenuItem = toolbar.getMenu().findItem(R.id.action_deleteAll);
+                    if (myAdapter.pdfMaps.size() == 0) {
+                        delMapsMenuItem.setEnabled(false);
+                    }
+                    else{
+                        delMapsMenuItem.setEnabled(true);
+                    }
                     // Display note if no records found
                     showHideNoImportsMessage();
                     break;
@@ -707,6 +719,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        // Disable "Delete all Imported Maps" if there aren't any maps
+        MenuItem delMapsMenuItem = toolbar.getMenu().findItem(R.id.action_deleteAll);
+        if (myAdapter.pdfMaps.size() == 0) {
+            delMapsMenuItem.setEnabled(false);
+        }
+        else{
+            delMapsMenuItem.setEnabled(true);
+        }
         return true;
     }
 

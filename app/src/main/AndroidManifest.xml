@@ -2,13 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.dnrcpw.cpwmobilepdf">
 
-    <!--uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /-->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!--uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /-->
 
     <!-- add usesCleartextTraffic to prevent error when downloading over http like fstopo uses     android:usesCleartextTraffic="true" -->
     <application
@@ -29,7 +24,8 @@
         </service-->
 
         <activity android:name="com.dnrcpw.cpwmobilepdf.activities.LaunchActivity"
-            android:theme="@style/LaunchTheme">
+            android:theme="@style/LaunchTheme"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -37,35 +33,6 @@
             </intent-filter>
         </activity>
 
-        <!--activity
-            android:name="com.dnrcpw.cpwmobilepdf.activities.HelpActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name"
-            android:theme="@style/FullscreenTheme">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:host="*" />
-                <data android:scheme="file" />
-                <data android:scheme="content" />
-                <data android:mimeType="application/pdf"/>
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:host="*"/>
-                <data android:scheme="file" />
-                <data android:scheme="content" />
-                <data android:pathPattern=".*\\.pdf" />
-            </intent-filter>
-        </activity-->
         <activity
             android:name="com.dnrcpw.cpwmobilepdf.activities.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -76,6 +43,16 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/help"
             android:parentActivityName=".activities.MainActivity" />
+        <activity
+            android:name="com.dnrcpw.cpwmobilepdf.activities.GetMoreHelpActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/help"
+            android:parentActivityName=".activities.GetMoreActivity" />
+        <activity
+            android:name="com.dnrcpw.cpwmobilepdf.activities.PDFHelpActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/help"
+            android:parentActivityName=".activities.PDFActivity" />
         <!-- force map to always be in portrait mode -->
         <activity
             android:name="com.dnrcpw.cpwmobilepdf.activities.PDFActivity"

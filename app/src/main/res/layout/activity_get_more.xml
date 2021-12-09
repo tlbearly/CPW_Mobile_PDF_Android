@@ -74,6 +74,6 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:background="@drawable/grey_button"
-            android:text="@string/download_maps" />
+            android:text="@string/open_browser" />
     </LinearLayout>
 </ScrollView>
