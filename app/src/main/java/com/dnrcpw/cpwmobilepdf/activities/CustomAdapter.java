@@ -8,7 +8,7 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.ParcelFileDescriptor;
-import android.util.Log;
+//import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,8 +63,6 @@ public class CustomAdapter extends BaseAdapter {
     private Boolean loading = false;
     ProgressBar progressBar;
     int progress = 0;
-    //final private String TAG = "CustomAdapter"; // debug logs
-
 
     public CustomAdapter(Context c, ArrayList<PDFMap> pdfMaps) {
         this.c = c;
@@ -125,7 +123,6 @@ public class CustomAdapter extends BaseAdapter {
     }
 
     private void updateProgressBar(int progress){
-        Log.d("progressBar ", String.valueOf(progress));
         progressBar.setVisibility(View.VISIBLE);
         progressBar.setProgress(progress);
     }
@@ -158,7 +155,6 @@ public class CustomAdapter extends BaseAdapter {
         protected void onPreExecute() {
             super.onPreExecute();
             ca.showProgressBar();
-            Log.d("onPreExecute","showProgressBar");
 
             // get a reference to the CustomAdapter if it is still there
             /*CustomAdapter caRef = customAdapterRef.get();
@@ -303,10 +299,10 @@ public class CustomAdapter extends BaseAdapter {
                     // bottom-right map boundary * unit square
                     double bboxX2 = Double.parseDouble(bboxArr[2]) + ((Double.parseDouble(units[4]) - 1) * Double.parseDouble(bboxArr[2]));
                     double bboxY2 = Double.parseDouble(bboxArr[3]) + ((Double.parseDouble(units[5]) - 0) * Double.parseDouble(bboxArr[3]));
-                    Log.d("viewport", viewport);
+                    //Log.d("viewport", viewport);
                     // Adjust view port by unit box???????
                     viewport = bboxX1+" "+bboxY1+" "+bboxX2+" "+bboxY2;
-                    Log.d("adjusted viewport", viewport);
+                    //Log.d("adjusted viewport", viewport);
 
 
 
@@ -621,7 +617,7 @@ public class CustomAdapter extends BaseAdapter {
             ca.progress = progress[0];
             ca.notifyDataSetChanged();
             //ca.updateProgressBar(progress[0]);
-            Log.d("CustomAdapter","onProgressUpdate, "+progress[0]+"%");
+            //Log.d("CustomAdapter","onProgressUpdate, "+progress[0]+"%");
             //this.progressBar.setProgress(progress[0]);
         }
 
@@ -662,7 +658,7 @@ public class CustomAdapter extends BaseAdapter {
                 PDFMap map = pdfMaps.get(i);
                 File file = new File(map.getPath());
                 if (!file.exists()) {
-                    Log.d("CustomAdapter",c.getResources().getString(R.string.file) + map.getName() +  c.getResources().getString(R.string.noLongerExists));
+                    //Log.d("CustomAdapter",c.getResources().getString(R.string.file) + map.getName() +  c.getResources().getString(R.string.noLongerExists));
                     File f = new File(map.getPath());
                     if (f.exists()) {
                         boolean result = f.delete();
@@ -816,9 +812,10 @@ public class CustomAdapter extends BaseAdapter {
                         File newName = new File(sdcard, fileName);
                         boolean result = file.renameTo(newName);
                         if (!result)
-                            Log.d("CustomAdapter", "Can't rename to: " + name);
-                        else
-                            Log.d("CustomAdapter", "Map renamed to: " + name);
+                            Toast.makeText(c, "Can't rename file.", Toast.LENGTH_LONG).show();
+                            //Log.d("CustomAdapter", "Can't rename to: " + name);
+                        //else
+                            //Log.d("CustomAdapter", "Map renamed to: " + name);
                         map.setName(name);
                         map.setPath(sdcard + "/" + fileName);
                         db.updateMap(map);

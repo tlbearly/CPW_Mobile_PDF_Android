@@ -13,8 +13,8 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -48,6 +48,7 @@ import java.io.File;
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     // Displays list of imported pdf maps and an add more button. When an item is clicked, it loads the map.
     private ListView lv;
+    private Boolean debug=true;
     private CustomAdapter myAdapter; // list of imported pdf maps
     private DBHandler dbHandler;
     //private String TAG = "MainActivity";
@@ -70,8 +71,17 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        // added to report non sdk apis 12/13/21
+        if (debug) {
+            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                    .detectLeakedSqlLiteObjects()
+                    .detectLeakedClosableObjects()
+                    .penaltyLog()
+                    .penaltyDeath()
+                    .build());
+        }
         super.onCreate(savedInstanceState);
-        Log.d("MainActivity", "onCreate");
         setContentView(R.layout.activity_main);
 
         // DEBUG ***********
@@ -357,7 +367,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             startLocationUpdates();
         }
         else Toast.makeText(MainActivity.this,"Please turn on Location Services.",Toast.LENGTH_LONG).show();
-        Log.d("MainActivity", "onResume");
     }
 
 
@@ -369,7 +378,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             stopLocationUpdates();
         }
-        Log.d("MainActivity:onPause","Close dbWayPtHandler");
         dbHandler.close();
     }
 
@@ -389,12 +397,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //--------------------
     private void fillList() {
         // GET THE LIST FROM THE DATABASE
-        //Start the new thread to read maps from database
-        //new Thread(new Runnable() {
+        // TODO: Start the new thread to read maps from database
+        //this did not work!!!!!
+        // new Thread(new Runnable() {
         //    public void run() {
         //Looper.prepare();
         //dbHandler = DBHandler.getInstance(MainActivity.this);
-        Log.d("MainActivity:fillList", "New dbHandler");
         dbHandler = new DBHandler(MainActivity.this);
         try {
             myAdapter = new CustomAdapter(MainActivity.this, dbHandler.getAllMaps(MainActivity.this));
@@ -447,7 +455,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // GetMoreActivity gets map to import
         // EditWayPointActivity renames or deletes a map
         // They return extras to pass back the results, update adapter and database here
-        Log.d("MainActivity","checkForActivityResult");
         final Intent i = MainActivity.this.getIntent();
         if (i.getExtras() != null && !i.getExtras().isEmpty()) {
 
@@ -526,7 +533,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     // ...................
     private  void sortMaps(String sortBy) {
         if (myAdapter == null) return;
-        Log.d("MainActivity","Sort by: "+sortBy);
         switch (sortBy) {
             case "name":
                 // Sort by Name

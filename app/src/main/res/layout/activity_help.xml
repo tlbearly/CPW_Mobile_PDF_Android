@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--android:background="@color/white"-->
-<!-- android:fitsSystemWindows="true" -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
@@ -45,8 +43,7 @@
             android:layout_marginTop="0dp"
             android:text="@string/help_title"
             android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"/>
+            android:textStyle="bold"/>
 
         <!-- Intro -->
         <TextView
@@ -57,8 +54,7 @@
             android:padding="10dp"
             android:text="@string/help_doc"
             android:textSize="18sp"
-            app:layout_anchorGravity="center"
-            android:textColor="@android:color/black"/>
+            app:layout_anchorGravity="center"/>
 
         <!-- Imported Maps -->
         <TextView
@@ -69,8 +65,7 @@
             android:padding="10dp"
             android:text="@string/title_activity_main"
             android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"/>
+            android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/textViewImportedMapsHelp"
@@ -78,8 +73,7 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_importedmaps"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"/>
+            android:textSize="18sp"/>
 
         <!-- Edit Map -->
         <TextView
@@ -90,8 +84,7 @@
             android:padding="10dp"
             android:text="@string/help_edit_map_title"
             android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"/>
+            android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/textViewEditMapsHelp"
@@ -99,8 +92,7 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_edit_map"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"/>
+            android:textSize="18sp"/>
 
         <!-- Add Map -->
         <TextView
@@ -112,8 +104,7 @@
             android:padding="10dp"
             android:text="@string/title_activity_get_more"
             android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"/>
+            android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/textViewAddMapHelp"
@@ -121,8 +112,7 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_addmap"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"/>
+            android:textSize="18sp"/>
 
         <!-- View Map -->
         <TextView
@@ -133,8 +123,7 @@
             android:padding="10dp"
             android:text="@string/help_map_title"
             android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"/>
+            android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/textViewMapsHelp"
@@ -142,7 +131,6 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_map"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"/>
+            android:textSize="18sp"/>
     </LinearLayout>
 </ScrollView>

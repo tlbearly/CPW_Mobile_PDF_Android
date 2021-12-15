@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--android:background="@color/white"-->
-<!-- android:fitsSystemWindows="true" -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
@@ -45,8 +43,7 @@
             android:padding="10dp"
             android:text="@string/help_view_map_title"
             android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"/>
+            android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/textViewMapsHelp"
@@ -54,7 +51,6 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_view_map"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"/>
+            android:textSize="18sp"/>
     </LinearLayout>
 </ScrollView>

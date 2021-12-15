@@ -97,8 +97,10 @@
     <string name="help_atlas">Click on the \'Colorado Hunting Atlas\' or the \'Colorado Fishing Atlas\'. Select you map layers and map boundary by clicking on the menu icon in the top-left. Set your zoom level. Then press the down arrow icon. It will allow you to choose the map scale but, may change the map boundary. Setting a smaller map scale will show more detail. Increasing the map size will show a larger map area. Enter a PDF file name and press the Create PDF button. Wait for it to be created and then press Download PDF.</string>
     <string name="help_FS_title">Forest Service</string>
     <string name="help_FS">Click on \'Forest Service topographical maps for free\' under Hunting. Below the map that loads, click on \'here\' to open the map viewer as full screen. Search by name or use the +/- buttons to zoom in or out. When the forest service individual map boundaries are showing click on one of the rectangles. Then in the popup box, click the \'>\' icon. Lastly, click on \'Download PDF\'.</string>
+    <string name="help_FS_img">Forest service web app image</string>
     <string name="help_USGS_title">USGS</string>
     <string name="help_USGS">Click on U.S. Geological Survey Store under Hunting. Then click on \'Map Locator Tool\'. Search for a location name with the \'Map Locator\' or use the +/- buttons to zoom in or out. Tap the map at the desired location. In the popup, click \'View Products\'. Click on the \'View PDF\' button on one of the listed maps. Click \'OK\' on the popup that says \'you are navigating away...\' It may download immediately. If it does not download, wait for it to display, click on the menu icon, and then click on \'download\'.</string>
+    <string name="help_USGS_img">USGS web app image</string>
 
     <!-- View Map Help -->
     <string name="help_view_map_title">View Map Help</string>
