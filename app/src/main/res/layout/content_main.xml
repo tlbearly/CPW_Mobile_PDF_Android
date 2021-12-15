@@ -11,7 +11,7 @@
     <LinearLayout
         android:id="@+id/sortByDropDown"
         android:layout_width="match_parent"
-        android:layout_height="30dp"
+        android:layout_height="48dp"
         android:layout_marginTop="0dp"
         android:layout_marginBottom="0dp"
         android:orientation="horizontal">
@@ -37,7 +37,7 @@
             android:layout_marginBottom="5dp"
             android:contentDescription="@string/sort_by"
             android:dropDownWidth="wrap_content"
-            android:dropDownVerticalOffset="25dp"
+            android:dropDownVerticalOffset="40dp"
             android:spinnerMode="dropdown"
             tools:ignore="TouchTargetSizeCheck,TouchTargetSizeCheck,DuplicateSpeakableTextCheck" />
     </LinearLayout>
