@@ -5,5 +5,5 @@
     <color name="colorAccent">#2acff3</color><!--#2b9292 #64e0ed-->
     <color name="white">#ffffff</color>
     <color name="black_overlay">#66000000</color>
-    <color name="colorAlertTextButtons">#2bb6c6</color>
+    <color name="colorAlertTextButtons">#2cc6d6</color>
 </resources>
