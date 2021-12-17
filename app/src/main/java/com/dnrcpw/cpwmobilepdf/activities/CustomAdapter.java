@@ -211,12 +211,16 @@ public class CustomAdapter extends BaseAdapter {
                 //int numPages = reader.getNumberOfPages();
 
                 PdfDictionary page = reader.getPageN(1);
-                if (page == null) return ("Import Failed");
+                if (page == null) {
+                    reader.close();
+                    return ("Import Failed");
+                }
                 PdfArray vp = page.getAsArray(PdfName.VP);
                 // If this is PDF ISO standard file and not a GeoPDF check the version number
                 if (vp != null){
                     if (Character.getNumericValue(reader.getPdfVersion()) < 6) {
                         // Version less than PDF 1.6
+                        reader.close();
                         return("Not Georeferenced");
                     }
                 }
@@ -225,7 +229,10 @@ public class CustomAdapter extends BaseAdapter {
                 // Get MediaBox page size
                 //--------------------------
                 mediabox = page.getAsArray(PdfName.MEDIABOX).toString(); // works [ 0 0 792 1224]
-                if (mediabox.equals("")) return ("Import Failed");
+                if (mediabox.equals("")) {
+                    reader.close();
+                    return ("Import Failed");
+                }
                 mediabox = mediabox.substring(1,mediabox.length()-1).trim();
                 mediabox = mediabox.replaceAll(",","");
                 publishProgress(20);
@@ -266,9 +273,15 @@ public class CustomAdapter extends BaseAdapter {
                         }
                     }
                     PdfDictionary vpDict = vp.getAsDict(id);
-                    if (vpDict == null) return ("Import Failed");
+                    if (vpDict == null) {
+                        reader.close();
+                        return ("Import Failed");
+                    }
                     PdfArray bbox = vpDict.getAsArray(PdfName.BBOX);
-                    if (bbox == null) return ("Import Failed");
+                    if (bbox == null) {
+                        reader.close();
+                        return ("Import Failed");
+                    }
                     viewport = bbox.toString().trim();
                     viewport = viewport.substring(1, viewport.length() - 1);
                     viewport = viewport.replaceAll(",", "");
@@ -285,7 +298,6 @@ public class CustomAdapter extends BaseAdapter {
                     unitBox = unitBox.substring(1,unitBox.length() -1);
                     unitBox = unitBox.replaceAll(",", ""); // remove commas
                     units = unitBox.split(" ");
-
 
                     // adjust bbox by unitBox
                     // top-left
@@ -304,11 +316,11 @@ public class CustomAdapter extends BaseAdapter {
                     viewport = bboxX1+" "+bboxY1+" "+bboxX2+" "+bboxY2;
                     //Log.d("adjusted viewport", viewport);
 
-
-
-
                     bounds = measure.get(PdfName.GPTS).toString();
-                    if (bounds.equals("")) return ("Import Failed");
+                    if (bounds.equals("")) {
+                        reader.close();
+                        return ("Import Failed");
+                    }
                     bounds = bounds.trim();
                     bounds = bounds.substring(1, bounds.length() - 1);
                     bounds = bounds.replaceAll(",", "");
@@ -359,9 +371,10 @@ public class CustomAdapter extends BaseAdapter {
                     //PdfName lgitinfo = new PdfName("LGIT:Info");
                     PdfName neatline = new PdfName("Neatline");
                     PdfArray lgiDictArray = page.getAsArray(lgiDict);
-                    if (lgiDictArray == null)
+                    if (lgiDictArray == null) {
+                        reader.close();
                         return "Import Failed - not georeferenced? No LGIDict dictionary";
-
+                    }
                     int max=0;
                     int id=0;
                     PdfDictionary lgiDictionary;
@@ -395,18 +408,30 @@ public class CustomAdapter extends BaseAdapter {
                     if (displayDict == null){
                         projDict = lgiDictionary.getAsDict(projection);
                         projType = projDict.getAsString(projectionType);
-                        if (!projType.toString().toLowerCase(Locale.US).equals("ut")) return "Import Failed - unknown projection: "+projType.toString();
+                        if (!projType.toString().toLowerCase(Locale.US).equals("ut")){
+                            reader.close();
+                            return "Import Failed - unknown projection: "+projType.toString();
+                        }
                         units = projDict.getAsString(PdfNameUnits);
-                        if (!units.toString().toLowerCase(Locale.US).equals("m")) return "Import Failed - unknown unit: "+units.toString();
+                        if (!units.toString().toLowerCase(Locale.US).equals("m")) {
+                            reader.close();
+                            return "Import Failed - unknown unit: "+units.toString();
+                        }
                         PdfNumber z = projDict.getAsNumber(PdfNameZone);
                         if (z != null)
                             zone = Integer.parseInt(z.toString());
                     }
                     else{
                         projType = displayDict.getAsString(projectionType);
-                        if (!projType.toString().toLowerCase(Locale.US).equals("ut")) return "Import Failed - unknown projection: "+projType.toString();
+                        if (!projType.toString().toLowerCase(Locale.US).equals("ut")) {
+                            reader.close();
+                            return "Import Failed - unknown projection: "+projType.toString();
+                        }
                         units = displayDict.getAsString(PdfNameUnits);
-                        if (!units.toString().toLowerCase(Locale.US).equals("m")) return "Import Failed - unknown unit: "+units.toString();
+                        if (!units.toString().toLowerCase(Locale.US).equals("m")) {
+                            reader.close();
+                            return "Import Failed - unknown unit: "+units.toString();
+                        }
                         PdfNumber z = displayDict.getAsNumber(PdfNameZone);
                         if (z != null)
                             zone = Integer.parseInt(z.toString());
@@ -494,6 +519,7 @@ public class CustomAdapter extends BaseAdapter {
                 thumbnail = stream.toByteArray();
                 bitmap.recycle(); // free memory
                 scaled.recycle();
+                pdfiumCore.closeDocument(pdfDocument); // 12-17-21 added close document
 
                 // Save thumbnail to a file in app directory (/data/data/com/dnrcpw/cpwmobilepdf/files), save the path to it.
                 File img;
