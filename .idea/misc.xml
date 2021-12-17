@@ -14,7 +14,7 @@
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/activity_edit_map_name.xml" value="0.1" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/activity_get_more.xml" value="0.33" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/activity_get_more_help.xml" value="0.21658415841584158" />
-        <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/activity_help.xml" value="0.21" />
+        <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/activity_help.xml" value="0.5" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/activity_main.xml" value="0.2" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/activity_pdf.xml" value="0.25" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/activity_pdf_help.xml" value="0.15765765765765766" />
@@ -85,7 +85,7 @@
   <component name="VisualizationToolProject">
     <option name="state">
       <ProjectState>
-        <option name="scale" value="0.12545289855072464" />
+        <option name="scale" value="0.5" />
       </ProjectState>
     </option>
   </component>

@@ -21,7 +21,7 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="10dp"
-            card_view:cardCornerRadius="60dp"
+            card_view:cardCornerRadius="50dp"
             card_view:cardElevation="5dp">
 
             <ImageView
