@@ -76,7 +76,7 @@
     <!-- Main Help -->
     <string name="loading">Loading…</string>
     <string name="help">Help</string>
-    <string name="help_title">CPW Mobile PDF Documentation</string>
+    <string name="help_title">CPW Mobile PDF Help</string>
     <string name="help_doc">Take this app out in the field to display your current location on PDFs from the HuntingAtlas, FishingAtlas, CPW Maps Library, or any georeferenced PDF. No need for internet or data connection! Plus, access a list of resources for downloading PDF maps (requires data connection).</string>
     <string name="help_importedmaps">The Imported Maps page contains all the maps that you have downloaded and imported. These maps are copied into this app\'s data folder so that when you go mobile the map data is still available to use. For each imported map it displays the map name, file size, and current distance from the map (in miles). See Edit Map, Add Map, and View Map sections below to rename, delete, add, or view a map.</string>
     <string name="help_addmap">On the Imported Maps page, click on the + button to import or download a map.</string>

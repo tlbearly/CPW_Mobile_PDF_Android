@@ -54,6 +54,5 @@
         android:paddingEnd="10dp"
         android:paddingBottom="5dp"
         android:text="@string/CurPos"
-        android:textColor="#5D4037"
         android:textStyle="bold" />
 </RelativeLayout>
