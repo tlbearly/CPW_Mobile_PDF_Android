@@ -31,7 +31,7 @@
       <EditText
           android:id="@+id/waypt"
           android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
+          android:layout_height="48dp"
           android:layout_gravity="center_vertical|end"
           android:layout_marginStart="10dp"
           android:ems="10"
@@ -46,8 +46,8 @@
 
       <ImageButton
           android:id="@+id/clear_waypt"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
+          android:layout_width="48dp"
+          android:layout_height="48dp"
           android:layout_gravity="center_vertical|end"
           android:contentDescription="@string/clear"
           android:background="@android:drawable/ic_menu_close_clear_cancel" />
@@ -116,21 +116,21 @@
       <RadioButton
           android:id="@+id/redPin"
           android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
+          android:layout_height="48dp"
           android:layout_weight="1"
           android:text="@string/red" />
 
       <RadioButton
           android:id="@+id/bluePin"
           android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
+          android:layout_height="48dp"
           android:layout_weight="1"
           android:text="@string/blue" />
 
       <RadioButton
           android:id="@+id/cyanPin"
           android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
+          android:layout_height="48dp"
           android:layout_weight="1"
           android:checked="true"
           android:text="@string/cyan" />
