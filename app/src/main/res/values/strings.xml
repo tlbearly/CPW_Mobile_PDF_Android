@@ -20,6 +20,7 @@
     <string name="noMapsImported">No maps have been imported.\nUse the + button to import a map.</string>
     <string name="title_activity_main">Imported Maps</string>
     <string name="sort_by">Sort By:</string>
+    <string name="sort_options">Sort Options Dropdown</string>
     <string-array name="sortByItems">
         <item>Name A-Z</item>
         <item>Name Z-A</item>

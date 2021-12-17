@@ -29,7 +29,7 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
         android:contentDescription="@string/add_btn_desc"
-        android:tint="#000"
+        android:tint="#fff"
         app:srcCompat="@android:drawable/ic_input_add" />
 
     <!-- display blank list message if no maps imported -->
