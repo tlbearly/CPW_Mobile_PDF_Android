@@ -10,8 +10,8 @@
             android:strokeAlpha="1"
             android:strokeLineJoin="miter"
             android:strokeWidth="1.28905"
-            android:fillColor="@color/colorAccent"
-            android:strokeColor="@color/colorAccent"
+            android:fillColor="@color/colorNearMe"
+            android:strokeColor="@color/colorNearMe"
             android:strokeLineCap="butt"/>
     </group>
 </vector>
