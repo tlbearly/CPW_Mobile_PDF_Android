@@ -64,20 +64,13 @@
             android:padding="10dp"
             android:text="@string/help_download1"
             android:textSize="18sp" />
+
         <TextView
             android:id="@+id/textViewDownlaodHelp2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_download2"
-            android:textSize="18sp" />
-
-        <TextView
-            android:id="@+id/textViewDownlaodHelp3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="10dp"
-            android:text="@string/help_download3"
             android:textSize="18sp"
             android:textStyle="bold" />
 

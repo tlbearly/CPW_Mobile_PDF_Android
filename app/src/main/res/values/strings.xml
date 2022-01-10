@@ -96,8 +96,7 @@
     <string name="help_get_more_title">Adding Maps Help</string>
     <string name="help_download_title"><u>STEP 1: Download Maps</u></string>
     <string name="help_download1">Click on the Open Browser button to download a map. Note that this requires an internet connection. It will notify you that it is starting up your browser app. Then it will load a page from the CPW website with resources to download georeferenced PDFs. Use one of the resources described below to download a map.</string>
-    <string name="help_download2">If you are having trouble getting it to download but it did show you a preview, try clicking the menu button in the preview and then clicking Download.</string>
-    <string name="help_download3">From the CPW resource page, click on one of the following resources:</string>
+    <string name="help_download2">Map Resources:</string>
     <string name="help_cpw_mapslib_title">CPW Maps Library</string>
     <string name="help_cpw_mapslib">Click on \'Maps Library page\'. Select file type, GeoPDF, and press \'Search\'. Click on a map name to download it.</string>
     <string name="help_atlas_title">Hunting or Fishing Atlas</string>
@@ -106,7 +105,7 @@
     <string name="help_FS">Click on \'Forest Service topographical maps for free\' under Hunting. Below the map that loads, click on \'here\' to open the map viewer as full screen. Search by name or use the +/- buttons to zoom in or out. When the forest service individual map boundaries are showing click on one of the rectangles. Then in the popup box, click the \'>\' icon. Lastly, click on \'Download PDF\'.</string>
     <string name="help_FS_img">Forest service web app image</string>
     <string name="help_USGS_title">USGS</string>
-    <string name="help_USGS">Click on U.S. Geological Survey Store under Hunting. Then click on \'Map Locator Tool\'. Search for a location name with the \'Map Locator\' or use the +/- buttons to zoom in or out. Tap the map at the desired location. In the popup, click \'View Products\'. Click on the \'View PDF\' button on one of the listed maps. Click \'OK\' on the popup that says \'you are navigating away...\' It may download immediately. If it does not download, wait for it to display, click on the menu icon, and then click on \'download\'.</string>
+    <string name="help_USGS">Click on \'U.S. Geological Survey Store\' under Hunting. Then click on \'Map Locator Tool\'. Search for a location name with the \'Map Locator\' or use the +/- buttons to zoom in or out and double tap the map at the desired location. In the popup, click \'View Products\'. Click on the \'View PDF\' button on the most recent map. Click \'OK\' on the popup that says \'you are navigating away...\' It may download immediately. If it does not download, wait for it to display, click on the menu icon, and then click on \'download\'.</string>
     <string name="help_USGS_img">USGS web app image</string>
     <string name="help_import_title"><u>STEP 2: Import Maps</u></string>
     <string name="help_importmaps1">After you have downloaded PDF maps *go back to this app and import them by clicking on the File Picker button. Use the menu in the top-left to select from Recent, Documents, or Downloads folders. Or select the Google Drive icon if the file is located there. Click on the PDF file and it will import it and display the map. The map file is copied to the app directory so deleting the original will not affect the imported maps.</string>

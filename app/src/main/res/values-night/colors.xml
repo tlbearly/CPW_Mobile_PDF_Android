@@ -2,9 +2,10 @@
 <resources>
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303f9f</color>
-    <color name="colorAccent">#0b9fb1</color><!--#2acff3 #2b9292 #64e0ed-->
+    <color name="colorAccent">#0b9fb1</color>
     <color name="white">#ffffff</color>
+    <color name="primary_text">@android:color/primary_text_dark</color>
     <color name="black_overlay">#99000000</color>
     <color name="colorNearMe">#0ec7f1</color>
-    <color name="colorAlertTextButtons">#0ec7f1</color> <!--#2cc6d6-->
+    <color name="colorAlertTextButtons">#0ec7f1</color>
 </resources>
