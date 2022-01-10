@@ -44,25 +44,6 @@
             android:textSize="24sp"
             android:textStyle="bold" />
 
-        <!-- Import Maps -->
-        <TextView
-            android:id="@+id/textViewImportTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="0dp"
-            android:padding="10dp"
-            android:text="@string/help_import_title"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/textViewImportMapsHelp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="10dp"
-            android:text="@string/help_importmaps"
-            android:textSize="18sp"/>
-
         <!-- Download -->
         <TextView
             android:id="@+id/textViewDownloadTitle"
@@ -81,8 +62,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
-            android:text="@string/help_download"
+            android:text="@string/help_download1"
             android:textSize="18sp" />
+        <TextView
+            android:id="@+id/textViewDownlaodHelp2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/help_download2"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/textViewDownlaodHelp3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/help_download3"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/textViewMapLibTitle"
@@ -110,15 +107,15 @@
             android:text="@string/help_atlas_title"
             android:textSize="18sp"/>
 
+        <!-- Forest Service -->
         <TextView
             android:id="@+id/textAtlas"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_atlas"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
 
-        <!-- Forest Service -->
         <TextView
             android:id="@+id/textViewFSTitle"
             android:layout_width="wrap_content"
@@ -165,6 +162,32 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_USGS"
+            android:textSize="18sp"/>
+
+        <!-- Import Maps -->
+        <TextView
+            android:id="@+id/textViewImportTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
+            android:padding="10dp"
+            android:text="@string/help_import_title"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textViewImportMapsHelp1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/help_importmaps1"
+            android:textSize="18sp"/>
+        <TextView
+            android:id="@+id/textViewImportMapsHelp2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/help_importmaps2"
             android:textSize="18sp"/>
     </LinearLayout>
 </ScrollView>
