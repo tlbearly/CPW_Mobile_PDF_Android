@@ -32,17 +32,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="5dp"
         android:text="" />
-    <!-- Map Name -->
-    <!--TextView
-        android:id="@+id/map_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="25dp"
-        android:background="@color/white"
-        android:text="@string/mapName" -/>
-    <!- Current Position -->
+    <!-- Current Position -->
     <TextView
         android:id="@+id/cur_pos"
         android:layout_width="match_parent"
@@ -54,5 +44,6 @@
         android:paddingEnd="10dp"
         android:paddingBottom="5dp"
         android:text="@string/CurPos"
+        android:textColor="@color/white"
         android:textStyle="bold" />
 </RelativeLayout>
