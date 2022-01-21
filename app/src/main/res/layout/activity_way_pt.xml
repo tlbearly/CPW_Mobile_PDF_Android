@@ -37,7 +37,6 @@
           android:layout_marginStart="10dp"
           android:ems="10"
           android:hint="@string/renameWayPt"
-          android:textColorHint="#78909C"
           android:inputType="text"
           android:textAppearance="?android:attr/textAppearanceMedium"
           android:textStyle="bold"
