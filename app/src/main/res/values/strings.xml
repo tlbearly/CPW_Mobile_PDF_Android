@@ -76,7 +76,7 @@
     <string name="title_activity_edit_map_name">Edit Map Name</string>
     <string name="title_activity_edit_way_pt">Edit Waypoint</string>
     <string name="renameMap">Rename Map</string>
-    <string name="renameWayPt">Rename Waypoint</string>
+    <string name="renameWayPt">Waypoint Label</string>
     <!--string name="downloading">Downloading…</string-->
 
     <!-- Main Help -->
