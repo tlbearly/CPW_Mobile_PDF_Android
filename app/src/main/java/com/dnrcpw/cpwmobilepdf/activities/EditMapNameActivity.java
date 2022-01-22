@@ -205,9 +205,16 @@ public class EditMapNameActivity extends AppCompatActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(EditMapNameActivity.this);
             builder.setTitle("Delete");
             builder.setMessage("Delete the imported map?").setPositiveButton("DELETE", dialogClickListener)
-                .setNegativeButton("CANCEL", dialogClickListener).show();
+                    .setNegativeButton("CANCEL", dialogClickListener).show();
             return true;
-        } else if (item.getItemId() == android.R.id.home) {
+        } else if (item.getItemId() == android.R.id.home){
+            // back button pressed, return
+            Intent mainIntent = new Intent(EditMapNameActivity.this, MainActivity.class);
+            mainIntent.putExtra("ID",id);
+            mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(mainIntent);
+            return true;
+        } else if (item.getItemId() == R.id.save) {
             // rename map
             String name;
             name = editTxt.getText().toString();

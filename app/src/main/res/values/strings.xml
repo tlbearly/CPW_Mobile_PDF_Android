@@ -32,6 +32,7 @@
         <item>Farthest Proximity</item>
     </string-array>
     <string name="add_btn_desc">Import or download PDF maps</string>
+    <string name="save">Save</string>
 
     <!-- GetMoreActivity -->
     <string name="download_maps">STEP 1: Download Maps</string>

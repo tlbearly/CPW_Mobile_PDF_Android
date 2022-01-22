@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setTitle("Imported Maps");
 
         // DEBUG ***********
         //latBefore = 38.5;
@@ -519,7 +520,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null /*Looper.getMainLooper()*/);
         }else{
             Toast.makeText(MainActivity.this,"Fine Location Services are off.",Toast.LENGTH_LONG).show();
-            return;
         }
     }
 
