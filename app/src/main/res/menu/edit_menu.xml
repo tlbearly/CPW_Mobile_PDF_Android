@@ -13,6 +13,4 @@
         android:id="@+id/save"
         android:title="@string/save"
         app:showAsAction="always" />
-
-
 </menu>
