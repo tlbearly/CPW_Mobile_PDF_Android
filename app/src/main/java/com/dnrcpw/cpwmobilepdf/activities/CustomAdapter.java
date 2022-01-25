@@ -144,11 +144,11 @@ public class CustomAdapter extends BaseAdapter {
         }
 
         //protected ImportMapTask(Context c, PDFMap pdfMap, ProgressBar pb) {
-            //this.c = c;
-            //this.pdfMap = pdfMap;
-            //this.progressBar = pb;
-            //this.filePath = pdfMap.getPath();
-            // calls onPreExecute
+        //this.c = c;
+        //this.pdfMap = pdfMap;
+        //this.progressBar = pb;
+        //this.filePath = pdfMap.getPath();
+        // calls onPreExecute
         //}
 
         @Override
@@ -251,7 +251,7 @@ public class CustomAdapter extends BaseAdapter {
                         parse = parse.substring(1, parse.length() - 1);
                         parse = parse.replaceAll(",", "");
                         int pos = parse.indexOf(" ");
-                       // double bBoxX1 = Double.parseDouble(parse.substring(0, pos));
+                        // double bBoxX1 = Double.parseDouble(parse.substring(0, pos));
                         // FIND bBoxY1
                         parse = parse.substring(pos + 1); // strip off 'bBoxX1 '
                         pos = parse.indexOf(" ");
@@ -529,9 +529,9 @@ public class CustomAdapter extends BaseAdapter {
                     String path = ca.c.getFilesDir().getAbsolutePath();
                     img = new File(path + "/CPWthumbnail" + pdfMap.getId() + ".png");
                     if (!img.exists()) {
-                            boolean fileDoesNotExist = img.createNewFile();
-                            if (!fileDoesNotExist)
-                                Toast.makeText(ca.c, ca.c.getResources().getString(R.string.problemThumbnailSavingFile), Toast.LENGTH_LONG).show();
+                        boolean fileDoesNotExist = img.createNewFile();
+                        if (!fileDoesNotExist)
+                            Toast.makeText(ca.c, ca.c.getResources().getString(R.string.problemThumbnailSavingFile), Toast.LENGTH_LONG).show();
                     }
                     FileOutputStream fos = new FileOutputStream(img);
                     fos.write(thumbnail);
@@ -604,9 +604,9 @@ public class CustomAdapter extends BaseAdapter {
             return result;
         }*/
 
-       private double[] UTMtoLL(double f, double f1, int j) {
-           // Convert UTM to Lat Long return [lat, long]
-           // UTM=f,f1 Zone=j Colorado is mostly 13 and a little 12
+        private double[] UTMtoLL(double f, double f1, int j) {
+            // Convert UTM to Lat Long return [lat, long]
+            // UTM=f,f1 Zone=j Colorado is mostly 13 and a little 12
             double d = 0.99960000000000004;
             double d1 = 6378137;
             double d2 = 0.0066943799999999998;
@@ -632,7 +632,7 @@ public class CustomAdapter extends BaseAdapter {
             d17 = d17 * 180 / Math.PI;
             double d18 = ((d9 - ((1 + 2 * d6 + d7) * Math.pow(d9,3))/6) + (((((5 - 2 * d7) + 28*d6) - 3 * d7 * d7) + 8 * d3 + 24 * d6 * d6) * Math.pow(d9,5))/120)/Math.cos(d14);
             d18 = d11 + d18 * 180 / Math.PI;
-           return new double[]{d18,d17};
+            return new double[]{d18,d17};
         }
 
         @Override
@@ -747,7 +747,7 @@ public class CustomAdapter extends BaseAdapter {
             if (latNow >= lat1 && latNow <= lat2 && longNow >= long1 && longNow <= long2) {
                 map.setMiles(0.0);
                 map.setDistToMap("");
-               // Log.d(TAG, "updateDistToMap: " + map.getName() + " on map");
+                // Log.d(TAG, "updateDistToMap: " + map.getName() + " on map");
             }
             // Off map, calculate distance away
             else {
@@ -793,7 +793,7 @@ public class CustomAdapter extends BaseAdapter {
                 String distStr = String.format(Locale.US,"%s %.1f %s %s", str, dist, c.getResources().getString(R.string.miles), direction);
                 map.setDistToMap(distStr);
 
-               // Log.d(TAG, "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
+                // Log.d(TAG, "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
             }
             //ca.loading = false;
         }
@@ -839,9 +839,9 @@ public class CustomAdapter extends BaseAdapter {
                         boolean result = file.renameTo(newName);
                         if (!result)
                             Toast.makeText(c, "Can't rename file.", Toast.LENGTH_LONG).show();
-                            //Log.d("CustomAdapter", "Can't rename to: " + name);
+                        //Log.d("CustomAdapter", "Can't rename to: " + name);
                         //else
-                            //Log.d("CustomAdapter", "Map renamed to: " + name);
+                        //Log.d("CustomAdapter", "Map renamed to: " + name);
                         map.setName(name);
                         map.setPath(sdcard + "/" + fileName);
                         db.updateMap(map);

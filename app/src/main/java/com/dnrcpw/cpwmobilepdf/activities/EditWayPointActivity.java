@@ -84,7 +84,7 @@ public class EditWayPointActivity extends AppCompatActivity {
         if (pinColor.equals("cyan")){
             cyanBtn.setChecked(true);
             pin.setImageResource(R.mipmap.ic_cyan_pin2);
-    }
+        }
         else if (pinColor.equals("red")){
             redBtn.setChecked(true);
             pin.setImageResource(R.mipmap.ic_red_pin);
@@ -159,22 +159,25 @@ public class EditWayPointActivity extends AppCompatActivity {
             builder.setMessage("Delete this waypoint?").setPositiveButton("DELETE", dialogClickListener)
                     .setNegativeButton("CANCEL", dialogClickListener).show();
             return true;
-        } else if (item.getItemId() == android.R.id.home) {
+        } else if (item.getItemId() == R.id.save) {
             //case android.R.id.home:
-                // rename map
-                String name = editTxt.getText().toString();
-                if (name.equals("")) {
-                    Toast.makeText(EditWayPointActivity.this, "Cannot rename to blank!", Toast.LENGTH_LONG).show();
-                } else {
-                    wayPt.setDesc(name);
-                    dbWayPtHandler.updateWayPt(wayPts.get(id));
-                    // Return to PDFActivity
-                    finish();
-                }
-                return true;
+            // rename map
+            String name = editTxt.getText().toString();
+            if (name.equals("")) {
+                Toast.makeText(EditWayPointActivity.this, "Cannot rename to blank!", Toast.LENGTH_LONG).show();
+            } else {
+                wayPt.setDesc(name);
+                dbWayPtHandler.updateWayPt(wayPts.get(id));
+                // Return to PDFActivity
+                finish();
+            }
+            return true;
+        } else if (item.getItemId() == android.R.id.home){
+            finish();
+            return true;
         } else {
             //default:
-                return super.onOptionsItemSelected(item);
+            return super.onOptionsItemSelected(item);
         }
     }
 

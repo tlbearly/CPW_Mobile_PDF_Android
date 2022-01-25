@@ -2,79 +2,79 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.dnrcpw.cpwmobilepdf.activities.PDFActivity">
-    <item
-        android:id="@+id/action_markCurrent"
-        android:icon="@android:drawable/ic_input_add"
-        android:title="@string/markCurrent"
-        android:visible="true"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_add_way_pt_menu"
-        android:icon="@android:drawable/ic_input_add"
-        android:title="@string/add_way_pt"
-        android:visible="true"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_showWayPts"
-        android:icon="@android:drawable/ic_dialog_info"
-        android:title="@string/showWayPts"
-        android:checkable="true"
-        android:checked="true"
-        android:visible="true"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_showAll"
-        android:icon="@android:drawable/ic_dialog_info"
-        android:title="@string/showWayPtLabels"
-        android:checkable="true"
-        android:checked="false"
-        android:visible="true"
-        app:showAsAction="never" />
+  <item
+      android:id="@+id/action_markCurrent"
+      android:icon="@android:drawable/ic_input_add"
+      android:title="@string/markCurrent"
+      android:visible="true"
+      app:showAsAction="never" />
+  <item
+      android:id="@+id/action_add_way_pt_menu"
+      android:icon="@android:drawable/ic_input_add"
+      android:title="@string/add_way_pt"
+      android:visible="true"
+      app:showAsAction="never" />
+  <item
+      android:id="@+id/action_showWayPts"
+      android:icon="@android:drawable/ic_dialog_info"
+      android:title="@string/showWayPts"
+      android:checkable="true"
+      android:checked="true"
+      android:visible="true"
+      app:showAsAction="never" />
+  <item
+      android:id="@+id/action_showAll"
+      android:icon="@android:drawable/ic_dialog_info"
+      android:title="@string/showWayPtLabels"
+      android:checkable="true"
+      android:checked="false"
+      android:visible="true"
+      app:showAsAction="never" />
 
-    <item
-        android:id="@+id/action_deleteAll"
-        android:icon="@android:drawable/ic_input_delete"
-        android:title="@string/deleteAllWayPts"
-        android:visible="true"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_open"
-        android:icon="@android:drawable/ic_input_add"
-        android:title="@string/open_pdf"
-        android:visible="true"
-        app:showAsAction="never" />
-    <!--item
-        android:id="@+id/action_lock_orient"
-        android:icon="@android:drawable/ic_menu_always_landscape_portrait"
-        android:title="@string/orientation"
-        android:visible="true"
-        app:showAsAction="ifRoom" /-->
-    <item
-        android:id="@+id/action_add_way_pt"
-        android:icon="@mipmap/ic_grey_pin_forgnd"
-        android:title="@string/orientation"
-        android:visible="true"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/action_portrait"
-        android:checkable="true"
-        android:checked="true"
-        android:icon="@android:drawable/ic_menu_always_landscape_portrait"
-        android:title="@string/portrait"
-        android:visible="true"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_landscape"
-        android:checkable="true"
-        android:checked="false"
-        android:icon="@android:drawable/ic_menu_always_landscape_portrait"
-        android:title="@string/landscape"
-        android:visible="true"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_help"
-        android:icon="@android:drawable/ic_menu_help"
-        android:title="@string/help"
-        android:visible="true"
-        app:showAsAction="never" />
+  <item
+      android:id="@+id/action_deleteAll"
+      android:icon="@android:drawable/ic_input_delete"
+      android:title="@string/deleteAllWayPts"
+      android:visible="true"
+      app:showAsAction="never" />
+  <item
+      android:id="@+id/action_open"
+      android:icon="@android:drawable/ic_input_add"
+      android:title="@string/open_pdf"
+      android:visible="true"
+      app:showAsAction="never" />
+  <!--item
+      android:id="@+id/action_lock_orient"
+      android:icon="@android:drawable/ic_menu_always_landscape_portrait"
+      android:title="@string/orientation"
+      android:visible="true"
+      app:showAsAction="ifRoom" /-->
+  <item
+      android:id="@+id/action_add_way_pt"
+      android:icon="@mipmap/ic_grey_pin_forgnd"
+      android:title="@string/orientation"
+      android:visible="true"
+      app:showAsAction="ifRoom" />
+  <item
+      android:id="@+id/action_portrait"
+      android:checkable="true"
+      android:checked="true"
+      android:icon="@android:drawable/ic_menu_always_landscape_portrait"
+      android:title="@string/portrait"
+      android:visible="true"
+      app:showAsAction="never" />
+  <item
+      android:id="@+id/action_landscape"
+      android:checkable="true"
+      android:checked="false"
+      android:icon="@android:drawable/ic_menu_always_landscape_portrait"
+      android:title="@string/landscape"
+      android:visible="true"
+      app:showAsAction="never" />
+  <item
+      android:id="@+id/action_help"
+      android:icon="@android:drawable/ic_menu_help"
+      android:title="@string/help"
+      android:visible="true"
+      app:showAsAction="never" />
 </menu>
