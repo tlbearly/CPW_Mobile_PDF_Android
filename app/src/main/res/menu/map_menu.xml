@@ -37,12 +37,6 @@
       android:title="@string/deleteAllWayPts"
       android:visible="true"
       app:showAsAction="never" />
-  <item
-      android:id="@+id/action_open"
-      android:icon="@android:drawable/ic_input_add"
-      android:title="@string/open_pdf"
-      android:visible="true"
-      app:showAsAction="never" />
   <!--item
       android:id="@+id/action_lock_orient"
       android:icon="@android:drawable/ic_menu_always_landscape_portrait"

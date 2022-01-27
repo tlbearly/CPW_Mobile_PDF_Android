@@ -3,7 +3,8 @@
     package="com.dnrcpw.cpwmobilepdf">
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
     <!-- add usesCleartextTraffic to prevent error when downloading over http like fstopo uses     android:usesCleartextTraffic="true" -->
 
     <application

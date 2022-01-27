@@ -56,8 +56,6 @@ import java.util.concurrent.atomic.AtomicReference;
 /* show the map */
 public class PDFActivity extends AppCompatActivity implements SensorEventListener {
     PDFView pdfView;
-   // static final int MY_PERMISSIONS_LOCATION = 0;
-    //private static final String TAG = PDFActivity.class.getSimpleName();
     Menu mapMenu;
     // Color and style of current location point
     Paint cyan;
@@ -152,12 +150,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     AtomicReference<Double> optimalPageHeight = new AtomicReference<>((double) 0);
     MenuItem wayPtMenuItem;
 
-    // Set global value bestQuality
-    /*public void setPDFQuality(String quality){
-        if (quality.equals("best")) bestQuality = true;
-        else bestQuality = false;
-    }*/
-
     @SuppressLint("SourceLockedOrientationActivity")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -183,10 +175,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         //mCurrentDegree = 0f;
         wayPts = null;
         mapName = "";
-        //db = DBWayPtHandler.getInstance(this);
-        //Log.d("PDFActivity:onCreate","New dbWayPtHandler");
         db = new DBWayPtHandler(this);
-        //db2 = DBHandler.getInstance(this);
         markCurrent = false;
         clickedWP = -1; // index of waypoint that was clicked on
         newWP = false; // if added a new waypoint show balloon too
@@ -255,12 +244,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             long2 = Double.parseDouble(bounds.substring(pos + 1));
             longDiff = (long2 + 180) - (long1 + 180);
             latDiff = (90 - lat1) - (90 - lat2);
-        } catch (AssertionError ae){
-            Toast.makeText(PDFActivity.this, "Trouble reading lat/long from Geo PDF. Read: " + bounds, Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
-        catch (Exception e) {
+        } catch (AssertionError | Exception ae){
             Toast.makeText(PDFActivity.this, "Trouble reading lat/long from Geo PDF. Read: " + bounds, Toast.LENGTH_LONG).show();
             finish();
             return;
@@ -292,11 +276,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             mediaBox = mediaBox.substring(pos + 1); // strip off 'X2 '
             pos = mediaBox.indexOf(" ");
             mediaBoxY2 = Double.parseDouble(mediaBox.substring(pos + 1));
-        } catch (AssertionError ae) {
-            Toast.makeText(PDFActivity.this, "Trouble reading mediaBox page boundaries from Geo PDF. Read: " + mediaBox, Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        } catch (Exception e) {
+        } catch (AssertionError | Exception ae) {
             Toast.makeText(PDFActivity.this, "Trouble reading mediaBox page boundaries from Geo PDF. Read: " + mediaBox, Toast.LENGTH_LONG).show();
             finish();
             return;
@@ -336,23 +316,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             mediaBoxHeight = mediaBoxY2 - mediaBoxY1;
             marginXworld = marginLeft + marginRight;
             marginYworld = marginTop + marginBottom;
-        } catch (AssertionError ae) {
-            Toast.makeText(PDFActivity.this, "Trouble reading viewPort margins from Geo PDF. Read: " + viewPort, Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        } catch (Exception e) {
+        } catch (AssertionError | Exception ae) {
             Toast.makeText(PDFActivity.this, "Trouble reading viewPort margins from Geo PDF. Read: " + viewPort, Toast.LENGTH_LONG).show();
             finish();
             return;
         }
-
-        // Edit Waypoint Activity needs to have these
-        /*i.removeExtra("PATH");
-        i.removeExtra("BOUNDS");
-        i.removeExtra("NAME");
-        i.removeExtra("MEDIABOX");
-        i.removeExtra("VIEWPORT");
-        */
 
         // Setup Screen Sensor for X Axis rotation (flat)
         try {
@@ -1235,10 +1203,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 Toast.makeText(PDFActivity.this,"Current location not on map", Toast.LENGTH_LONG).show();
             }
         }
-        else if (id == R.id.action_open){
-            // open a new map
-            finish();
-        }
         else if (id == R.id.action_deleteAll){
             try {
                 clickedWP = -1;
@@ -1274,20 +1238,32 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             }
         }
         else if (id == R.id.action_portrait){
-            action_portrait.setChecked(true);
-            action_landscape.setChecked(false);
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-            //db2.setMapOrient("portrait"); // update user preference
-            landscape = false;
+            if (!action_portrait.isChecked()) {
+                action_portrait.setChecked(true);
+                action_landscape.setChecked(false);
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+
+                //db2.setMapOrient("portrait"); // update user preference
+                landscape = false;
+            }
+            else {
+                action_portrait.setChecked(false);
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+            }
         }
         else if (id == R.id.action_landscape){
-            action_portrait.setChecked(false);
-            action_landscape.setChecked(true);
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-            //db2.setMapOrient("landscape"); // update user preference
-            landscape = true;
+            if (!action_landscape.isChecked()) {
+                action_portrait.setChecked(false);
+                action_landscape.setChecked(true);
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+                //db2.setMapOrient("landscape"); // update user preference
+                landscape = true;
+            } else {
+                action_landscape.setChecked(false);
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+            }
         }
         /*else if (id == R.id.action_lock_orient){
             AlertDialog.Builder builder = new AlertDialog.Builder(PDFActivity.this);
