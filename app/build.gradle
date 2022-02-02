@@ -89,6 +89,6 @@ dependencies {
     // for location near me icon
     android.defaultConfig.vectorDrawables.useSupportLibrary = true
 
-    // to include symbols for debuging live app. use SYMBOL_TABLE to get function names, FULL to get function names, files, and line numbers
+    // to include symbols for debugging live app. use SYMBOL_TABLE to get function names, FULL to get function names, files, and line numbers
     android.buildTypes.release.ndk.debugSymbolLevel = 'FULL'
 }
