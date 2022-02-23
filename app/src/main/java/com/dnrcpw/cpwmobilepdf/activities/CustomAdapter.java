@@ -8,7 +8,7 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.ParcelFileDescriptor;
-//import android.util.Log;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,9 +52,9 @@ import java.util.Locale;
 public class CustomAdapter extends BaseAdapter {
     private final Context c;
     ArrayList<PDFMap> pdfMaps;
-    //private int vis, hide;
-    // EditText renameTxt;
     TextView nameTxt;
+    //EditText renameTxt;
+    //ImageView deleteBtn;
     TextView fileSizeTxt;
     TextView distToMapTxt;
     ImageView locIcon;
@@ -63,12 +63,16 @@ public class CustomAdapter extends BaseAdapter {
     private Boolean loading = false;
     ProgressBar progressBar;
     int progress = 0;
+    boolean editing = false;
 
     public CustomAdapter(Context c, ArrayList<PDFMap> pdfMaps) {
         this.c = c;
         this.pdfMaps = pdfMaps;
     }
 
+    public void setEditing(Boolean value){
+        this.editing = value;
+    }
     public void SortByName(){
         // Sort array list pdfMaps of objects of type pdfMap alphabetically by name.
         Collections.sort((this.pdfMaps), PDFMap.NameComparator);
@@ -795,7 +799,6 @@ public class CustomAdapter extends BaseAdapter {
 
                 // Log.d(TAG, "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
             }
-            //ca.loading = false;
         }
     }
 
@@ -829,6 +832,7 @@ public class CustomAdapter extends BaseAdapter {
                     map = pdfMaps.get(i);
                     try {
                         // Check if name has change. If not return
+                        Log.d("CustomAdapter","Rename "+map.getName()+" to "+name);
                         if (name.equals(map.getName())) return;
                         File sdcard = c.getFilesDir();
                         File file = new File(map.getPath());
@@ -952,10 +956,11 @@ public class CustomAdapter extends BaseAdapter {
         view.setLongClickable(true);
         final PDFMap pdfMap = (PDFMap) this.getItem(i);
 
-        // renameTxt = (EditText) view.findViewById(R.id.rename);
         //vis = View.VISIBLE;
         //hide = View.GONE;
         nameTxt = view.findViewById(R.id.nameTxt);
+        //renameTxt = view.findViewById(R.id.renameTxt);
+        //deleteBtn = view.findViewById(R.id.ic_delete); // hidden at start
         fileSizeTxt = view.findViewById(R.id.fileSizeTxt);
         distToMapTxt = view.findViewById(R.id.distToMapTxt);
         locIcon = view.findViewById(R.id.locationIcon);
@@ -1004,6 +1009,20 @@ public class CustomAdapter extends BaseAdapter {
             }
         } else {
             nameTxt.setText(pdfMap.getName());
+            /*renameTxt.setText(pdfMap.getName());
+            // 2-4-2022 editing state
+            if (editing) {
+                deleteBtn.setVisibility(View.VISIBLE);
+                renameTxt.setVisibility(view.VISIBLE);
+                nameTxt.setVisibility(View.GONE);
+
+            }
+            // 2-4-2022 normal state
+            else {
+                deleteBtn.setVisibility(View.GONE);
+                renameTxt.setVisibility(view.GONE);
+                nameTxt.setVisibility(View.VISIBLE);
+            }*/
             fileSizeTxt.setText(pdfMap.getFileSize());
             // getDistToMap sets miles also
             distToMapTxt.setText(pdfMap.getDistToMap());
@@ -1018,6 +1037,8 @@ public class CustomAdapter extends BaseAdapter {
 
         // VIEW ITEM CLICK
         view.setOnClickListener(view1 -> {
+            // if editing do not open the map
+            //if (editing) return;
             // Display the map
             String bounds = pdfMap.getBounds();
             if (bounds == null) {
@@ -1037,8 +1058,11 @@ public class CustomAdapter extends BaseAdapter {
             openPDFView(pdfMap.getPath(), pdfMap.getName(), bounds, mediaBox, viewPort);
         });
 
+
         // ITEM LONG CLICK - show menu delete item, rename item
         view.setOnLongClickListener(view12 -> {
+            //editing = true;
+
             // Open edit activity
             Intent i1 = new Intent(c, EditMapNameActivity.class);
             i1.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -1050,6 +1074,29 @@ public class CustomAdapter extends BaseAdapter {
             c.startActivity(i1);
             return true;
         });
+
+        // RENAME MAP
+        /*renameTxt.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                /*
+                 * When focus is lost save the entered value for
+                 * later use
+                 */
+                /*if (!hasFocus) {
+                    Log.d("getView","Focus has changed");
+                    String newMapName = ((EditText) v).getText()
+                            .toString();
+                    rename(pdfMap.getId(), newMapName);
+                }
+            }
+        });*/
+
+        // DELETE MAP
+        /*deleteBtn.setOnClickListener(view2 -> {
+            removeItem(pdfMap.getId());
+            Toast.makeText(c, "Map removed", Toast.LENGTH_LONG).show();
+        });*/
 
         return view;
     }

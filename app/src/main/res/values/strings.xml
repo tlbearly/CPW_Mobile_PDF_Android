@@ -56,7 +56,8 @@
 
 
     <!--string name="title_activity_web">Import Map</string-->
-    <string name="deleteAllDBrecords">Delete All Imported Maps</string>
+    <string name="deleteAllDBrecords">Delete All Maps</string>
+    <!--string name="editMap">Edit Maps</string-->
     <!--string name="edit">Edit</string-->
     <string name="delete">Delete</string>
     <!--string name="rename">Rename</string-->

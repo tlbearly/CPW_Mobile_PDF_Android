@@ -1273,20 +1273,28 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             return true;
         }*/
         else if (id == R.id.action_add_way_pt) {
-            addWayPtFlag = true;
-            clickedWP = -1; // hide balloon popups
-            newWP = false;
-            showAllWayPts = true;
-            wayPtMenuItem.setIcon(R.mipmap.ic_cyan_pin_forgnd);
-            Toast.makeText(PDFActivity.this, getResources().getString(R.string.wayPtInstr), Toast.LENGTH_LONG).show();
+            // turn off add waypoint pin
+            if (addWayPtFlag){
+                addWayPtFlag = false;
+                wayPtMenuItem.setIcon(R.mipmap.ic_grey_pin_forgnd);
+            }
+            // turn on add waypoint pin
+            else {
+                addWayPtFlag = true;
+                clickedWP = -1; // hide balloon popups
+                newWP = false;
+                showAllWayPts = true;
+                wayPtMenuItem.setIcon(R.mipmap.ic_cyan_pin_forgnd);
+                Toast.makeText(PDFActivity.this, getResources().getString(R.string.wayPtInstr), Toast.LENGTH_LONG).show();
+            }
         }
         else if (id == R.id.action_add_way_pt_menu) {
-            addWayPtFlag = true;
-            clickedWP = -1; // hide balloon popups
-            newWP = false;
-            showAllWayPts = true;
-            wayPtMenuItem.setIcon(R.mipmap.ic_cyan_pin_forgnd);
-            Toast.makeText(PDFActivity.this, getResources().getString(R.string.wayPtInstr), Toast.LENGTH_LONG).show();
+                addWayPtFlag = true;
+                clickedWP = -1; // hide balloon popups
+                newWP = false;
+                showAllWayPts = true;
+                wayPtMenuItem.setIcon(R.mipmap.ic_cyan_pin_forgnd);
+                Toast.makeText(PDFActivity.this, getResources().getString(R.string.wayPtInstr), Toast.LENGTH_LONG).show();
         }
         else if (id == R.id.action_help){
             Intent i = new Intent(PDFActivity.this, PDFHelpActivity.class);

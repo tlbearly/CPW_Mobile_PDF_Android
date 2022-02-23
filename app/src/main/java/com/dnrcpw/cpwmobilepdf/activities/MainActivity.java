@@ -55,7 +55,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     boolean sortFlag = true;
     Toolbar toolbar;
     Integer selectedId;
+    //FloatingActionButton fab;
     static final int MY_PERMISSIONS_LOCATION = 0;
+    //View sortView;
+    //boolean hideMoreIcon = false; // so we can hide the hamburger menu during editing
    /* private final int IMPORT_REQUEST_CODE = 1;
     private final int RENAME_REQUEST_CODE = 2;
     private final int DELETE_REQUEST_CODE = 3;*/
@@ -94,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        //sortView = findViewById(R.id.sortByDropDown);
         // FILL SORT BY OPTIONS
         sortByDropdown = findViewById(R.id.sortBy);
         //create an adapter to describe how the items are displayed, adapters are used in several places in android.
@@ -482,6 +486,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             // RENAME MAP
             else if (i.getExtras().containsKey("RENAME") && i.getExtras().containsKey("NAME") && i.getExtras().containsKey("ID")) {
                 // Renamed map, update with new name
+                //myAdapter.setEditing(false);
                 String name = i.getExtras().getString("NAME");
                 int id = i.getExtras().getInt("ID");
                 myAdapter.rename(id, name);
@@ -494,6 +499,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             // DELETE MAP
             else if (i.getExtras().containsKey("DELETE") && i.getExtras().containsKey("ID")) {
                 // Delete map, remove from Imported Maps list, delete from database
+                //myAdapter.setEditing(false);
                 selectedId = i.getExtras().getInt("ID");
                 myAdapter.removeItem(selectedId);
                 Toast.makeText(MainActivity.this, "Map removed", Toast.LENGTH_LONG).show();
@@ -725,6 +731,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        /* if (hideMoreIcon) {
+            // hide more icon when editing
+            return false;
+        }*/
         // Disable "Delete all Imported Maps" if there aren't any maps
         MenuItem delMapsMenuItem = toolbar.getMenu().findItem(R.id.action_deleteAll);
         if (myAdapter.pdfMaps.size() == 0) {
@@ -744,6 +754,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // Found in res/menu/menu_main.xml
         int id = item.getItemId();
 
+        // Rename or delete map
+       /* if (id == R.id.action_edit){
+            myAdapter.setEditing(true);
+            setTitle("Edit");
+            fab.setVisibility(View.GONE);
+            // display back arrow
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            sortView.setVisibility(View.GONE);
+            hideMoreIcon = true;
+            invalidateOptionsMenu();
+            lv.setAdapter(myAdapter);
+            //Snackbar.make(findViewById(android.R.id.content), "Select map to rename or delete.", Snackbar.LENGTH_LONG).show();
+            return true;
+        } else*/
         // Delete all imported maps
         if (id == R.id.action_deleteAll){
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -756,7 +780,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Intent intent = new Intent(MainActivity.this, HelpActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
+            return true;
         }
+        /*else if (id == android.R.id.home){
+            myAdapter.setEditing(false);
+            setTitle("Imported Maps");
+            fab.setVisibility(View.VISIBLE);
+            sortView.setVisibility(View.VISIBLE);
+            hideMoreIcon = false;
+            invalidateOptionsMenu();
+            // display back arrow
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            lv.setAdapter(myAdapter);
+            return true;
+        }*/
 
         return super.onOptionsItemSelected(item);
     }

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -20,6 +19,14 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <!-- Red X button -->
+            <!--ImageView
+                android:id="@+id/ic_delete"
+                android:layout_width="40dp"
+                android:layout_height="80dp"
+                android:contentDescription="@string/deleteFile"
+                android:src="@android:drawable/ic_delete"
+                android:visibility="gone"/-->
             <ImageView
                 android:id="@+id/pdfImage"
                 android:layout_width="90dp"
@@ -40,6 +47,23 @@
                     android:text="@string/name"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:textStyle="bold" />
+
+                <!-- Edit Map Name - did not work, scrolling irradically! -->
+                <!--EditText
+                    android:id="@+id/renameTxt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="10dp"
+                    android:hint="@string/renameMap"
+                    android:autofillHints="@string/renameMap"
+                    android:textStyle="bold"
+                    android:focusable="true"
+                    android:background="@drawable/edit_box"
+                    android:padding="8dp"
+                    android:focusableInTouchMode="true"
+                    android:inputType="text">
+                    <requestFocus />
+                </EditText-->
 
                 <LinearLayout
                     android:layout_width="match_parent"

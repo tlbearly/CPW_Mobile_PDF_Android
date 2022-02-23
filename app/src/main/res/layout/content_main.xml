@@ -41,6 +41,8 @@
             android:spinnerMode="dropdown" />
     </LinearLayout>
 
+    <!-- add afterDescendants to allow editing file name
+    android:descendantFocusability="afterDescendants"-->
     <ListView
         android:id="@+id/lv"
         android:layout_width="match_parent"

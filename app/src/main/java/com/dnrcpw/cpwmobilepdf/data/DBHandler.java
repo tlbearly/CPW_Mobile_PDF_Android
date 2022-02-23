@@ -314,7 +314,7 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(KEY_MAP_SORT, order);
         String id = "1";
         db.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
-        //db.close(); // 5-21-21
+        db.close(); //2-4-22 // 5-21-21
     }
 
     public String getMapSort() {
@@ -327,6 +327,7 @@ public class DBHandler extends SQLiteOpenHelper {
             if (cursor == null){
                 // Settings table does not exist. Create it.
                 createSettingsTable(db);
+                db.close(); // 2-4-22
                 return "date";
             }
             else {
@@ -335,13 +336,14 @@ public class DBHandler extends SQLiteOpenHelper {
                     order = cursor.getString(0);
                 }
                 cursor.close();
-                //db.close(); // 5-21-21
+                db.close(); // 2-4-22 got error that it was not closed   //5-21-21
                 return order;
             }
         }
         catch (SQLException e){
             // Error reading the database Settings table. Re-create the table
             createSettingsTable(db);
+            db.close(); // 2-4-22
             return "date"; // default value
         }
     }
