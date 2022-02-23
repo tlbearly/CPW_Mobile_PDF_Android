@@ -63,16 +63,16 @@ public class CustomAdapter extends BaseAdapter {
     private Boolean loading = false;
     ProgressBar progressBar;
     int progress = 0;
-    boolean editing = false;
+    //boolean editing = false;
 
     public CustomAdapter(Context c, ArrayList<PDFMap> pdfMaps) {
         this.c = c;
         this.pdfMaps = pdfMaps;
     }
 
-    public void setEditing(Boolean value){
+    /*public void setEditing(Boolean value){
         this.editing = value;
-    }
+    }*/
     public void SortByName(){
         // Sort array list pdfMaps of objects of type pdfMap alphabetically by name.
         Collections.sort((this.pdfMaps), PDFMap.NameComparator);
@@ -122,14 +122,14 @@ public class CustomAdapter extends BaseAdapter {
         progressBar.setVisibility(View.VISIBLE);
     }
 
-    private void dismissProgressBar() {
+    /*private void dismissProgressBar() {
         progressBar.setVisibility(View.GONE);
-    }
+    }*/
 
-    private void updateProgressBar(int progress){
+    /*private void updateProgressBar(int progress){
         progressBar.setVisibility(View.VISIBLE);
         progressBar.setProgress(progress);
-    }
+    }*/
 
     private static class ImportMapTask extends AsyncTask<Integer, Integer, String> {
         //private final WeakReference<CustomAdapter> customAdapterRef;
