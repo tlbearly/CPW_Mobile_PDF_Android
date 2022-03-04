@@ -448,8 +448,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     .onTap(e -> {
                         //Log.d("onTap","Clicked on map. clickedWP="+clickedWP);
                         updatePageSize(); // get new pdf page width and height
-                        // if no waypoints are shown return and not adding a new waypoint
-                        if (!showAllWayPts && !addWayPtFlag) {
+                        // if not adding a new waypoint return
+                        if (!addWayPtFlag) {//if (!showAllWayPts && !addWayPtFlag) {
                             //Toast.makeText(PDFActivity.this,"Waypoints are hidden.",Toast.LENGTH_LONG).show();
                             return false;
                         }
@@ -1213,12 +1213,15 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 Toast.makeText(PDFActivity.this,"Problem deleting "+mapName, Toast.LENGTH_LONG).show();
             }
         }
+        // All Waypoint Labels
         else if (id == R.id.action_showAll){
             // isChecked() returns the state before the user clicked on it
+            // uncheck show all labels
             if (action_showAll.isChecked()){
                 action_showAll.setChecked(false);
                 showAllWayPtLabels = false;
             }
+            // check show all labels, also turn on show waypoints
             else{
                 action_showAll.setChecked(true);
                 showAllWayPtLabels = true;
@@ -1226,12 +1229,15 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 showAllWayPts = true;
             }
         }
+        // Waypoints
         else if (id == R.id.action_showWayPts){
             // isChecked() returns the state before the user clicked on it
+            // uncheck waypoints
             if (action_showWayPts.isChecked()){
                 action_showWayPts.setChecked(false);
                 showAllWayPts = false;
             }
+            // check waypoints
             else{
                 action_showWayPts.setChecked(true);
                 showAllWayPts = true;

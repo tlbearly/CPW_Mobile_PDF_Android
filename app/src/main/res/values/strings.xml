@@ -115,7 +115,7 @@
 
     <!-- View Map Help -->
     <string name="help_view_map_title">View Map Help</string>
-    <string name="help_view_map">Your current latitude and longitude will be displayed at the top of the map, and it will be displayed on the map as a cyan circle outlined in white. Double tap or pinch to zoom. To add waypoints, click on the push pin icon at the top-right, then click the map at the desired location. If the waypoint label is showing, clicking on the map will hide it. Clicking on a waypoint will display it\'s label. Clicking on a waypoint label will let you edit the label and pushpin color.</string>
+    <string name="help_view_map">Your current latitude and longitude will be displayed at the top of the map, and it will be displayed on the map as a cyan circle outlined in white. Double tap or pinch to zoom. To add waypoints, click on the push pin icon at the top-right, then click the map at the desired location. To cancel adding a waypoint, click again on the push pin icon at the top-right. If the waypoint label is showing, clicking on the map will hide it. Clicking on a waypoint will display it\'s label. Clicking on a waypoint label will let you edit the label and pushpin color.</string>
 
     <!-- Error Messages -->
     <string name="deleteFile">Problem removing map file from App.</string>

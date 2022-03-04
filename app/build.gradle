@@ -16,8 +16,8 @@ android {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 19
         targetSdkVersion 31
-        versionCode 11
-        versionName "1.0.9"
+        versionCode 12
+        versionName "1.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions */
