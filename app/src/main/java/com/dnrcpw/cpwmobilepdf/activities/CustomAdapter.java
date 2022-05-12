@@ -297,11 +297,12 @@ public class CustomAdapter extends BaseAdapter {
                     //---------------------------------------------
                     PdfDictionary measure = vpDict.getAsDict(PdfName.MEASURE);
                     // get unit box correction for BBox if [0,1, 0,0, 1,0, 1,1] needs no correction
-                    String unitBox = measure.get(PdfName.BOUNDS).toString();
+                    /*String unitBox = measure.get(PdfName.BOUNDS).toString();
                     unitBox = unitBox.trim();
                     unitBox = unitBox.substring(1,unitBox.length() -1);
                     unitBox = unitBox.replaceAll(",", ""); // remove commas
                     units = unitBox.split(" ");
+                    */
 
                     // adjust bbox by unitBox
                     // top-left
@@ -310,12 +311,28 @@ public class CustomAdapter extends BaseAdapter {
                     // bottom-left map boundary * unit square
                     Double bboxX2 = Double.valueOf(bboxArr[2]) + (Double.valueOf(bboxArr[2]) - Double.valueOf(bboxArr[0])) * Double.valueOf(units[2]);
                     Double bboxY2 = Double.valueOf(bboxArr[3]) + (Double.valueOf(bboxArr[3]) - Double.valueOf(bboxArr[1])) * (Double.valueOf(units[1]) - 1);*/
+
+                    // using this one
+                    /*
                     double bboxX1 = Double.parseDouble(bboxArr[0]) + ((Double.parseDouble(units[0]) - 0) * Double.parseDouble(bboxArr[0]));
                     double bboxY1 = Double.parseDouble(bboxArr[1]) + ((Double.parseDouble(units[1]) - 1) * Double.parseDouble(bboxArr[1]));
                     // bottom-right map boundary * unit square
                     double bboxX2 = Double.parseDouble(bboxArr[2]) + ((Double.parseDouble(units[4]) - 1) * Double.parseDouble(bboxArr[2]));
                     double bboxY2 = Double.parseDouble(bboxArr[3]) + ((Double.parseDouble(units[5]) - 0) * Double.parseDouble(bboxArr[3]));
+                    */
+
+                    // No adjustment with unit box
+
+                    double bboxX1 = Double.parseDouble(bboxArr[0]);
+                    double bboxY1 = Double.parseDouble(bboxArr[1]);
+                    // bottom-right map boundary * unit square
+                    double bboxX2 = Double.parseDouble(bboxArr[2]);
+                    double bboxY2 = Double.parseDouble(bboxArr[3]);
+
+
+
                     //Log.d("viewport", viewport);
+
                     // Adjust view port by unit box???????
                     viewport = bboxX1+" "+bboxY1+" "+bboxX2+" "+bboxY2;
                     //Log.d("adjusted viewport", viewport);

@@ -55,6 +55,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /* show the map */
 public class PDFActivity extends AppCompatActivity implements SensorEventListener {
+    boolean debug = true;
     PDFView pdfView;
     Menu mapMenu;
     // Color and style of current location point
@@ -62,6 +63,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     Paint cyanTrans;
     Paint red;
     Paint green; // debug
+    Paint purple; // debug
     Paint white;
     Paint black;
     Paint outline;
@@ -149,6 +151,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     AtomicReference<Double> optimalPageWidth = new AtomicReference<>((double) 0);
     AtomicReference<Double> optimalPageHeight = new AtomicReference<>((double) 0);
     MenuItem wayPtMenuItem;
+    Double[] LatLong;
 
     @SuppressLint("SourceLockedOrientationActivity")
     @Override
@@ -230,20 +233,28 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             strBounds = bounds;
 
             //Toast.makeText(PDFActivity.this, bounds, Toast.LENGTH_LONG).show();
-            int pos = bounds.indexOf(" ");
-            lat1 = Double.parseDouble(bounds.substring(0, pos));
-            bounds = bounds.substring(pos + 1); // strip off 'lat1 '
-            pos = bounds.indexOf(" ");
-            long1 = Double.parseDouble(bounds.substring(0, pos));
-            // FIND LAT2
-            bounds = bounds.substring(pos + 1); // strip off 'long1 '
-            pos = bounds.indexOf(" ");
-            lat2 = Double.parseDouble(bounds.substring(0, pos));
-            // FIND LONG2
-            pos = bounds.lastIndexOf(" ");
-            long2 = Double.parseDouble(bounds.substring(pos + 1));
-            longDiff = (long2 + 180) - (long1 + 180);
-            latDiff = (90 - lat1) - (90 - lat2);
+            // Get Latitude, Longitude bounds.
+            // lat1 and long1 are the smallest values SW corner
+            // lat2 and long2 are the largest NE corner
+            String[] arrLatLong = bounds.split(" ");
+            // convert strings to double
+            LatLong = new Double[arrLatLong.length];
+            for (int l=0; l<arrLatLong.length; l++) {
+                LatLong[l] = Double.parseDouble(arrLatLong[l]);
+            }
+            // Find the smallest and largest values
+            lat1 = LatLong[0];
+            long1 = LatLong[1];
+            lat2 = LatLong[0];
+            long2 = LatLong[1];
+            for (int l=0; l<LatLong.length; l=l+2) {
+                if (LatLong[l] < lat1) lat1 = LatLong[l];
+                if (LatLong[l] > lat2) lat2 = LatLong[l];
+                if (LatLong[l+1] < long1) long1 = LatLong[l+1];
+                if (LatLong[l+1] > long2) long2 = LatLong[l+1];
+            }
+            longDiff = long2 - long1; //(long2 + 180) - (long1 + 180);
+            latDiff = lat2 - lat1; //(90 - lat1) - (90 - lat2);
         } catch (AssertionError | Exception ae){
             Toast.makeText(PDFActivity.this, "Trouble reading lat/long from Geo PDF. Read: " + bounds, Toast.LENGTH_LONG).show();
             finish();
@@ -307,8 +318,32 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             pos = viewPort.indexOf(" ");
             bBoxY2 = Double.parseDouble(viewPort.substring(pos + 1));
 
+            // 5-11-22 A map made by Melissa in ArcGIS had these switched
+            // bBoxX1 should be less than bBoxX2
+            // bBoxY1 should be greater than bBoxY2
+            double tmp;
+            if(bBoxY1 < bBoxY2) {
+                tmp = bBoxY1;
+                bBoxY1 = bBoxY2;
+                bBoxY2 = tmp;
+            }
+            if (bBoxX2 < bBoxX1){
+                tmp = bBoxX1;
+                bBoxX1 = bBoxX2;
+                bBoxX2 = tmp;
+            }
+
+
+
+
             marginTop = mediaBoxY2 - bBoxY1;
             marginBottom = bBoxY2;
+
+
+            // try switching top and bottom Doesn't Work!!!!
+            //marginBottom = mediaBoxY2 - bBoxY1;
+            //marginTop = bBoxY2;
+
             marginLeft = bBoxX1;
             marginRight = mediaBoxX2 - bBoxX2;
 
@@ -386,6 +421,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         cyanTrans = new Paint(Paint.ANTI_ALIAS_FLAG);
         red = new Paint(Paint.ANTI_ALIAS_FLAG);
         green = new Paint(Paint.ANTI_ALIAS_FLAG); // debug
+        purple = new Paint(Paint.ANTI_ALIAS_FLAG); // debug
         white = new Paint(Paint.ANTI_ALIAS_FLAG);
         black = new Paint(Paint.ANTI_ALIAS_FLAG);
         outline = new Paint();
@@ -401,6 +437,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         red.setStyle(Paint.Style.FILL);
         green.setColor(Color.GREEN); // debug
         green.setStyle(Paint.Style.FILL); // debug
+        purple.setColor(Color.argb(100,255,0,255)); // debug
+        purple.setStyle(Paint.Style.FILL); // debug
         black.setColor(Color.BLACK);
         black.setStyle(Paint.Style.FILL);
         cyanTrans.setColor(argb(40, 0, 255, 255));
@@ -449,7 +487,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         //Log.d("onTap","Clicked on map. clickedWP="+clickedWP);
                         updatePageSize(); // get new pdf page width and height
                         // if not adding a new waypoint return
-                        if (!addWayPtFlag) {//if (!showAllWayPts && !addWayPtFlag) {
+                        //if (!addWayPtFlag) {
+                        if (!showAllWayPts && !addWayPtFlag) {
                             //Toast.makeText(PDFActivity.this,"Waypoints are hidden.",Toast.LENGTH_LONG).show();
                             return false;
                         }
@@ -669,33 +708,80 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 double marginx = toScreenCordX * marginXworld;
                 double marginy = toScreenCordY * marginYworld;
 
+                double x1,x2, y1, y2;
+                //debug=false;
+                if (debug ) {
+                /*    Log.d("MediaBox","0 0 "+mediaBoxX2+" "+mediaBoxY2);
+                    Log.d("BBox",bBoxX1+" "+bBoxY1+" "+bBoxX2+" "+bBoxY2);
+                    Log.d("Margins","Left="+marginLeft+" Right="+marginRight+" Top="+marginTop+" Bottom="+marginBottom);
+                    Log.d("PageWidth",""+(optimalPageWidth.get()*zoom));
+                    Log.d("Long1",""+""+long1);
+                    Log.d("Long2",""+long2);
+                    Log.d("longDiff",""+longDiff);
+                    Log.d("marginx",""+marginx);
+                    Log.d("marginL",""+marginL);
+                    Log.d("PageHeight",""+(optimalPageHeight.get()*zoom));
+                    Log.d("Lat1",""+""+lat1);
+                    Log.d("Lat2",""+lat2);
+                    Log.d("latDiff",""+latDiff);
+                    Log.d("marginy",""+marginy);
+                    Log.d("marginT",""+marginT);*/
+                    // debug: blue dots at lat long bounds
+                    //currentLocationX = (((longNow + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                    //currentLocationY = ((((90 - latNow) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
 
-                // debug:  place black dots at page width/height
-                //canvas.translate(0, 0);
-                //canvas.drawCircle(0, 0, 5f, black);
-                //canvas.drawCircle((float) (pdfView.getOptimalPageWidth() * zoom), (float) (pdfView.getOptimalPageHeight() * zoom), 5f, black);
+                    // long1, lat1
+                    x1 = (((LatLong[1] + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                     y1 = ((((90 - LatLong[0]) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
+                    canvas.drawCircle((float) x1+9f, (float) y1+9f, 18f, blue);
+                    // long2, lat2
+                    x1 = (((LatLong[3] + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                    y1 = ((((90 - LatLong[2]) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
+                    canvas.drawCircle((float) x1+9f, (float) y1+9f, 18f, blue);
+                    // long3,lat3
+                    x1 = (((LatLong[5] + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                    y1 = ((((90 - LatLong[4]) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
+                    canvas.drawCircle((float) x1+9f, (float) y1+9f, 18f, blue);
+                    // long4, lat4
+                    x1 = (((LatLong[7] + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                    y1 = ((((90 - LatLong[6]) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
+                    canvas.drawCircle((float) x1+9f, (float) y1+9f, 18f, blue);
 
-                // debug: green dots at bbox
-                //double x1 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * bBoxX1));
-                //double y1 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * bBoxY1));
-                //canvas.drawCircle((float)x1-5f,(float)y1-5f,10f, green);
-                //double x2 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * bBoxX2));
-                //double y2 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * bBoxY2));
-                //canvas.drawCircle((float)x2-5f,(float)y2-5f,10f, green);
-                //x1 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * bBoxX2));
-                //y1 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * bBoxY1));
-                //canvas.drawCircle((float)x1-7f,(float)y1-7f,14f, green);
-                //x2 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * bBoxX1));
-                //y2 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * bBoxY2));
-                //canvas.drawCircle((float)x2-7f,(float)y2-7f,14f, green);
+                    // debug:  place black dots at page width/height
+                    canvas.translate(0, 0);
+                    canvas.drawCircle(5, 0, 5f, black);
+                    canvas.drawCircle((float) (optimalPageWidth.get() * zoom)-5f, (float) (optimalPageHeight.get() * zoom)-5f, 5f, black);
 
-                // debug: red dots at page margins
-                //canvas.drawCircle((float) marginL-5f, (float) marginT-5f, 10f, red);
-                // Toast.makeText(PDFActivity.this, "xRatio="+xRatio+"  left=" + x1+"  top="+y1+"  width="+pdfView.getOptimalPageWidth(), Toast.LENGTH_SHORT).show();
-                //x1 = ((pdfView.getOptimalPageWidth() * zoom) - (toScreenCordX * marginRight));
-                //y1 = ((pdfView.getOptimalPageHeight() * zoom) - (toScreenCordY * marginBottom));
-                //canvas.drawCircle((float) x1-5f, (float) y1-5f, 10f, red);
+                    // debug: green dots at bbox Viewport
+                    canvas.translate(0, 0);
+                    x1 = toScreenCordX * bBoxX1;
+                    y1 = (optimalPageHeight.get() * zoom) - toScreenCordY * bBoxY1;
+                    canvas.drawCircle((float)x1+5f,(float)y1+5f,14f, green);
+                    x2 = toScreenCordX * bBoxX2;
+                    y2 = (optimalPageHeight.get() * zoom) - toScreenCordY * bBoxY2;
+                    canvas.drawCircle((float)x2-5f,(float)y2-5f,14f, green);
+                    x1 = toScreenCordX * bBoxX2;
+                    y1 = (optimalPageHeight.get() * zoom) - toScreenCordY * bBoxY1;
+                    canvas.drawCircle((float)x1-5f,(float)y1+5f,14f, green);
+                    x2 = toScreenCordX * bBoxX1;
+                    y2 = (optimalPageHeight.get() * zoom) - toScreenCordY * bBoxY2;
+                    canvas.drawCircle((float)x2+5f,(float)y2-5f,14f, green);
 
+                    // debug: purple dots at MediaBox
+                    x2 = toScreenCordX * mediaBoxX2;
+                    y2 = toScreenCordY * mediaBoxY2;
+                    canvas.drawCircle((float)x2-8f,(float)y2-8f,16f, purple);
+
+
+                    // debug: red dots at page margins
+                   canvas.drawCircle((float) marginL+5f, (float) marginT+5f, 10f, red);
+                    // Toast.makeText(PDFActivity.this, "xRatio="+xRatio+"  left=" + x1+"  top="+y1+"  width="+pdfView.getOptimalPageWidth(), Toast.LENGTH_SHORT).show();
+                    x1 = ((optimalPageWidth.get() * zoom) - (toScreenCordX * marginRight));
+                    y1 = ((optimalPageHeight.get() * zoom) - (toScreenCordY * marginBottom));
+                    canvas.drawCircle((float) x1-5f, (float) y1-5f, 10f, red);
+                    canvas.drawCircle((float) marginL+5f, (float) y1-5f, 10f, red);
+                    canvas.drawCircle((float) x1-5f, (float) marginT+5f, 10f, red);
+                }
                 // debug lat/long at corners for Poudre Park FS
                 //x1 = (((-105.37499 + 180) - (long1 + 180)) / longDiff) * ((pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
                 //y1 = ((((90 - 40.75) - (90 - lat2)) / latDiff) * ((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
@@ -752,8 +838,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //canvas.translate((float) -currentLocationX, (float) -currentLocationY);
                     for (int i12 = 0; i12 < wayPts.size(); i12++) {
                         //Log.d("PDFActivity","drawing waypoint "+i12);
-                        double xLong = wayPts.get(i12).getX();//*(float)zoom;
-                        double yLat = wayPts.get(i12).getY();//*(float)zoom;
+                        double xLong = wayPts.get(i12).getX();
+                        double yLat = wayPts.get(i12).getY();
                         // convert lat, long to screen coordinates
                         float x = (float) ((((xLong + 180) - (long1 + 180)) / longDiff) * (((optimalPageWidth.get() * zoom) - marginx)) + marginL);
                         float y = (float) ((((90 - yLat) - (90 - lat2)) / latDiff) * (((optimalPageHeight.get() * zoom) - marginy)) + marginT);
