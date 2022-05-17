@@ -293,7 +293,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             return;
         }
         try {
-            // GET MARGINS - origin is at bottom left. BBox[23 570 768 48]
+            // GET MARGINS
+            // bBox x1,y1 is lower-left
+            // bBox x2,y2 is upper-right
+            //  - origin at top-left: BBox[23 570 768 48]
+            //  - origin at bottom-left: BBox[23 48 768 570] (Melissa's file)
+            //  - origin at bottom-right: BBox[768 48 23 570]
             try {
                 viewPort = Objects.requireNonNull(i.getExtras()).getString("VIEWPORT");
             } catch (NullPointerException e) {
@@ -318,28 +323,21 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             pos = viewPort.indexOf(" ");
             bBoxY2 = Double.parseDouble(viewPort.substring(pos + 1));
 
-            // 5-11-22 A map made by Melissa in ArcGIS had these switched
-            // bBoxX1 should be less than bBoxX2
-            // bBoxY1 should be greater than bBoxY2
-            double tmp;
+            // 5-17-22 A map made by Melissa in ArcGIS had these switched
             if(bBoxY1 < bBoxY2) {
-                tmp = bBoxY1;
-                bBoxY1 = bBoxY2;
-                bBoxY2 = tmp;
+                marginTop = bBoxY1;
+                marginBottom = mediaBoxY2 - bBoxY2;
+            }else{
+                marginTop = mediaBoxY2 - bBoxY1;
+                marginBottom = bBoxY2;
             }
-            if (bBoxX2 < bBoxX1){
-                tmp = bBoxX1;
-                bBoxX1 = bBoxX2;
-                bBoxX2 = tmp;
+            if (bBoxX1 < bBoxX2){
+                marginLeft = bBoxX1;
+                marginRight = mediaBoxX2 - bBoxX2;
+            }else{
+                marginLeft = bBoxX2;
+                marginRight = mediaBoxX2 - bBoxX1;
             }
-
-            marginTop = mediaBoxY2 - bBoxY1;
-            marginBottom = bBoxY2;
-            // try switching top and bottom Doesn't Work!!!!
-            //marginBottom = mediaBoxY2 - bBoxY1;
-            //marginTop = bBoxY2;
-            marginLeft = bBoxX1;
-            marginRight = mediaBoxX2 - bBoxX2;
 
             mediaBoxWidth = mediaBoxX2 - mediaBoxX1;
             mediaBoxHeight = mediaBoxY2 - mediaBoxY1;
