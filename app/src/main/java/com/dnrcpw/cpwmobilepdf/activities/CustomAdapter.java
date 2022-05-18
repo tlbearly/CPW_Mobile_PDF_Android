@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.ParcelFileDescriptor;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -849,7 +848,7 @@ public class CustomAdapter extends BaseAdapter {
                     map = pdfMaps.get(i);
                     try {
                         // Check if name has change. If not return
-                        Log.d("CustomAdapter","Rename "+map.getName()+" to "+name);
+                        //Log.d("CustomAdapter","Rename "+map.getName()+" to "+name);
                         if (name.equals(map.getName())) return;
                         File sdcard = c.getFilesDir();
                         File file = new File(map.getPath());
