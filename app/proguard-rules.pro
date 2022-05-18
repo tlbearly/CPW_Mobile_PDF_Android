@@ -26,3 +26,8 @@
 
 # for pdfium when using TalbotGooday/AndroidPdfViewer
 -keep class com.shockwave.**
+
+# for iText added 5-18-22 didn't help still getting missing class errors!!!!!
+#-keep class org.spongycastle.cert.**
+#-keep class com.madgag.spongycastle.cms.**
+#-keep class org.spongycastle.cms.CMSEnvelopedData
