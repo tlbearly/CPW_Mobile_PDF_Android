@@ -325,8 +325,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
             // 5-17-22 A map made by Melissa in ArcGIS had these switched
             if(bBoxY1 < bBoxY2) {
-                marginTop = bBoxY1;
-                marginBottom = mediaBoxY2 - bBoxY2;
+                marginTop = mediaBoxY2 - bBoxY2;
+                marginBottom = bBoxY1;
             }else{
                 marginTop = mediaBoxY2 - bBoxY1;
                 marginBottom = bBoxY2;
