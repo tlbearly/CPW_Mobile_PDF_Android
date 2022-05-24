@@ -919,15 +919,43 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 }
                                 // black border
                                 Paint recCol = new Paint();
-                                recCol.setColor(Color.BLACK);
-                                recCol.setStrokeWidth(3);
-                                canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y + offsetYBox - startY, recCol);
-                                // white rectangle
-                                recCol.setColor(Color.WHITE);
+                                int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+                                switch (currentNightMode) {
+                                    case Configuration.UI_MODE_NIGHT_NO:
+                                        // Night mode is not active, we're using the light theme
+                                        // black border
+                                        recCol.setColor(Color.BLACK);
+                                        recCol.setStrokeWidth(3);
+                                        canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y + offsetYBox - startY, recCol);
+                                        // white rectangle
+                                        recCol.setColor(Color.WHITE);
+                                        recCol.setStrokeWidth(0); // solid fill
+                                        canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
+                                        // white text and triangle
+                                        txtCol.setColor(Color.BLACK);
+                                        recCol.setColor(Color.BLACK);
+                                        canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
+                                        drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
+                                        break;
+                                    case Configuration.UI_MODE_NIGHT_YES:
+                                        // Night mode is active, we're using dark theme
+                                        // White border
+                                        recCol.setColor(Color.BLACK);
+                                        recCol.setStrokeWidth(3);
+                                        canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y + offsetYBox - startY, recCol);
+                                        // black rectangle
+                                        recCol.setColor(Color.GRAY);
+                                        recCol.setStrokeWidth(0); // solid fill
+                                        canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
+                                        // white text
+                                        txtCol.setColor(Color.WHITE);
+                                        recCol.setColor(Color.GRAY);
+                                        canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
+                                        drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
+                                        break;
+                                }
                                 recCol.setStrokeWidth(0); // solid fill
-
-                                canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, white);
-
+                                canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
                                 canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
                                 drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle);
                                 // add right arrow emoji in lsLayout defined above
@@ -979,17 +1007,60 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         }
                         // black border
                         Paint recCol = new Paint();
-                        recCol.setColor(Color.BLACK);
+                        int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+                        switch (currentNightMode) {
+                            case Configuration.UI_MODE_NIGHT_NO:
+                                // Night mode is not active, we're using the light theme
+                                // black border
+                                recCol.setColor(Color.BLACK);
+                                recCol.setStrokeWidth(3);
+                                canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y + offsetYBox - startY, recCol);
+                                // white rectangle
+                                recCol.setColor(Color.WHITE);
+                                recCol.setStrokeWidth(0); // solid fill
+                                canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
+                                // white text and triangle
+                                txtCol.setColor(Color.BLACK);
+                                recCol.setColor(Color.BLACK);
+                                canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
+                                drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
+                                break;
+                            case Configuration.UI_MODE_NIGHT_YES:
+                                // Night mode is active, we're using dark theme
+                                // White border
+                                recCol.setColor(Color.BLACK);
+                                recCol.setStrokeWidth(3);
+                                canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y + offsetYBox - startY, recCol);
+                                // black rectangle
+                                recCol.setColor(Color.GRAY);
+                                recCol.setStrokeWidth(0); // solid fill
+                                canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
+                                // white text
+                                txtCol.setColor(Color.WHITE);
+                                recCol.setColor(Color.GRAY);
+                                canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
+                                drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
+                                break;
+                        }
+                        recCol.setStrokeWidth(0); // solid fill
+                        canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
+                        canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
+                        drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYTriangle tells if triangle should be up or down
+
+                        /*recCol.setColor(Color.BLACK);
                         recCol.setStrokeWidth(3);
                         canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y + offsetYBox - startY, recCol);
                         // white rectangle
                         recCol.setColor(Color.WHITE);
                         recCol.setStrokeWidth(0); // solid fill
-
                         canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, white);
-
+                        // text
                         canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
-                        drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
+                        drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYTriangle tells if triangle should be up or down
+                        */
+
+
+
                         // add right arrow emoji in lsLayout defined above
                         canvas.save();
                         canvas.translate((x + (textWidth / 2)) + offsetBox + 10, y + offsetYBox - startY - boxHt - 12);
