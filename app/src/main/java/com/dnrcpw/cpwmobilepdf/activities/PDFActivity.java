@@ -25,6 +25,7 @@ import android.os.Looper;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
+import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -126,6 +127,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     //private DBHandler db2;
     private Boolean markCurrent;
     private int clickedWP; // index of waypoint that was clicked on
+    private int lastClickedWP;
     private Boolean newWP; // if added a new waypoint show balloon too
     private TextPaint txtCol; // text color for waypoint balloon popup
     private int txtSize; // text size of waypoint balloon popup
@@ -137,6 +139,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private int margX; // distance on each side of waypoint to register user click
     private int margTop; // distance above waypoint to register user click
     private int margBottom; // distance below waypoint to register user click
+    private boolean clickedTopHalf; // user clicked in top half of screen
+    private int screenWidth; // Used to see if popup balloon goes off page to the left or right
+    private int screenHeight; // Used to get clickedTopHalf
     private StaticLayout lsLayout; // arrow right in waypoint balloon popup
     private String path;
     String bounds;
@@ -181,6 +186,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         db = new DBWayPtHandler(this);
         markCurrent = false;
         clickedWP = -1; // index of waypoint that was clicked on
+        lastClickedWP = -1;
         newWP = false; // if added a new waypoint show balloon too
         txtCol = new TextPaint(); // text color for waypoint balloon popup
         txtSize = Math.round(getResources().getDimension(R.dimen.balloon_txt_size)); // text size of waypoint balloon popup ( used to be 30 pixels)
@@ -192,6 +198,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         margX = Math.round(getResources().getDimension(R.dimen.wayPtXmarg));
         margTop = Math.round(getResources().getDimension(R.dimen.wayPtTmarg));
         margBottom = Math.round(getResources().getDimension(R.dimen.wayPtBmarg));
+
+        // Get variables to check for user click in top or bottom half of screen
+        clickedTopHalf = false;
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        screenWidth = displayMetrics.widthPixels;
+        screenHeight = displayMetrics.heightPixels;
 
         // keep app from timing out and going to screen saver
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -466,20 +479,21 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         if (file.canRead()) {
             // LOAD IT, load only first page
             //
-// LISTEN FOR TAP TO ADD WAYPOINT OR DISPLAY PT DATA
-//
-            // pdfView.fromFile(file).defaultPage(0).pages(0).onRender((pages, pageWidth, pageHeight) -> {
+            // LISTEN FOR TAP TO ADD WAYPOINT OR DISPLAY PT DATA
+            //
             pdfView.fromFile(file).defaultPage(0).pages(0).onRender((onRenderListener) -> {
                 pdfView.fitToWidth(0); // optionally pass page number
-                //updatePageSize(); // get pdf page size
-                //optimalPageWidth.set((double)pdfView.getPageSize(0).getWidth()); // pdfView.getOptimalPageWidth();
-                //optimalPageHeight.set((double)pdfView.getPageSize(0).getHeight()); // pdfView.getOptimalPageHeight();
             })
+                    // SINGLE TAP
                     .onTap(e -> {
                         //Log.d("onTap","Clicked on map. clickedWP="+clickedWP);
                         updatePageSize(); // get new pdf page width and height
-                        // if not adding a new waypoint return
-                        //if (!addWayPtFlag) {
+                        // set flag if user clicked on a waypoint in the top or bottom half of the map. Used to display popup balloon above or below waypoint
+                        if ((clickedWP == -1 || lastClickedWP != clickedWP) && !showAllWayPtLabels) {
+                            if (e.getY() < screenHeight / 2) clickedTopHalf = true;
+                            else clickedTopHalf = false;
+                        }
+
                         if (!showAllWayPts && !addWayPtFlag) {
                             //Toast.makeText(PDFActivity.this,"Waypoints are hidden.",Toast.LENGTH_LONG).show();
                             return false;
@@ -510,39 +524,40 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             float textWidth = txtCol.measureText(desc);
                             int emoji_width1 = Math.round(getResources().getDimension(R.dimen.emoji_width));//used to be 80
                             int marg = Math.round(getResources().getDimension(R.dimen.ten_dp));//10
-                            // Test for balloon popup going off right side of screen
-                            int offsetBox;
-                            offsetBox = (int) Math.round((optimalPageWidth.get() * zoom) - (wayPtX + (textWidth / 2) + marg + emoji_width1));
-                            // Test for balloon popup going off the left side of screen
-                            if (offsetBox >= 0) {
-                                offsetBox = 0;
-                                if ((wayPtX - (textWidth / 2) - marg) < 0)
-                                    offsetBox = (int) (-1 * Math.round(wayPtX - (textWidth / 2) - marg));
-                            }
-                            if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
-                                    y < (wayPtY - startY + marg) && y >= (wayPtY - startY - boxHt - marg)) {
-                                try {
-                                    //Log.d("onTap","Clicked on waypoint balloon.");
-                                    // Open EditWayPointActivity
-                                    Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
-                                    //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                    i1.putExtra("CLICKED", clickedWP);
-                                    i1.putExtra("NAME", mapName);
-                                    i1.putExtra("PATH", path);
-                                    i1.putExtra("BOUNDS", strBounds);
-                                    i1.putExtra("MEDIABOX", strMediaBox);
-                                    i1.putExtra("VIEWPORT", strViewPort);
-                                    i1.putExtra("LANDSCAPE", landscape);
-                                    startActivity(i1);
-                                    // hide wait icon
-                                    wait.setVisibility(View.GONE);
-                                    return false;
-                                } catch (OutOfMemoryError memoryError){
-                                    Toast.makeText(PDFActivity.this, "Out of memory", Toast.LENGTH_SHORT).show();
-                                    return false;
-                                } catch (Exception error) {
-                                    Toast.makeText(PDFActivity.this, "Error: "+error.getMessage(), Toast.LENGTH_SHORT).show();
-                                    return false;
+                            if (pdfView.getCurrentXOffset() + wayPtX <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
+                                // Test for balloon popup going off right side of screen
+                                int offsetBox = getOffsetXBox((int) wayPtX, textWidth, emoji_width1);
+
+                                // Test for balloon popup going off top of screen
+                                int offsetYBox = 0;
+                                if (clickedTopHalf) {
+                                    offsetYBox = getOffsetYBox();//startY + boxHt;
+                                }
+                                if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
+                                        y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)) {
+                                    try {
+                                        //Log.d("onTap","Clicked on waypoint balloon.");
+                                        // Open EditWayPointActivity
+                                        Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
+                                        //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                        i1.putExtra("CLICKED", clickedWP);
+                                        i1.putExtra("NAME", mapName);
+                                        i1.putExtra("PATH", path);
+                                        i1.putExtra("BOUNDS", strBounds);
+                                        i1.putExtra("MEDIABOX", strMediaBox);
+                                        i1.putExtra("VIEWPORT", strViewPort);
+                                        i1.putExtra("LANDSCAPE", landscape);
+                                        startActivity(i1);
+                                        // hide wait icon
+                                        wait.setVisibility(View.GONE);
+                                        return false;
+                                    } catch (OutOfMemoryError memoryError) {
+                                        Toast.makeText(PDFActivity.this, "Out of memory", Toast.LENGTH_SHORT).show();
+                                        return false;
+                                    } catch (Exception error) {
+                                        Toast.makeText(PDFActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                                        return false;
+                                    }
                                 }
                             }
                         }
@@ -559,38 +574,46 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 float textWidth = txtCol.measureText(desc);
                                 int emoji_width1 = Math.round(getResources().getDimension(R.dimen.emoji_width));//used to be 80
                                 int marg = Math.round(getResources().getDimension(R.dimen.ten_dp));//10
-                                // Test for balloon popup going off right side of screen
-                                int offsetBox;
-                                offsetBox = (int) Math.round((optimalPageWidth.get() * zoom) - (wayPtX + (textWidth / 2) + marg + emoji_width1));
-                                // Test for balloon popup going off the left side of screen
-                                if (offsetBox >= 0) {
-                                    offsetBox = 0;
-                                    if ((wayPtX - (textWidth / 2) - marg) < 0)
-                                        offsetBox = (int) (-1 * Math.round(wayPtX - (textWidth / 2) - marg));
-                                }
-                                if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
-                                        y < (wayPtY - startY + marg) && y >= (wayPtY - startY - boxHt - marg)) {
-                                    try {
-                                        //Log.d("onTap","Clicked on waypoint balloon (all labels showing).");
-                                        // Open EditWayPointActivity
-                                        Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
-                                        //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                        i1.putExtra("CLICKED", j);
-                                        i1.putExtra("NAME", mapName);
-                                        i1.putExtra("PATH", path);
-                                        i1.putExtra("BOUNDS", strBounds);
-                                        i1.putExtra("MEDIABOX", strMediaBox);
-                                        i1.putExtra("VIEWPORT", strViewPort);
-                                        startActivity(i1);
-                                        // hide wait icon
-                                        wait.setVisibility(View.GONE);
-                                        return false;
-                                    } catch (OutOfMemoryError memoryError){
-                                        Toast.makeText(PDFActivity.this, "Out of memory", Toast.LENGTH_SHORT).show();
-                                        return false;
-                                    } catch (Exception error) {
-                                        Toast.makeText(PDFActivity.this, "Error: "+error.getMessage(), Toast.LENGTH_SHORT).show();
-                                        return false;
+                                if (pdfView.getCurrentXOffset() + wayPtX <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
+                                    // Test for balloon popup going off right or left side of screen
+                                    int offsetBox = getOffsetXBox((int) wayPtX, textWidth, emoji_width1);
+                                    //int offsetBox;
+                                    //offsetBox = (int) Math.round((optimalPageWidth.get() * zoom) - (wayPtX + (textWidth / 2) + marg + emoji_width1));
+                                    // Test for balloon popup going off the left side of screen
+                                    //if (offsetBox >= 0) {
+                                    //    offsetBox = 0;
+                                    //    if ((wayPtX - (textWidth / 2) - marg) < 0)
+                                    //        offsetBox = (int) (-1 * Math.round(wayPtX - (textWidth / 2) - marg));
+                                    //}
+                                    // Test for balloon popup going off top or bottom of screen
+                                    int offsetYBox = 0;
+                                    if (clickedTopHalf) {
+                                        offsetYBox = getOffsetYBox();//startY + boxHt;
+                                    }
+                                    if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
+                                            y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)) {
+                                        try {
+                                            //Log.d("onTap","Clicked on waypoint balloon (all labels showing).");
+                                            // Open EditWayPointActivity
+                                            Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
+                                            //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                            i1.putExtra("CLICKED", j);
+                                            i1.putExtra("NAME", mapName);
+                                            i1.putExtra("PATH", path);
+                                            i1.putExtra("BOUNDS", strBounds);
+                                            i1.putExtra("MEDIABOX", strMediaBox);
+                                            i1.putExtra("VIEWPORT", strViewPort);
+                                            startActivity(i1);
+                                            // hide wait icon
+                                            wait.setVisibility(View.GONE);
+                                            return false;
+                                        } catch (OutOfMemoryError memoryError) {
+                                            Toast.makeText(PDFActivity.this, "Out of memory", Toast.LENGTH_SHORT).show();
+                                            return false;
+                                        } catch (Exception error) {
+                                            Toast.makeText(PDFActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                                            return false;
+                                        }
                                     }
                                 }
                             }
@@ -620,6 +643,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                             if (x > (wayPtX - margX) && x < (wayPtX + margX) &&
                                     y < (wayPtY + margBottom) && y >= (wayPtY - margTop)) {
+                                lastClickedWP = clickedWP;
                                 clickedWP = i1;
                                 found = true;
                                 //Log.d("onTap","Clicked on existing waypoint.");
@@ -663,6 +687,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 for (int i1 = 0; i1 < wayPts.size(); i1++) {
                                     //if (wayPts.get(i1).getDesc().equals(desc)) {
                                     if (wayPts.get(i1).getX() == (float) longitude && wayPts.get(i1).getY() == (float) latitude) {
+                                        lastClickedWP = clickedWP;
                                         clickedWP = i1;
                                         //Log.d("onTap","Added to database, clickedWP="+clickedWP);
                                         break;
@@ -825,6 +850,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     }
                     for (int i1 = 0; i1 < wayPts.size(); i1++) {
                         if (wayPts.get(i1).getX() == theLong && wayPts.get(i1).getY() == theLat) {
+                            lastClickedWP = clickedWP;
                             clickedWP = i1;
                             //Log.d("onDraw","Added waypoint at current location, clickedWP="+clickedWP);
                             break;
@@ -874,32 +900,42 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             if (desc.length() > 13) desc = desc.substring(0, 12);
 
                             float textWidth = txtCol.measureText(desc);
-                            // Test for balloon popup going off right side of screen
-                            int offsetBox = (int) Math.round((optimalPageWidth.get() * zoom) - (x + (textWidth / 2) + marg + emoji_width));
-                            // Test for balloon popup going off the left side of screen
-                            if (offsetBox >= 0) {
-                                offsetBox = 0;
-                                if ((x - (textWidth / 2) - marg) < 0)
-                                    offsetBox = -1 * Math.round(x - (textWidth / 2) - marg);
+                            if (pdfView.getCurrentXOffset() + x <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
+                                // Test for balloon popup going off right or left side of screen
+                                int offsetBox = getOffsetXBox(x, textWidth, emoji_width);
+                                //int offsetBox = (int) Math.round((optimalPageWidth.get() * zoom) - (x + (textWidth / 2) + marg + emoji_width));
+                                // Test for balloon popup going off the left side of screen
+                                //if (offsetBox >= 0) {
+                                //    offsetBox = 0;
+                                //    if ((x - (textWidth / 2) - marg) < 0)
+                                //        offsetBox = -1 * Math.round(x - (textWidth / 2) - marg);
+                                //}
+                                // Test for waypoint at top half of screen, display popup below
+                                int offsetYBox = 0;
+                                int offsetYTriangle = 0;
+                                if (clickedTopHalf) {
+                                    offsetYBox = getOffsetYBox();//startY + boxHt;
+                                    offsetYTriangle = getOffsetYTriangle();
+                                }
+                                // black border
+                                Paint recCol = new Paint();
+                                recCol.setColor(Color.BLACK);
+                                recCol.setStrokeWidth(3);
+                                canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y + offsetYBox - startY, recCol);
+                                // white rectangle
+                                recCol.setColor(Color.WHITE);
+                                recCol.setStrokeWidth(0); // solid fill
+
+                                canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, white);
+
+                                canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
+                                drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle);
+                                // add right arrow emoji in lsLayout defined above
+                                //canvas.translate((x+(textWidth/2))+offsetBox,y-startY-boxHt-12);
+                                //lsLayout.draw(canvas);
+
+                                //canvas.translate((float) -currentLocationX, (float) -currentLocationY);
                             }
-                            // black border
-                            Paint recCol = new Paint();
-                            recCol.setColor(Color.BLACK);
-                            recCol.setStrokeWidth(3);
-                            canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y - startY, recCol);
-                            // white rectangle
-                            recCol.setColor(Color.WHITE);
-                            recCol.setStrokeWidth(0); // solid fill
-
-                            canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y - startY - 3, white);
-
-                            canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
-                            drawTriangle(canvas, recCol, (int) (x), (int) (y - startY - 3), marg);
-                            // add right arrow emoji in lsLayout defined above
-                            //canvas.translate((x+(textWidth/2))+offsetBox,y-startY-boxHt-12);
-                            //lsLayout.draw(canvas);
-
-                            //canvas.translate((float) -currentLocationX, (float) -currentLocationY);
                         }
                     }
                 }
@@ -921,33 +957,46 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     if (desc.length() > 13) desc = desc.substring(0, 12);
 
                     float textWidth = txtCol.measureText(desc);
-                    // Test for balloon popup going off right side of screen
-                    int offsetBox = (int) Math.round((optimalPageWidth.get() * zoom) - (x + (textWidth / 2) + marg + emoji_width));
-                    // Test for balloon popup going off the left side of screen
-                    if (offsetBox >= 0) {
-                        offsetBox = 0;
-                        if ((x - (textWidth / 2) - marg) < 0)
-                            offsetBox = -1 * Math.round(x - (textWidth / 2) - marg);
+
+                    // check if waypoint has scrolled off screen
+                    if (pdfView.getCurrentXOffset() + x <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
+                        int offsetBox = getOffsetXBox(x,textWidth,emoji_width);
+                        // Test for balloon popup going off right side of screen
+                        //int offsetBox = (int) Math.round(screenWidth - (pdfView.getCurrentXOffset() + x + ((textWidth / 2) + marg + emoji_width)));
+
+                        // Test for balloon popup going off the left side of screen
+                        //if (offsetBox >= 0) {
+                        //    offsetBox = 0;
+                        //    if ((pdfView.getCurrentXOffset() + x - (textWidth / 2) - marg) < 0)
+                        //        offsetBox = (int) (-1 * Math.round(pdfView.getCurrentXOffset() + x - (textWidth / 2) - marg));
+                        //}
+                        // Test for waypoint at top half of screen, display popup below
+                        int offsetYBox = 0;
+                        int offsetYTriangle = 0;
+                        if (clickedTopHalf) {
+                            offsetYBox = getOffsetYBox();//startY + boxHt;
+                            offsetYTriangle = getOffsetYTriangle();//2 * startY - 3 - boxHt;
+                        }
+                        // black border
+                        Paint recCol = new Paint();
+                        recCol.setColor(Color.BLACK);
+                        recCol.setStrokeWidth(3);
+                        canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y + offsetYBox - startY, recCol);
+                        // white rectangle
+                        recCol.setColor(Color.WHITE);
+                        recCol.setStrokeWidth(0); // solid fill
+
+                        canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, white);
+
+                        canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
+                        drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
+                        // add right arrow emoji in lsLayout defined above
+                        canvas.save();
+                        canvas.translate((x + (textWidth / 2)) + offsetBox + 10, y + offsetYBox - startY - boxHt - 12);
+                        lsLayout.draw(canvas);
+                        //canvas.save();
+                        canvas.restore();
                     }
-                    // black border
-                    Paint recCol = new Paint();
-                    recCol.setColor(Color.BLACK);
-                    recCol.setStrokeWidth(3);
-                    canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y - startY, recCol);
-                    // white rectangle
-                    recCol.setColor(Color.WHITE);
-                    recCol.setStrokeWidth(0); // solid fill
-
-                    canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y - startY - 3, white);
-
-                    canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
-                    drawTriangle(canvas, recCol, (int) (x), (int) (y - startY - 3), marg);
-                    // add right arrow emoji in lsLayout defined above
-                    canvas.save();
-                    canvas.translate((x + (textWidth / 2)) + offsetBox + 10, y - startY - boxHt - 12);
-                    lsLayout.draw(canvas);
-                    //canvas.save();
-                    canvas.restore();
                 }
 
                 //-----------------------
@@ -1057,25 +1106,57 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, px, resource.getDisplayMetrics());
     }*/
 
-    public void drawTriangle(Canvas canvas, Paint paint, int x, int y, int width) {
+    public int getOffsetXBox(float x,float textWidth, int emoji_width){
+        // Return the adjustment for popup going off screen horizontally
+        // Test for balloon popup going off right side of screen
+        int offsetBox = (int) Math.round(screenWidth - (pdfView.getCurrentXOffset() + x + ((textWidth / 2) + marg + emoji_width)));
+
+        // Test for balloon popup going off the left side of screen
+        if (offsetBox >= 0) {
+            offsetBox = 0;
+            if ((pdfView.getCurrentXOffset() + x - (textWidth / 2) - marg) < 0)
+                offsetBox = (int) (-1 * Math.round(pdfView.getCurrentXOffset() + x - (textWidth / 2) - marg));
+        }
+        return offsetBox;
+    }
+    public int getOffsetYBox(){
+        return startY + boxHt;
+    }
+    public int getOffsetYTriangle(){
+        return 2 * startY - 3 - boxHt;
+    }
+
+    public void drawTriangle(Canvas canvas, Paint paint, int x, int y, int width, int offsetYBox) {
         // ----  White triangle with black v. For waypoint balloon.
         // \  /
         //  \/
+        // if offsetYBox > 0 draw up arrow
         int halfWidth = width / 2;
-
         Path path = new Path();
-        path.moveTo(x - halfWidth, y); // Top left
-        path.lineTo(x, y + halfWidth); //  Bottom
-        path.lineTo(x + halfWidth, y); // Top right
-        path.lineTo(x - halfWidth, y); // Back to Top left
+        if (offsetYBox == 0) {
+            path.moveTo(x - halfWidth, y); // Top left
+            path.lineTo(x, y + halfWidth); //  Bottom
+            path.lineTo(x + halfWidth, y); // Top right
+            path.lineTo(x - halfWidth, y); // Back to Top left
+        }else{
+            path.moveTo(x - halfWidth, y); // Bottom left
+            path.lineTo(x, y - halfWidth); // Top
+            path.lineTo(x + halfWidth, y); // Bottom right
+            path.lineTo(x - halfWidth, y); // Back to Bottom left
+        }
         path.close();
 
         canvas.drawPath(path, paint);
         Paint outline = new Paint();
         outline.setColor(Color.BLACK);
         outline.setStrokeWidth(3);
-        canvas.drawLine(x - halfWidth, y + 3, x, y + halfWidth, outline);
-        canvas.drawLine(x + halfWidth, y + 3, x, y + halfWidth, outline);
+        if (offsetYBox == 0) {
+            canvas.drawLine(x - halfWidth, y + 3, x, y + halfWidth, outline);
+            canvas.drawLine(x + halfWidth, y + 3, x, y + halfWidth, outline);
+        }else{
+            canvas.drawLine(x - halfWidth, y - 3, x, y - halfWidth, outline);
+            canvas.drawLine(x + halfWidth, y - 3, x, y - halfWidth, outline);
+        }
     }
 
     protected void updatePageSize(){

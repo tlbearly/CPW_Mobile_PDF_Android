@@ -39,6 +39,8 @@ public class EditWayPointActivity extends AppCompatActivity {
     private int id;
     WayPt wayPt;
     boolean landscape;
+    boolean changed=false;
+    String prevName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +61,7 @@ public class EditWayPointActivity extends AppCompatActivity {
         //String mediaBox = i.getExtras().getString("MEDIABOX");
         viewPort = i.getExtras().getString("VIEWPORT");
         landscape = i.getExtras().getBoolean("LANDSCAPE");
+
         // if the map was locked in landscape, show this also in landscape
         if (landscape){
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
@@ -69,6 +72,7 @@ public class EditWayPointActivity extends AppCompatActivity {
         wayPt = wayPts.get(id);
 
         setContentView(R.layout.activity_way_pt);
+        prevName = wayPt.getDesc();
         editTxt = findViewById(R.id.waypt);
         editTxt.setText(wayPt.getDesc());
         pin = findViewById(R.id.pushPin);
@@ -103,14 +107,17 @@ public class EditWayPointActivity extends AppCompatActivity {
             if (checkedId == R.id.cyanPin){
                 wayPt.setColorName("cyan");
                 pin.setImageResource(R.mipmap.ic_cyan_pin2);
+                changed = true;
             }
             else if  (checkedId == R.id.redPin){
                 wayPt.setColorName("red");
                 pin.setImageResource(R.mipmap.ic_red_pin);
+                changed = true;
             }
             else if  (checkedId == R.id.bluePin){
                 wayPt.setColorName("blue");
                 pin.setImageResource(R.mipmap.ic_blue_pin);
+                changed = true;
             }
         });
     }
@@ -130,6 +137,32 @@ public class EditWayPointActivity extends AppCompatActivity {
 
                 case DialogInterface.BUTTON_NEGATIVE:
                     //'CANCEL' button clicked, do nothing
+                    break;
+            }
+        }
+    };
+
+    // not saved
+    DialogInterface.OnClickListener dialogClickListener2 = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which){
+                case DialogInterface.BUTTON_POSITIVE:
+                    //'SAVE' button clicked, save then exit
+                    String name = editTxt.getText().toString();
+                    if (name.equals("")) {
+                        Toast.makeText(EditWayPointActivity.this, "Cannot rename to blank!", Toast.LENGTH_LONG).show();
+                    } else {
+                        wayPt.setDesc(name);
+                        dbWayPtHandler.updateWayPt(wayPts.get(id));
+                        // Return to PDFActivity
+                        finish();
+                    }
+                    break;
+
+                case DialogInterface.BUTTON_NEGATIVE:
+                    //'BACK' button clicked, do nothing
+                    finish();
                     break;
             }
         }
@@ -173,7 +206,16 @@ public class EditWayPointActivity extends AppCompatActivity {
             }
             return true;
         } else if (item.getItemId() == android.R.id.home){
-            finish();
+            // show dialog if not saved
+            if (changed || !prevName.equals(editTxt.getText().toString())) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(EditWayPointActivity.this);
+                builder.setTitle("Warning");
+                builder.setMessage("Changes are not saved.").setPositiveButton("SAVE", dialogClickListener2)
+                        .setNegativeButton("DON'T SAVE", dialogClickListener2).show();
+            }
+            else {
+                finish();
+            }
             return true;
         } else {
             //default:
