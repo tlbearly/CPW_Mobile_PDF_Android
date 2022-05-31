@@ -933,7 +933,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                         canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
                                         // white text and triangle
                                         txtCol.setColor(Color.BLACK);
-                                        recCol.setColor(Color.BLACK);
+                                        recCol.setColor(Color.WHITE);
                                         canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
                                         drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
                                         break;
@@ -958,6 +958,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
                                 canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
                                 drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle);
+                                
                                 // add right arrow emoji in lsLayout defined above
                                 //canvas.translate((x+(textWidth/2))+offsetBox,y-startY-boxHt-12);
                                 //lsLayout.draw(canvas);
@@ -1019,9 +1020,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 recCol.setColor(Color.WHITE);
                                 recCol.setStrokeWidth(0); // solid fill
                                 canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
-                                // white text and triangle
+                                // white triangle, reset text to black
                                 txtCol.setColor(Color.BLACK);
-                                recCol.setColor(Color.BLACK);
+                                recCol.setColor(Color.WHITE);
                                 canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
                                 drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
                                 break;
