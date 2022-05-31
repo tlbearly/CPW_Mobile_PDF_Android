@@ -9,13 +9,13 @@ android {
     // File / Settings / under System Settings / Android SDK. Select SDK Tools tab. Check Show Package Details. Look at NDK version.
     // Use 'FULL' or if > 300mb use 'SYMBOL_TABLE'
     ndkVersion "23.1.7779620"
-    compileSdkVersion 31
+    compileSdkVersion 32
     buildToolsVersion "30.0.3"
     // versionCode must be an interger!
     defaultConfig {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 19
-        targetSdkVersion 31
+        targetSdkVersion 32
         versionCode 14
         versionName "1.2.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -71,8 +71,8 @@ dependencies {
     // appcompat 1.4.0 caused an error!
     implementation 'com.google.android.gms:play-services-location:19.0.1'
     implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
-    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4' //2.1.3'
+    implementation 'com.google.android.material:material:1.6.1' //1.5.0'
 
     // for displaying pdfs
     // Use lib from https://github.com/barteksc/AndroidPdfViewer
