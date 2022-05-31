@@ -489,7 +489,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         //Log.d("onTap","Clicked on map. clickedWP="+clickedWP);
                         updatePageSize(); // get new pdf page width and height
                         // set flag if user clicked on a waypoint in the top or bottom half of the map. Used to display popup balloon above or below waypoint
-                        if ((clickedWP == -1 || lastClickedWP != clickedWP) && !showAllWayPtLabels) {
+                        if ((clickedWP == -1 || (lastClickedWP != -1 && lastClickedWP != clickedWP)) && !showAllWayPtLabels) {
                             if (e.getY() < screenHeight / 2) clickedTopHalf = true;
                             else clickedTopHalf = false;
                         }
@@ -825,12 +825,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                 // Draw the current location as a point on the map. Color of the point is defined in paint & outline above.
                 //  CONVERT LAT LONG TO SCREEN COORDINATES
-                //currentLocationX = (((longNow + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
-                //currentLocationY = ((((90 - latNow) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
                 currentLocationX = ((longNow - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
                 currentLocationY = (((lat2 - latNow) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
-
-                //canvas.translate((float) currentLocationX, (float) currentLocationY);
 
 
                 // Add waypoint at current location
@@ -927,15 +923,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                         recCol.setColor(Color.BLACK);
                                         recCol.setStrokeWidth(3);
                                         canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y + offsetYBox - startY, recCol);
-                                        // white rectangle
+                                        // white rectangle and triangle
                                         recCol.setColor(Color.WHITE);
                                         recCol.setStrokeWidth(0); // solid fill
                                         canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
-                                        // white text and triangle
-                                        txtCol.setColor(Color.BLACK);
-                                        recCol.setColor(Color.WHITE);
-                                        canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
                                         drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
+                                        // black text
+                                        txtCol.setColor(Color.BLACK);
+                                        canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
                                         break;
                                     case Configuration.UI_MODE_NIGHT_YES:
                                         // Night mode is active, we're using dark theme
@@ -943,27 +938,22 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                         recCol.setColor(Color.BLACK);
                                         recCol.setStrokeWidth(3);
                                         canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y + offsetYBox - startY, recCol);
-                                        // black rectangle
+                                        // gray rectangle and triangle
                                         recCol.setColor(Color.GRAY);
                                         recCol.setStrokeWidth(0); // solid fill
                                         canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
+                                        drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
                                         // white text
                                         txtCol.setColor(Color.WHITE);
-                                        recCol.setColor(Color.GRAY);
                                         canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
-                                        drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
                                         break;
                                 }
-                                recCol.setStrokeWidth(0); // solid fill
-                                canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
-                                canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
-                                drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle);
 
                                 // add right arrow emoji in lsLayout defined above
-                                //canvas.translate((x+(textWidth/2))+offsetBox,y-startY-boxHt-12);
-                                //lsLayout.draw(canvas);
-
-                                //canvas.translate((float) -currentLocationX, (float) -currentLocationY);
+                                canvas.save();
+                                canvas.translate((x + (textWidth / 2)) + offsetBox + 10, y + offsetYBox - startY - boxHt - 12);
+                                lsLayout.draw(canvas);
+                                canvas.restore();
                             }
                         }
                     }
@@ -977,8 +967,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     double yLat = wayPts.get(i12).getY();//*(float)zoom;
 
                     // convert lat, long to screen coordinates
-                    //float x = (float) ((((xLong + 180) - (long1 + 180)) / longDiff) * (((optimalPageWidth.get() * zoom) - marginx)) + marginL);
-                    //float y = (float) ((((90 - yLat) - (90 - lat2)) / latDiff) * (((optimalPageHeight.get() * zoom) - marginy)) + marginT);
                     float x = (float) (((xLong - long1) / longDiff) * (((optimalPageWidth.get() * zoom) - marginx)) + marginL);
                     float y = (float) (((lat2 - yLat) / latDiff) * (((optimalPageHeight.get() * zoom) - marginy)) + marginT);
 
@@ -1020,11 +1008,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 recCol.setColor(Color.WHITE);
                                 recCol.setStrokeWidth(0); // solid fill
                                 canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
+                                drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
                                 // white triangle, reset text to black
                                 txtCol.setColor(Color.BLACK);
-                                recCol.setColor(Color.WHITE);
                                 canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
-                                drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
                                 break;
                             case Configuration.UI_MODE_NIGHT_YES:
                                 // Night mode is active, we're using dark theme
@@ -1036,37 +1023,17 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 recCol.setColor(Color.GRAY);
                                 recCol.setStrokeWidth(0); // solid fill
                                 canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
+                                drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
                                 // white text
                                 txtCol.setColor(Color.WHITE);
-                                recCol.setColor(Color.GRAY);
                                 canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
-                                drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
                                 break;
                         }
-                        recCol.setStrokeWidth(0); // solid fill
-                        canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
-                        canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
-                        drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYTriangle tells if triangle should be up or down
-
-                        /*recCol.setColor(Color.BLACK);
-                        recCol.setStrokeWidth(3);
-                        canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y + offsetYBox - startY, recCol);
-                        // white rectangle
-                        recCol.setColor(Color.WHITE);
-                        recCol.setStrokeWidth(0); // solid fill
-                        canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, white);
-                        // text
-                        canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
-                        drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYTriangle tells if triangle should be up or down
-                        */
-
-
 
                         // add right arrow emoji in lsLayout defined above
                         canvas.save();
                         canvas.translate((x + (textWidth / 2)) + offsetBox + 10, y + offsetYBox - startY - boxHt - 12);
                         lsLayout.draw(canvas);
-                        //canvas.save();
                         canvas.restore();
                     }
                 }
@@ -1076,8 +1043,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 //-----------------------
                 // Transparent Arc showing bearing (top of user screen)
                 //  CONVERT LAT LONG TO SCREEN COORDINATES
-                //currentLocationX = (((longNow + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
-                //currentLocationY = ((((90 - latNow) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
                 currentLocationX = ((longNow - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
                 currentLocationY = (((lat2 - latNow) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
 
