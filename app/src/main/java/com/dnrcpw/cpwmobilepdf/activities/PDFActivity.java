@@ -958,7 +958,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
                                 canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt / 2.0f) - 5 + (txtSize / 2.0f), txtCol);
                                 drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle);
-                                
+
                                 // add right arrow emoji in lsLayout defined above
                                 //canvas.translate((x+(textWidth/2))+offsetBox,y-startY-boxHt-12);
                                 //lsLayout.draw(canvas);
