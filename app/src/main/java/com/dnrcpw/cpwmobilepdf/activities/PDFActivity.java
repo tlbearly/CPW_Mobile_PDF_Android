@@ -419,7 +419,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         setupPDFView();
     }
 
-    @SuppressLint("SourceLockedOrientationActivity")
     private void setupPDFView(){
         // Set color and fill of the current location point
         cyan = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -1081,9 +1080,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 //Toast.makeText(PDFActivity.this,"Re-Draw "+count, Toast.LENGTH_SHORT).show();
             }).onLoad(nbPages -> {
                 //Log.d("PDFActivity", "onLoad");
-                // Do not rotate pdf when they rotate the screen. It loses their location! pdfView cannot zoom to a point on the screen.
+                // Do not rotate pdf when they rotate the screen. It loses their location! pdfView cannot zoom to a point on the screen. ??? Seems to work 6/16/22
                 // Lock current screen rotation
-                if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+                /*if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
                     action_landscape.setChecked(false);
                     action_portrait.setChecked(true);
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -1095,18 +1094,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
                     landscape = true;
-                }
-                        /*String orient = db2.getMapOrient(); // get user preference on map orientation, but landscape does not rotate correctly. Moved over to left!!!!!
-                        if (orient.equals("portrait")){
-                            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-                            landscape = false;
-                        }
-                        else {
-                            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-                            landscape = true;
-                        }*/
+                }*/
 
                 // SET LEVELS TO ZOOM TO WHEN DOUBLE CLICK, 34x44=3168, 22x34=2448
                 if (mediaBoxWidth > 1500) {

@@ -10,7 +10,7 @@
     <string name="showWayPtLabels">Show all waypoint labels</string>
     <string name="showWayPts">Show waypoints</string>
     <string name="deleteAllWayPts">Delete all waypoints</string>
-    <string name="wayPtInstr">Tap to add waypoint</string>
+    <string name="wayPtInstr">Tap map to add waypoint</string>
     <string name="portrait">Lock in Portrait</string>
     <string name="landscape">Lock in Landscape</string>
     <string name="orientation">Orientation</string>

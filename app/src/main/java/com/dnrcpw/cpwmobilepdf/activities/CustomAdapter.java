@@ -739,17 +739,18 @@ public class CustomAdapter extends BaseAdapter {
         // calculate updated distances for all cells
         // Called from MainActivity onLocationResult when user location has changed by 1/10 of a mile
         // Or when latBefore is 0.0.
-        if (latNow == null || longNow == null) {
-            return;
-        }
-        for (int i=0; i<pdfMaps.size(); i++) {
-            PDFMap map = pdfMaps.get(i);
+        try {
+            if (latNow == null || longNow == null) {
+                return;
+            }
+            for (int i = 0; i < pdfMaps.size(); i++) {
+                PDFMap map = pdfMaps.get(i);
 
-            String bounds = map.getBounds(); // lat1 long1 lat2 long1 lat2 long2 lat1 long2
-            if (bounds == null || bounds.length() == 0)
-                return; // it will be 0 length if is importing
-            bounds = bounds.trim(); // remove leading and trailing spaces
-            int pos = bounds.indexOf(" ");
+                String bounds = map.getBounds(); // lat1 long1 lat2 long1 lat2 long2 lat1 long2
+                if (bounds == null || bounds.length() == 0)
+                    return; // it will be 0 length if is importing
+                bounds = bounds.trim(); // remove leading and trailing spaces
+           /* int pos = bounds.indexOf(" ");
             double lat1 = Double.parseDouble(bounds.substring(0, pos));
             bounds = bounds.substring(pos + 1); // strip off 'lat1 '
             pos = bounds.indexOf(" ");
@@ -760,61 +761,86 @@ public class CustomAdapter extends BaseAdapter {
             double lat2 = Double.parseDouble(bounds.substring(0, pos));
             // FIND LONG2
             pos = bounds.lastIndexOf(" ");
-            double long2 = Double.parseDouble(bounds.substring(pos + 1));
+            double long2 = Double.parseDouble(bounds.substring(pos + 1));*/
 
-            // Is on map?
-            // On map
-            if (latNow >= lat1 && latNow <= lat2 && longNow >= long1 && longNow <= long2) {
-                map.setMiles(0.0);
-                map.setDistToMap("");
-                // Log.d(TAG, "updateDistToMap: " + map.getName() + " on map");
-            }
-            // Off map, calculate distance away
-            else {
-                String direction;
-                double dist;
-                if (latNow > lat1) direction = "S";
-                else if (latNow > lat2) direction = "";
-                else direction = "N";
-                if (longNow < long1) direction += "E";
-                else if (longNow > long2) direction += "W";
-
-                float[] results = new float[1];
-                switch (direction) {
-                    case "S":
-                        Location.distanceBetween(latNow, longNow, lat2, longNow, results);
-                        break;
-                    case "N":
-                        Location.distanceBetween(latNow, longNow, lat1, longNow, results);
-                        break;
-                    case "E":
-                        Location.distanceBetween(latNow, longNow, latNow, long2, results);
-                        break;
-                    case "W":
-                        Location.distanceBetween(latNow, longNow, latNow, long1, results);
-                        break;
-                    case "SE":
-                        Location.distanceBetween(latNow, longNow, lat2, long2, results);
-                        break;
-                    case "SW":
-                        Location.distanceBetween(latNow, longNow, lat1, long2, results);
-                        break;
-                    case "NE":
-                        Location.distanceBetween(latNow, longNow, lat2, long1, results);
-                        break;
-                    case "NW":
-                        Location.distanceBetween(latNow, longNow, lat1, long1, results);
-                        break;
+                String strBounds = bounds;
+                // Get Latitude, Longitude bounds.
+                // lat1 and long1 are the smallest values SW corner
+                // lat2 and long2 are the largest NE corner
+                String[] arrLatLong = bounds.split(" ");
+                // convert strings to double
+                Double[] LatLong = new Double[arrLatLong.length];
+                for (int l = 0; l < arrLatLong.length; l++) {
+                    LatLong[l] = Double.parseDouble(arrLatLong[l]);
                 }
-                dist = results[0] * 0.00062137119;
-                map.setMiles(dist);
-                String str = "    ";
+                // Find the smallest and largest values
+                double lat1 = LatLong[0];
+                double long1 = LatLong[1];
+                double lat2 = LatLong[0];
+                double long2 = LatLong[1];
+                for (int l = 0; l < LatLong.length; l = l + 2) {
+                    if (LatLong[l] < lat1) lat1 = LatLong[l];
+                    if (LatLong[l] > lat2) lat2 = LatLong[l];
+                    if (LatLong[l + 1] < long1) long1 = LatLong[l + 1];
+                    if (LatLong[l + 1] > long2) long2 = LatLong[l + 1];
+                }
 
-                String distStr = String.format(Locale.US,"%s %.1f %s %s", str, dist, c.getResources().getString(R.string.miles), direction);
-                map.setDistToMap(distStr);
+                // Is on map?
+                // On map
+                if (latNow >= lat1 && latNow <= lat2 && longNow >= long1 && longNow <= long2) {
+                    map.setMiles(0.0);
+                    map.setDistToMap("");
+                    // Log.d(TAG, "updateDistToMap: " + map.getName() + " on map");
+                }
+                // Off map, calculate distance away
+                else {
+                    String direction;
+                    double dist;
+                    if (latNow > lat1) direction = "S";
+                    else if (latNow > lat2) direction = "";
+                    else direction = "N";
+                    if (longNow < long1) direction += "E";
+                    else if (longNow > long2) direction += "W";
 
-                // Log.d(TAG, "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
+                    float[] results = new float[1];
+                    switch (direction) {
+                        case "S":
+                            Location.distanceBetween(latNow, longNow, lat2, longNow, results);
+                            break;
+                        case "N":
+                            Location.distanceBetween(latNow, longNow, lat1, longNow, results);
+                            break;
+                        case "E":
+                            Location.distanceBetween(latNow, longNow, latNow, long2, results);
+                            break;
+                        case "W":
+                            Location.distanceBetween(latNow, longNow, latNow, long1, results);
+                            break;
+                        case "SE":
+                            Location.distanceBetween(latNow, longNow, lat2, long2, results);
+                            break;
+                        case "SW":
+                            Location.distanceBetween(latNow, longNow, lat1, long2, results);
+                            break;
+                        case "NE":
+                            Location.distanceBetween(latNow, longNow, lat2, long1, results);
+                            break;
+                        case "NW":
+                            Location.distanceBetween(latNow, longNow, lat1, long1, results);
+                            break;
+                    }
+                    dist = results[0] * 0.00062137119;
+                    map.setMiles(dist);
+                    String str = "    ";
+
+                    String distStr = String.format(Locale.US, "%s %.1f %s %s", str, dist, c.getResources().getString(R.string.miles), direction);
+                    map.setDistToMap(distStr);
+
+                    // Log.d(TAG, "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
+                }
             }
+        } catch (Exception e){
+            return;
         }
     }
 

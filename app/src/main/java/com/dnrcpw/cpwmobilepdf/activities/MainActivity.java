@@ -149,6 +149,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         }
 
+        // Check if GPS is enabled
+        if (!isGPSEnabled(MainActivity.this)){
+            Toast.makeText(MainActivity.this,"GPS is not enabled.",Toast.LENGTH_LONG).show();
+        }
         // Check if location services are turned on
         if (!isLocationEnabled(MainActivity.this)) {
             builder = new AlertDialog.Builder(MainActivity.this);
@@ -169,109 +173,125 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
-                for (Location location : locationResult.getLocations()) {
-                    // Update UI with location data
-                    float[] results = new float[1];
-                    latNow = location.getLatitude();
-                    longNow = location.getLongitude(); // make it positive
+                try {
+                    for (Location location : locationResult.getLocations()) {
+                        // Update UI with location data
+                        float[] results = new float[1];
+                        latNow = location.getLatitude();
+                        longNow = location.getLongitude(); // make it positive
 
-                    // for debugging ****************
-                    //latBefore = latBefore + .5;
-                    //longBefore = longBefore -.2;
+                        // for debugging ****************
+                        //latBefore = latBefore + .5;
+                        //longBefore = longBefore -.2;
 
-                    if (myAdapter == null) return;
-                    myAdapter.setLocation(location);
-                    //bearing = location.getBearing(); // 0-360 degrees 0 at North
+                        if (myAdapter == null) return;
+                        myAdapter.setLocation(location);
+                        //bearing = location.getBearing(); // 0-360 degrees 0 at North
 
-                    // if accuracy is worse than 1/10 of a mile do not update distance to map
-                    float accuracy = location.getAccuracy();
-                    //Log.d(TAG, "onLocationResult: accuracy="+accuracy);
-                    if (accuracy > 160.9344) {
-                        Toast.makeText(MainActivity.this, "Acquiring location...", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    if (latBefore != 0.0) {
-                        try {
-                            Location.distanceBetween(latBefore, longBefore, latNow, longNow, results);
-                        } catch (IllegalArgumentException e) {
+                        // if accuracy is worse than 1/10 of a mile do not update distance to map
+                        float accuracy = location.getAccuracy();
+                        //Log.d(TAG, "onLocationResult: accuracy="+accuracy);
+                        if (accuracy > 160.9344) {
+                            Toast.makeText(MainActivity.this, "Acquiring location...", Toast.LENGTH_SHORT).show();
                             return;
                         }
-                    }
 
-                    // if change in location is > .1 miles update distance to map
-                    if (results[0] > updateProximityDist || latBefore == 0.0) {
-                        // Update distance to map.
-                        myAdapter.getDistToMap();
+                        if (latBefore != 0.0) {
+                            try {
+                                Location.distanceBetween(latBefore, longBefore, latNow, longNow, results);
+                            } catch (IllegalArgumentException e) {
+                                return;
+                            }
+                        }
 
-                        String sort = dbHandler.getMapSort();
-                        if ((sort.equals("proximity") || sort.equals("proximityrev")) && sortFlag) {
-                            if (sort.equals("proximity"))
-                                myAdapter.SortByProximity();
-                            else
-                                myAdapter.SortByProximityReverse();
-                            myAdapter.notifyDataSetChanged();
+                        // if change in location is > .1 miles update distance to map
+                        if (results[0] > updateProximityDist || latBefore == 0.0) {
+                            // Update distance to map.
+                            myAdapter.getDistToMap();
 
-                            // Refresh all data in visible table cells
-                            for (int i=0; i < myAdapter.pdfMaps.size(); i++) {
-                                View v = lv.getChildAt(i - lv.getFirstVisiblePosition());
-                                if(v == null)
-                                    return;
+                            String sort = dbHandler.getMapSort();
+                            if ((sort.equals("proximity") || sort.equals("proximityrev")) && sortFlag) {
+                                if (sort.equals("proximity"))
+                                    myAdapter.SortByProximity();
+                                else
+                                    myAdapter.SortByProximityReverse();
+                                myAdapter.notifyDataSetChanged();
 
-                                ImageView img = v.findViewById(R.id.pdfImage);
-                                try {
-                                    File imgFile = new File(myAdapter.pdfMaps.get(i- lv.getFirstVisiblePosition()).getThumbnail());
-                                    Bitmap myBitmap;
-                                    myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                                    if (myBitmap != null)
-                                        img.setImageBitmap(myBitmap);
-                                    else
+                                // Refresh all data in visible table cells
+                                for (int i = 0; i < myAdapter.pdfMaps.size(); i++) {
+                                    View v = lv.getChildAt(i - lv.getFirstVisiblePosition());
+                                    if (v == null)
+                                        return;
+
+                                    ImageView img = v.findViewById(R.id.pdfImage);
+                                    try {
+                                        File imgFile = new File(myAdapter.pdfMaps.get(i - lv.getFirstVisiblePosition()).getThumbnail());
+                                        Bitmap myBitmap;
+                                        myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                                        if (myBitmap != null)
+                                            img.setImageBitmap(myBitmap);
+                                        else
+                                            img.setImageResource(R.drawable.pdf_icon);
+                                    } catch (Exception ex) {
+                                        Toast.makeText(MainActivity.this, "Problem reading thumbnail.", Toast.LENGTH_LONG).show();
                                         img.setImageResource(R.drawable.pdf_icon);
-                                }catch (Exception ex){
-                                    Toast.makeText(MainActivity.this, "Problem reading thumbnail.", Toast.LENGTH_LONG).show();
-                                    img.setImageResource(R.drawable.pdf_icon);
-                                }
+                                    }
 
-                                TextView name = v.findViewById(R.id.nameTxt) ;
-                                name.setText(myAdapter.pdfMaps.get(i- lv.getFirstVisiblePosition()).getName());
-                                TextView fileSize = v.findViewById(R.id.fileSizeTxt);
-                                fileSize.setText(myAdapter.pdfMaps.get(i).getFileSize());
-                                TextView distToMap = v.findViewById(R.id.distToMapTxt);
-                                String dist = myAdapter.pdfMaps.get(i- lv.getFirstVisiblePosition()).getDistToMap();
-                                distToMap.setText(dist);
-                                if (dist.equals("")){
-                                    v.findViewById(R.id.locationIcon).setVisibility(View.VISIBLE);
+                                    TextView name = v.findViewById(R.id.nameTxt);
+                                    name.setText(myAdapter.pdfMaps.get(i - lv.getFirstVisiblePosition()).getName());
+                                    TextView fileSize = v.findViewById(R.id.fileSizeTxt);
+                                    fileSize.setText(myAdapter.pdfMaps.get(i).getFileSize());
+                                    TextView distToMap = v.findViewById(R.id.distToMapTxt);
+                                    String dist = myAdapter.pdfMaps.get(i - lv.getFirstVisiblePosition()).getDistToMap();
+                                    distToMap.setText(dist);
+                                    if (dist.equals("")) {
+                                        v.findViewById(R.id.locationIcon).setVisibility(View.VISIBLE);
+                                    } else {
+                                        v.findViewById(R.id.locationIcon).setVisibility(View.GONE);
+                                    }
                                 }
-                                else {
-                                    v.findViewById(R.id.locationIcon).setVisibility(View.GONE);
+                            }
+                            // Refresh only dist to map
+                            else if (sortFlag) {
+                                // Refresh visible table cells
+                                for (int i = 0; i < myAdapter.pdfMaps.size(); i++) {
+                                    View v = lv.getChildAt(i - lv.getFirstVisiblePosition());
+                                    if (v == null)
+                                        return;
+                                    TextView distToMap = v.findViewById(R.id.distToMapTxt);
+                                    String dist = myAdapter.pdfMaps.get(i).getDistToMap();
+                                    distToMap.setText(dist);
+                                    if (dist.equals("")) {
+                                        v.findViewById(R.id.locationIcon).setVisibility(View.VISIBLE);
+                                    } else {
+                                        v.findViewById(R.id.locationIcon).setVisibility(View.GONE);
+                                    }
                                 }
                             }
                         }
-                        // Refresh only dist to map
-                        else if (sortFlag){
-                            // Refresh visible table cells
-                            for (int i = 0; i < myAdapter.pdfMaps.size(); i++) {
-                                View v = lv.getChildAt(i - lv.getFirstVisiblePosition());
-                                if (v == null)
-                                    return;
-                                TextView distToMap = v.findViewById(R.id.distToMapTxt);
-                                String dist = myAdapter.pdfMaps.get(i).getDistToMap();
-                                distToMap.setText(dist);
-                                if (dist.equals("")) {
-                                    v.findViewById(R.id.locationIcon).setVisibility(View.VISIBLE);
-                                } else {
-                                    v.findViewById(R.id.locationIcon).setVisibility(View.GONE);
-                                }
-                            }
-                        }
+
+                        // save current location so we can see how much they moved
+                        latBefore = latNow;
+                        longBefore = longNow;
                     }
 
-                    // save current location so we can see how much they moved
-                    latBefore = latNow;
-                    longBefore = longNow;
+                }
+                // try to keep app from crashing no gps 6-15-22
+                catch (Exception e) {
+                    return;
                 }
             }
         };
+    }
+
+    public boolean isGPSEnabled(Context context){
+        // 6-15-22 Check if GPS is enabled
+        try {
+            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            return lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        }catch(IllegalArgumentException ex){
+            return true;
+        }
     }
 
     // PERMISSIONS
@@ -518,14 +538,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     //  LOCATION UPDATES
     private void startLocationUpdates() {
-        LocationRequest mLocationRequest;
-        mLocationRequest = LocationRequest.create();//new LocationRequest();
-        mLocationRequest.setInterval(30000); //update location every 30 seconds
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
-            mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null /*Looper.getMainLooper()*/);
-        }else{
-            Toast.makeText(MainActivity.this,"Fine Location Services are off.",Toast.LENGTH_LONG).show();
+        try {
+            LocationRequest mLocationRequest;
+            mLocationRequest = LocationRequest.create();
+            mLocationRequest.setInterval(30000); //update location every 30 seconds
+            mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+            if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+                mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null /*Looper.getMainLooper()*/);
+            } else {
+                Toast.makeText(MainActivity.this, "Fine Location Services are off.", Toast.LENGTH_LONG).show();
+            }
+        }
+        // 6-15-22 If looper is null and this method is executed in a thread that has not called Looper.prepare().
+        catch(IllegalStateException e){
+            Toast.makeText(MainActivity.this, "No Location Services."+e, Toast.LENGTH_LONG).show();
         }
     }
 

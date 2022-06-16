@@ -52,7 +52,7 @@
   <item
       android:id="@+id/action_portrait"
       android:checkable="true"
-      android:checked="true"
+      android:checked="false"
       android:icon="@android:drawable/ic_menu_always_landscape_portrait"
       android:title="@string/portrait"
       android:visible="true"
