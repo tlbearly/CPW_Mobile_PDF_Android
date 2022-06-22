@@ -2,7 +2,6 @@ package com.dnrcpw.cpwmobilepdf.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -38,7 +37,7 @@ public class EditWayPointActivity extends AppCompatActivity {
     private DBWayPtHandler dbWayPtHandler;
     private int id;
     WayPt wayPt;
-    boolean landscape;
+    //boolean landscape;
     boolean changed=false;
     String prevName;
 
@@ -60,13 +59,13 @@ public class EditWayPointActivity extends AppCompatActivity {
         bounds = i.getExtras().getString("BOUNDS");
         //String mediaBox = i.getExtras().getString("MEDIABOX");
         viewPort = i.getExtras().getString("VIEWPORT");
-        landscape = i.getExtras().getBoolean("LANDSCAPE");
+        //landscape = i.getExtras().getBoolean("LANDSCAPE");
 
         // if the map was locked in landscape, show this also in landscape
-        if (landscape){
+        /*if (landscape){
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-        }
+        }*/
         wayPts = dbWayPtHandler.getWayPts(mapName);
         wayPts.SortPts();
         wayPt = wayPts.get(id);

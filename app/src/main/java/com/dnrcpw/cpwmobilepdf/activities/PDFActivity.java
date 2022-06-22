@@ -111,6 +111,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     // Screen Sensor X rotation
     int adjust; // adjust for landscape or portrait. Sensor reports north for top of portrait screen. For landscape add 90 degrees.
     private boolean landscape;
+    private boolean landscapeLocked;
+    private boolean portraitLocked;
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private Sensor mMagnetometer;
@@ -174,6 +176,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         currentLocationY = 0;
 
         landscape = false;
+        landscapeLocked = false;
+        portraitLocked = false;
         mLastAccelerometer = new float[3];
         mLastMagnetometer = new float[3];
         mLastAccelerometerSet = false;
@@ -374,9 +378,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         //PDFVIEW WILL DISPLAY OUR PDFS
         pdfView = findViewById(R.id.pdfView);
 
-        // SACRIFICE MEMORY FOR QUALITY
-        // pdfView.useBestQuality(bestQuality);
-
         pdfView.enableAntialiasing(true); // improve rendering a little bit on low-res screens
 
         // SET UP LOCATION SERVICES
@@ -545,7 +546,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                         i1.putExtra("BOUNDS", strBounds);
                                         i1.putExtra("MEDIABOX", strMediaBox);
                                         i1.putExtra("VIEWPORT", strViewPort);
-                                        i1.putExtra("LANDSCAPE", landscape);
+                                        //i1.putExtra("LANDSCAPE", landscape);
                                         startActivity(i1);
                                         // hide wait icon
                                         wait.setVisibility(View.GONE);
@@ -1202,6 +1203,16 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         // Start Screen Sensor Listener
         mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_UI);
+
+        // if user had checked lock orientation, then applay it when return from help or edit waypoint 6/22/22
+        if (landscapeLocked){
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+        }
+        else if (portraitLocked){
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+        }
     }
 
    /* @Override
@@ -1451,10 +1462,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                 //db2.setMapOrient("portrait"); // update user preference
                 landscape = false;
+                portraitLocked = true;
+                landscapeLocked = false;
             }
             else {
                 action_portrait.setChecked(false);
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+                portraitLocked = false;
+                landscapeLocked = false;
             }
         }
         else if (id == R.id.action_landscape){
@@ -1465,9 +1480,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
                 //db2.setMapOrient("landscape"); // update user preference
                 landscape = true;
+                portraitLocked = false;
+                landscapeLocked = true;
             } else {
                 action_landscape.setChecked(false);
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+                portraitLocked = false;
+                landscapeLocked = false;
             }
         }
         /*else if (id == R.id.action_lock_orient){
