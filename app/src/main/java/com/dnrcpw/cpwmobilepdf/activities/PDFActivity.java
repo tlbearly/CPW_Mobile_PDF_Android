@@ -1277,6 +1277,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
+        // Reset screen width and height
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        screenWidth = displayMetrics.widthPixels;
+        screenHeight = displayMetrics.heightPixels;
         // Checks the orientation of the screen for landscape and portrait
          if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE)  {
             landscape = true;
