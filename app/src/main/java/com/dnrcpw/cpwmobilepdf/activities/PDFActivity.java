@@ -587,7 +587,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                     //}
                                     // Test for balloon popup going off top or bottom of screen
                                     int offsetYBox = 0;
-                                    if (clickedTopHalf) {
+                                    if ((wayPtY + pdfView.getCurrentYOffset()) < (pdfView.getHeight()/2)){
+                                    //if (clickedTopHalf) {
                                         offsetYBox = getOffsetYBox();//startY + boxHt;
                                     }
                                     if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
@@ -909,7 +910,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 // Test for waypoint at top half of screen, display popup below
                                 int offsetYBox = 0;
                                 int offsetYTriangle = 0;
-                                if (clickedTopHalf) {
+                                if ((y + pdfView.getCurrentYOffset()) < (pdfView.getHeight()/2)){
+                                //if (clickedTopHalf) {
                                     offsetYBox = getOffsetYBox();//startY + boxHt;
                                     offsetYTriangle = getOffsetYTriangle();
                                 }
