@@ -4,6 +4,33 @@ apply plugin: 'com.android.application'
 // appcompat to use VectorDrawableCompat for backward compatible. Allows SVG graphics.
 // if min SDK version >= 19 permission to read write external files is not required if using getExternalFilesDir.
 android {
+
+    /*
+    // Create a variable called keystorePropertiesFile, and initialize it to your
+    // keystore.properties file, in the rootProject folder.
+    def keystorePropertiesFile = rootProject.file("keystore.properties")
+    if (keystorePropertiesFile.exists()) {
+        Properties keystoreProperties = new Properties();
+        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+        signingConfigs {
+            release {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }*/
+    signingConfigs {
+        release {
+            storeFile file('C:\\Users\\tammy\\AndroidStudioProjects\\key_store\\cpw_key.jks')
+            storePassword 'cpw4Agwsme!'
+            keyAlias 'key1'
+            keyPassword 'cpw4Agwsme!'
+        }
+    }
+
     // Added ndkVersion 2-25-22 to add symbol table to android app bundle
     // UPDATE THE NDK VERSION before you build. You see the ndk version in the android studio sdk-manager
     // File / Settings / under System Settings / Android SDK. Select SDK Tools tab. Check Show Package Details. Look at NDK version.
@@ -11,13 +38,14 @@ android {
     ndkVersion "23.1.7779620"
     compileSdkVersion 32
     buildToolsVersion "30.0.3"
+    // For new release change versionCode and versionName
     // versionCode must be an interger!
     defaultConfig {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 19
         targetSdkVersion 32
-        versionCode 16
-        versionName "1.2.4"
+        versionCode 17
+        versionName "1.2.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions */
@@ -25,12 +53,13 @@ android {
             sourceCompatibility JavaVersion.VERSION_1_8
             targetCompatibility JavaVersion.VERSION_1_8
         }
-        signingConfig signingConfigs.debug
+        //signingConfig signingConfigs.debug // move to debug section below
     }
     buildTypes {
         debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
         }
         release {
             // Now uses R8 instead of proguard
@@ -39,6 +68,7 @@ android {
             // set to true for release, will slow down build time so should not be used on debug version.
             //shrinkResources false
             minifyEnabled true
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             // use next line for even more code shrinking
             //proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -58,7 +88,6 @@ dependencies {
     //implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     // Google Play Services for Location
-    // androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', { // now deprecated
     androidTestImplementation('androidx.test.espresso:espresso-core:3.4.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
@@ -68,11 +97,15 @@ dependencies {
 
     // Google Play Location Services
     // compile is deprecated use api or implementation. Must have SDK version 28.0.0
-    // appcompat 1.4.0 caused an error!
-    implementation 'com.google.android.gms:play-services-location:19.0.1'
-    implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4' //2.1.3'
-    implementation 'com.google.android.material:material:1.6.1' //1.5.0'
+    implementation 'com.google.android.gms:play-services-location:20.0.0' //19.0.1'
+    implementation 'androidx.appcompat:appcompat:1.4.2' //1.4.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.android.material:material:1.6.1'
+
+    // Google Play In-App Update Library
+    // This dependency is downloaded from the Google’s Maven repository.
+    // So, make sure you also include that repository in your project's build.gradle file.
+    implementation 'com.google.android.play:app-update:2.0.0'
 
     // for displaying pdfs
     // Use lib from https://github.com/barteksc/AndroidPdfViewer

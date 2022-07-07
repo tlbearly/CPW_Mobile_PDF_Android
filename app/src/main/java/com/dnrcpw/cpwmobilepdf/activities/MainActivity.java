@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.database.SQLException;
 import android.graphics.Bitmap;
@@ -41,7 +42,14 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.play.core.appupdate.AppUpdateInfo;
+import com.google.android.play.core.appupdate.AppUpdateManager;
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+import com.google.android.play.core.install.model.AppUpdateType;
 
 import java.io.File;
 
@@ -70,11 +78,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     double longNow, longBefore = 0.0;
     double updateProximityDist = 160.9344; // default change in distance that triggers updating proximity .1 miles
     Spinner sortByDropdown;
+    final private int APP_UPDATE_REQUEST_CODE = 1;
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         // added to report non sdk apis 12/13/21
         if (debug) {
             StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
@@ -87,6 +95,56 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setTitle("Imported Maps");
+
+
+        // Check for app update
+        /*
+        You need to install your test app from Google Play; it won't work if you just install it from Android Studio.
+
+Installing it from Google Play can be done via "Open testing", "Closed testing", or "Internal testing", but (I think) those tracks
+ allow only release builds (i.e. can't set breakpoints), so I suggest you start with "Internal app sharing". Just upload your .apk or .aab
+  to https://play.google.com/console/internal-app-sharing. The only thing that doesn't seem to work is setting the update priority in
+  "Internal app sharing". I'd like to hear how others handle it.
+
+FakeAppUpdateManager does NOT show the update dialog. You just mock what Google Play would do by issuing commands, such as
+fakeAppUpdateManager.downloadStarts(), but there won't be any dialogs. Refer to this.
+
+An update can be both FLEXIBLE and IMMEDIATE at the same time. In other words, if you check appUpdateInfo.isUpdateTypeAllowed(FLEXIBLE) and
+ appUpdateInfo.isUpdateTypeAllowed(IMMEDIATE), they can be both true. It's up to you to decide what to do at that point, depending on what the update's priority is.
+
+These are the steps I took.
+
+Set versionCode to 2, build either .apk or .aab (in debug version), and upload it to "Internal app sharing". Make note of its download URL.
+
+Set versionCode to 1, and do the same as step 1.
+
+Open the URL from step 2 (i.e. version 1) from the phone. It will open Google Play and ask you to download the app. Download, and open it.
+
+Open the URL from step 1 (i.e. version 2) from the phone, but DON'T tap on the "Update" button; just bring the app version 1 to the foreground.
+
+While the app is running, attach debugger (Android Studio -> Run -> Attach Debugger to Android Process).
+
+Check the update (appUpdateManager.appUpdateInfo.addOnSuccessListener {...}), start the update (appUpdateManager.startUpdateFlowForResult(...)), etc.
+         */
+        final AppUpdateManager appUpdateManager = AppUpdateManagerFactory.create(this);
+        Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
+        appUpdateInfoTask.addOnSuccessListener(new OnSuccessListener<AppUpdateInfo>() {
+            @Override
+            public void onSuccess(AppUpdateInfo appUpdateInfo) {
+                try {
+                    Toast.makeText(getApplicationContext(),"Success.", Toast.LENGTH_SHORT).show();
+                    appUpdateManager.startUpdateFlowForResult(
+                            appUpdateInfo,
+                            AppUpdateType.FLEXIBLE,
+                            MainActivity.this,
+                            APP_UPDATE_REQUEST_CODE
+                    );
+                } catch (IntentSender.SendIntentException e) {
+                    Toast.makeText(getApplicationContext(),"Exception received", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+            }
+        });
 
         // DEBUG ***********
         //latBefore = 38.5;
@@ -278,7 +336,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 }
                 // try to keep app from crashing no gps 6-15-22
                 catch (Exception e) {
-                    return;
+                    //return;
                 }
             }
         };
@@ -542,7 +600,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             LocationRequest mLocationRequest;
             mLocationRequest = LocationRequest.create();
             mLocationRequest.setInterval(30000); //update location every 30 seconds
-            mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            //mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            mLocationRequest.setPriority(Priority.PRIORITY_HIGH_ACCURACY);
 
             if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
                 mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null /*Looper.getMainLooper()*/);

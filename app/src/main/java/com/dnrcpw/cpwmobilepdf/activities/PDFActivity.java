@@ -30,6 +30,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.WindowMetrics;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +49,7 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 
 import java.io.File;
 import java.util.Locale;
@@ -205,10 +207,21 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
         // Get variables to check for user click in top or bottom half of screen
         clickedTopHalf = false;
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        screenWidth = displayMetrics.widthPixels;
-        screenHeight = displayMetrics.heightPixels;
+        if (Build.VERSION.SDK_INT >= 28 && Build.VERSION.SDK_INT < 30) {
+            screenHeight = getResources().getDisplayMetrics().heightPixels;
+            screenWidth = getResources().getDisplayMetrics().widthPixels;
+
+        } else if (Build.VERSION.SDK_INT >= 30) {
+            WindowMetrics deviceWindowMetrics = getApplicationContext().getSystemService(WindowManager.class).getMaximumWindowMetrics();
+            screenWidth = deviceWindowMetrics.getBounds().width();
+            screenHeight = deviceWindowMetrics.getBounds().height();
+
+        } else {
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            screenWidth = displayMetrics.widthPixels;
+            screenHeight = displayMetrics.heightPixels;
+        }
 
         // keep app from timing out and going to screen saver
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -490,8 +503,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         updatePageSize(); // get new pdf page width and height
                         // set flag if user clicked on a waypoint in the top or bottom half of the map. Used to display popup balloon above or below waypoint
                         if ((clickedWP == -1 || (lastClickedWP != -1 && lastClickedWP != clickedWP)) && !showAllWayPtLabels) {
-                            if (e.getY() < screenHeight / 2) clickedTopHalf = true;
-                            else clickedTopHalf = false;
+                            clickedTopHalf = e.getY() < screenHeight / 2.0;
                         }
 
                         if (!showAllWayPts && !addWayPtFlag) {
@@ -587,7 +599,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                     //}
                                     // Test for balloon popup going off top or bottom of screen
                                     int offsetYBox = 0;
-                                    if ((wayPtY + pdfView.getCurrentYOffset()) < (pdfView.getHeight()/2)){
+                                    if ((wayPtY + pdfView.getCurrentYOffset()) < (pdfView.getHeight()/2.0)){
                                     //if (clickedTopHalf) {
                                         offsetYBox = getOffsetYBox();//startY + boxHt;
                                     }
@@ -623,8 +635,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         //
                         // Check if clicked on existing waypoint
                         //
-                        //double longitude = (((x - marginL) / ((optimalPageWidth.get() * zoom) - marginx)) * longDiff) + (long1 + 180) - 180;
-                        //double latitude = ((((y - marginT) / ((optimalPageHeight.get() * zoom) - marginy)) * latDiff) + (90 - lat2) - 90) * -1;
                         double longitude = (((x - marginL) / ((optimalPageWidth.get() * zoom) - marginx)) * longDiff) + long1;
                         double latitude = ((((y - marginT) / ((optimalPageHeight.get() * zoom) - marginy)) * latDiff) - lat2) * -1;
                         // If showing all balloons, and click to add new point it should add it and not hide the currently selected balloon.
@@ -637,8 +647,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         // If clicked on existing waypoint show balloon with name
                         for (int i1 = wayPts.size() - 1; i1 > -1; i1--) {
                             // convert this waypoint lat, long to screen coordinates
-                            //wayPtX = (((wayPts.get(i1).getX() + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
-                            //wayPtY = ((((90 - wayPts.get(i1).getY()) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
                             wayPtX = ((wayPts.get(i1).getX() - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
                             wayPtY = (((lat2 - wayPts.get(i1).getY()) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
 
@@ -719,7 +727,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 // -------------------------------------
                 //   Draw current location
                 // -------------------------------------
-                //Log.d("PDFActivity", "onDraw: current location.");
                 double zoom = pdfView.getZoom();
                 // convert to screen coordinates
                 double toScreenCordX = (optimalPageWidth.get() * zoom) / mediaBoxWidth;
@@ -729,7 +736,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 double marginx = toScreenCordX * marginXworld;
                 double marginy = toScreenCordY * marginYworld;
 
-                double x1,x2, y1, y2;
+                //double x1,x2, y1, y2;
                 //if (debug ) {
                 /*    Log.d("MediaBox","0 0 "+mediaBoxX2+" "+mediaBoxY2);
                     Log.d("BBox",bBoxX1+" "+bBoxY1+" "+bBoxX2+" "+bBoxY2);
@@ -856,15 +863,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 }
                 // Draw Waypoints
                 if (showAllWayPts) {
-                    //Log.d("PDFActivity", "onDraw: show all waypoints");
-                    //canvas.translate((float) -currentLocationX, (float) -currentLocationY);
                     for (int i12 = 0; i12 < wayPts.size(); i12++) {
                         //Log.d("PDFActivity","drawing waypoint "+i12);
                         double xLong = wayPts.get(i12).getX();
                         double yLat = wayPts.get(i12).getY();
                         // convert lat, long to screen coordinates
-                        //float x = (float) ((((xLong + 180) - (long1 + 180)) / longDiff) * (((optimalPageWidth.get() * zoom) - marginx)) + marginL);
-                        //float y = (float) ((((90 - yLat) - (90 - lat2)) / latDiff) * (((optimalPageHeight.get() * zoom) - marginy)) + marginT);
                         float x = (float) (((xLong - long1) / longDiff) * (((optimalPageWidth.get() * zoom) - marginx)) + marginL);
                         float y = (float) (((lat2 - yLat) / latDiff) * (((optimalPageHeight.get() * zoom) - marginy)) + marginT);
 
@@ -910,7 +913,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 // Test for waypoint at top half of screen, display popup below
                                 int offsetYBox = 0;
                                 int offsetYTriangle = 0;
-                                if ((y + pdfView.getCurrentYOffset()) < (pdfView.getHeight()/2)){
+                                if ((y + pdfView.getCurrentYOffset()) < (pdfView.getHeight()/2.0)){
                                 //if (clickedTopHalf) {
                                     offsetYBox = getOffsetYBox();//startY + boxHt;
                                     offsetYTriangle = getOffsetYTriangle();
@@ -1255,9 +1258,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private void startLocationUpdates() {
         LocationRequest mLocationRequest;
         mLocationRequest = LocationRequest.create();
-        //mLocationRequest = new LocationRequest(); // deprecated
+        //mLocationRequest = new LocationRequest(); // depricated
         mLocationRequest.setInterval(1000); //update location every 1 seconds
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        //mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY); // depricated
+        mLocationRequest.setPriority(Priority.PRIORITY_HIGH_ACCURACY);
         if ((ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
                 (ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback,  Looper.getMainLooper());
@@ -1280,10 +1284,19 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         super.onConfigurationChanged(newConfig);
 
         // Reset screen width and height
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        screenWidth = displayMetrics.widthPixels;
-        screenHeight = displayMetrics.heightPixels;
+        if (Build.VERSION.SDK_INT >= 28 && Build.VERSION.SDK_INT < 30) {
+            screenHeight = getResources().getDisplayMetrics().heightPixels;
+            screenWidth = getResources().getDisplayMetrics().widthPixels;
+        } else if (Build.VERSION.SDK_INT >= 30) {
+            WindowMetrics deviceWindowMetrics = getApplicationContext().getSystemService(WindowManager.class).getMaximumWindowMetrics();
+            screenWidth = deviceWindowMetrics.getBounds().width();
+            screenHeight = deviceWindowMetrics.getBounds().height();
+        } else {
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            screenWidth = displayMetrics.widthPixels;
+            screenHeight = displayMetrics.heightPixels;
+        }
         // Checks the orientation of the screen for landscape and portrait
          if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE)  {
             landscape = true;

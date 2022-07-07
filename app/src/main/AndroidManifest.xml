@@ -3,8 +3,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-sdk
-        android:minSdkVersion="8" />
+
     <!-- add usesCleartextTraffic to prevent error when downloading over http like fstopo uses     android:usesCleartextTraffic="true" -->
     <!-- use adjustPan to scroll list up when keyboard displays -->
 
