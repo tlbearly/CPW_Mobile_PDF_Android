@@ -28,7 +28,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -46,10 +45,14 @@ import com.google.android.gms.location.Priority;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.play.core.appupdate.AppUpdateInfo;
 import com.google.android.play.core.appupdate.AppUpdateManager;
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+import com.google.android.play.core.install.InstallStateUpdatedListener;
 import com.google.android.play.core.install.model.AppUpdateType;
+import com.google.android.play.core.install.model.InstallStatus;
+import com.google.android.play.core.install.model.UpdateAvailability;
 
 import java.io.File;
 
@@ -63,13 +66,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     boolean sortFlag = true;
     Toolbar toolbar;
     Integer selectedId;
-    //FloatingActionButton fab;
     static final int MY_PERMISSIONS_LOCATION = 0;
-    //View sortView;
-    //boolean hideMoreIcon = false; // so we can hide the hamburger menu during editing
-   /* private final int IMPORT_REQUEST_CODE = 1;
-    private final int RENAME_REQUEST_CODE = 2;
-    private final int DELETE_REQUEST_CODE = 3;*/
 
     // location variables
     private FusedLocationProviderClient mFusedLocationClient;
@@ -78,9 +75,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     double longNow, longBefore = 0.0;
     double updateProximityDist = 160.9344; // default change in distance that triggers updating proximity .1 miles
     Spinner sortByDropdown;
-    final private int APP_UPDATE_REQUEST_CODE = 1;
+    // Update App
+    private AppUpdateManager appUpdateManager;
+    private static final int APP_UPDATE_REQUEST_CODE = 123;
+    private InstallStateUpdatedListener installStateUpdatedListener;
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // added to report non sdk apis 12/13/21
@@ -92,59 +91,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     .penaltyDeath()
                     .build());
         }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setTitle("Imported Maps");
-
-
-        // Check for app update
-        /*
-        You need to install your test app from Google Play; it won't work if you just install it from Android Studio.
-
-Installing it from Google Play can be done via "Open testing", "Closed testing", or "Internal testing", but (I think) those tracks
- allow only release builds (i.e. can't set breakpoints), so I suggest you start with "Internal app sharing". Just upload your .apk or .aab
-  to https://play.google.com/console/internal-app-sharing. The only thing that doesn't seem to work is setting the update priority in
-  "Internal app sharing". I'd like to hear how others handle it.
-
-FakeAppUpdateManager does NOT show the update dialog. You just mock what Google Play would do by issuing commands, such as
-fakeAppUpdateManager.downloadStarts(), but there won't be any dialogs. Refer to this.
-
-An update can be both FLEXIBLE and IMMEDIATE at the same time. In other words, if you check appUpdateInfo.isUpdateTypeAllowed(FLEXIBLE) and
- appUpdateInfo.isUpdateTypeAllowed(IMMEDIATE), they can be both true. It's up to you to decide what to do at that point, depending on what the update's priority is.
-
-These are the steps I took.
-
-Set versionCode to 2, build either .apk or .aab (in debug version), and upload it to "Internal app sharing". Make note of its download URL.
-
-Set versionCode to 1, and do the same as step 1.
-
-Open the URL from step 2 (i.e. version 1) from the phone. It will open Google Play and ask you to download the app. Download, and open it.
-
-Open the URL from step 1 (i.e. version 2) from the phone, but DON'T tap on the "Update" button; just bring the app version 1 to the foreground.
-
-While the app is running, attach debugger (Android Studio -> Run -> Attach Debugger to Android Process).
-
-Check the update (appUpdateManager.appUpdateInfo.addOnSuccessListener {...}), start the update (appUpdateManager.startUpdateFlowForResult(...)), etc.
-         */
-        final AppUpdateManager appUpdateManager = AppUpdateManagerFactory.create(this);
-        Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
-        appUpdateInfoTask.addOnSuccessListener(new OnSuccessListener<AppUpdateInfo>() {
-            @Override
-            public void onSuccess(AppUpdateInfo appUpdateInfo) {
-                try {
-                    Toast.makeText(getApplicationContext(),"Success.", Toast.LENGTH_SHORT).show();
-                    appUpdateManager.startUpdateFlowForResult(
-                            appUpdateInfo,
-                            AppUpdateType.FLEXIBLE,
-                            MainActivity.this,
-                            APP_UPDATE_REQUEST_CODE
-                    );
-                } catch (IntentSender.SendIntentException e) {
-                    Toast.makeText(getApplicationContext(),"Exception received", Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
-                }
-            }
-        });
 
         // DEBUG ***********
         //latBefore = 38.5;
@@ -222,7 +172,100 @@ Check the update (appUpdateManager.appUpdateInfo.addOnSuccessListener {...}), st
         }
         else
             setupLocation();
+
+        // Check for updates in the Play Store https://www.section.io/engineering-education/android-application-in-app-update-using-android-studio/
+        appUpdateManager = AppUpdateManagerFactory.create(getApplicationContext());//this);
+        installStateUpdatedListener = state -> {
+            if (state.installStatus() == InstallStatus.DOWNLOADING) {
+                float bytesDownloaded = (float)state.bytesDownloaded();
+                float totalBytesToDownload = (float)state.totalBytesToDownload();
+                // Implement progress.
+                Snackbar snackbar =
+                        Snackbar.make(
+                                findViewById(R.id.content).getRootView(),
+                                "Downloading update "+String.format("%0.2f",bytesDownloaded/1000000)+" of "+String.format("%0.2f",totalBytesToDownload/1000000)+ " mb",
+                                Snackbar.LENGTH_SHORT);
+            }
+            else if (state.installStatus() == InstallStatus.DOWNLOADED) {
+                // After the update is downloaded, show a notification
+                // and request user confirmation to restart the app.
+                popupSnackbarForCompleteUpdate();
+            }
+            else if (state.installStatus() == InstallStatus.INSTALLED) {
+                removeInstallStateUpdateListener();
+            }
+            else {
+                Toast.makeText(getApplicationContext(), "InstallStateUpdatedListener: state: " + state.installStatus(), Toast.LENGTH_LONG).show();
+            }
+        };
+        checkForUpdate();
     }
+
+    // Check for Updates in the Play Store
+    protected void checkForUpdate(){
+        // Check for app update
+        Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
+        appUpdateInfoTask.addOnSuccessListener(new OnSuccessListener<AppUpdateInfo>() {
+            @Override
+            public void onSuccess(AppUpdateInfo appUpdateInfo) {
+                if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                    && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
+                        // For flexable update type need to install listener for download and prompt to restart
+                        // See: https://developer.android.com/guide/playcore/in-app-updates/kotlin-java#java
+                        startUpdateFlow(appUpdateInfo);
+                }
+                else if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED){
+                    popupSnackbarForCompleteUpdate();
+                }
+            }
+        });
+    }
+    private void startUpdateFlow(AppUpdateInfo appUpdateInfo) {
+        try {
+            appUpdateManager.startUpdateFlowForResult(appUpdateInfo,
+                    AppUpdateType.FLEXIBLE,
+                    this,
+                    APP_UPDATE_REQUEST_CODE);
+        } catch (IntentSender.SendIntentException e) {
+            e.printStackTrace();
+        }
+    }
+    // Update Downloaded? Displays the snackbar notification and call to action.
+    private void popupSnackbarForCompleteUpdate() {
+        Snackbar snackbar =
+                Snackbar.make(
+                        findViewById(android.R.id.content).getRootView(),
+                        "The update has downloaded.",
+                        Snackbar.LENGTH_INDEFINITE);
+        snackbar.setAction("RESTART", view -> {
+            if (appUpdateManager != null) {
+                appUpdateManager.completeUpdate();
+            }
+        });
+        snackbar.setActionTextColor(
+                getResources().getColor(R.color.primary_text));
+        snackbar.show();
+    }
+    private void removeInstallStateUpdateListener() {
+        if (appUpdateManager != null) {
+            appUpdateManager.unregisterListener(installStateUpdatedListener);
+        }
+    }
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == APP_UPDATE_REQUEST_CODE) {
+            if (resultCode == RESULT_CANCELED) {
+                Toast.makeText(getApplicationContext(), "Update canceled by user! Result Code: " + resultCode, Toast.LENGTH_LONG).show();
+            } else if (resultCode == RESULT_OK) {
+                Toast.makeText(getApplicationContext(),"Update success! Result Code: " + resultCode, Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(getApplicationContext(), "Update Failed! Result Code: " + resultCode, Toast.LENGTH_LONG).show();
+                checkForUpdate();
+            }
+        }
+    }
+
+
 
     protected void setupLocation(){
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -366,6 +409,7 @@ Check the update (appUpdateManager.appUpdateInfo.addOnSuccessListener {...}), st
             return (locationMode != Settings.Secure.LOCATION_MODE_OFF);
         }
     }
+
     // Permission
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, int[] grantResults) {
@@ -450,6 +494,35 @@ Check the update (appUpdateManager.appUpdateInfo.addOnSuccessListener {...}), st
             startLocationUpdates();
         }
         else Toast.makeText(MainActivity.this,"Please turn on Location Services.",Toast.LENGTH_LONG).show();
+
+        // Checks that the update is not stalled
+        if (appUpdateManager != null) {
+            appUpdateManager
+                    .getAppUpdateInfo()
+                    .addOnSuccessListener(
+                            appUpdateInfo -> {
+                                if (appUpdateInfo.updateAvailability()
+                                        == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                                    // If an in-app update is already running, resume the update.
+                                    try {
+                                        appUpdateManager.startUpdateFlowForResult(
+                                                appUpdateInfo,
+                                                AppUpdateType.FLEXIBLE,
+                                                MainActivity.this,
+                                                APP_UPDATE_REQUEST_CODE);
+                                    } catch (IntentSender.SendIntentException e) {
+                                        Toast.makeText(getApplicationContext(), "Failed to update. " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        // e.printStackTrace();
+
+                                    }
+                                }
+                                else // If the update is downloaded but not installed,
+                                    // notify the user to complete the update.
+                                    if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+                                        popupSnackbarForCompleteUpdate();
+                                    }
+                            });
+        }
     }
 
 
@@ -465,6 +538,11 @@ Check the update (appUpdateManager.appUpdateInfo.addOnSuccessListener {...}), st
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
     protected void onStop(){
         super.onStop();
 
@@ -472,7 +550,6 @@ Check the update (appUpdateManager.appUpdateInfo.addOnSuccessListener {...}), st
         // Unregister mLocationCallback
         // unregister  dialogClickListener !!!!!!!!!!!
     }
-
 
 
     //--------------------

@@ -47,6 +47,16 @@
             android:textSize="24sp"
             android:textStyle="bold" />
 
+        <!-- Version -->
+        <TextView
+            android:id="@+id/version"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="0dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp" />
+
         <!-- Intro -->
         <TextView
             android:id="@+id/textViewIntro"

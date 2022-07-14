@@ -903,18 +903,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             if (pdfView.getCurrentXOffset() + x <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
                                 // Test for balloon popup going off right or left side of screen
                                 int offsetBox = getOffsetXBox(x, textWidth, emoji_width);
-                                //int offsetBox = (int) Math.round((optimalPageWidth.get() * zoom) - (x + (textWidth / 2) + marg + emoji_width));
-                                // Test for balloon popup going off the left side of screen
-                                //if (offsetBox >= 0) {
-                                //    offsetBox = 0;
-                                //    if ((x - (textWidth / 2) - marg) < 0)
-                                //        offsetBox = -1 * Math.round(x - (textWidth / 2) - marg);
-                                //}
                                 // Test for waypoint at top half of screen, display popup below
                                 int offsetYBox = 0;
                                 int offsetYTriangle = 0;
                                 if ((y + pdfView.getCurrentYOffset()) < (pdfView.getHeight()/2.0)){
-                                //if (clickedTopHalf) {
                                     offsetYBox = getOffsetYBox();//startY + boxHt;
                                     offsetYTriangle = getOffsetYTriangle();
                                 }
@@ -982,20 +974,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                     // check if waypoint has scrolled off screen
                     if (pdfView.getCurrentXOffset() + x <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
+                        // Test for balloon popup going off right or left side of screen
                         int offsetBox = getOffsetXBox(x,textWidth,emoji_width);
-                        // Test for balloon popup going off right side of screen
-                        //int offsetBox = (int) Math.round(screenWidth - (pdfView.getCurrentXOffset() + x + ((textWidth / 2) + marg + emoji_width)));
-
-                        // Test for balloon popup going off the left side of screen
-                        //if (offsetBox >= 0) {
-                        //    offsetBox = 0;
-                        //    if ((pdfView.getCurrentXOffset() + x - (textWidth / 2) - marg) < 0)
-                        //        offsetBox = (int) (-1 * Math.round(pdfView.getCurrentXOffset() + x - (textWidth / 2) - marg));
-                        //}
                         // Test for waypoint at top half of screen, display popup below
                         int offsetYBox = 0;
                         int offsetYTriangle = 0;
-                        if (clickedTopHalf) {
+                        if ((y + pdfView.getCurrentYOffset()) < (pdfView.getHeight()/2.0)){
                             offsetYBox = getOffsetYBox();//startY + boxHt;
                             offsetYTriangle = getOffsetYTriangle();//2 * startY - 3 - boxHt;
                         }
