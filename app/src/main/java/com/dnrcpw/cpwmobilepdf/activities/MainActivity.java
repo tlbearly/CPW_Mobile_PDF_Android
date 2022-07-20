@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private AppUpdateManager appUpdateManager;
     private static final int APP_UPDATE_REQUEST_CODE = 123;
     private InstallStateUpdatedListener installStateUpdatedListener;
+    private boolean checkedForUpdates;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -198,12 +199,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 Toast.makeText(getApplicationContext(), "InstallStateUpdatedListener: state: " + state.installStatus(), Toast.LENGTH_LONG).show();
             }
         };
-        checkForUpdate();
     }
 
     // Check for Updates in the Play Store
     protected void checkForUpdate(){
         // Check for app update
+        checkedForUpdates = true;
         Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
         appUpdateInfoTask.addOnSuccessListener(new OnSuccessListener<AppUpdateInfo>() {
             @Override
@@ -242,8 +243,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 appUpdateManager.completeUpdate();
             }
         });
-        snackbar.setActionTextColor(
-                getResources().getColor(R.color.primary_text));
+        int col;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            col = getResources().getColor(R.color.primary_text,getTheme());
+        }
+        else {
+            // deprecated in API 23
+            col = getResources().getColor(R.color.primary_text);
+        }
+        snackbar.setActionTextColor(col);
+
         snackbar.show();
     }
     private void removeInstallStateUpdateListener() {
@@ -255,9 +264,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == APP_UPDATE_REQUEST_CODE) {
             if (resultCode == RESULT_CANCELED) {
-                Toast.makeText(getApplicationContext(), "Update canceled by user! Result Code: " + resultCode, Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Update canceled by user!", Toast.LENGTH_LONG).show();
             } else if (resultCode == RESULT_OK) {
-                Toast.makeText(getApplicationContext(),"Update success! Result Code: " + resultCode, Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(),"Update success!", Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(getApplicationContext(), "Update Failed! Result Code: " + resultCode, Toast.LENGTH_LONG).show();
                 checkForUpdate();
@@ -617,7 +626,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // They return extras to pass back the results, update adapter and database here
         final Intent i = MainActivity.this.getIntent();
         if (i.getExtras() != null && !i.getExtras().isEmpty()) {
-
             // IMPORT NEW MAP INTO LIST
             // CustomAdapter calls MapImportTask class in CustomAdapter.java
             if (i.getExtras().containsKey("IMPORT_MAP") && i.getExtras().containsKey("PATH")) {
@@ -663,7 +671,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 // Display note if no records found
                 showHideNoImportsMessage();
             }
+            // Checked for Updates - only do this once!
+            if (i.getExtras().containsKey("UPDATES")){
+                checkedForUpdates = true;
+            }
         }
+
+        if (!checkedForUpdates)
+            checkForUpdate();
     }
 
 

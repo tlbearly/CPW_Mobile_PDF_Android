@@ -167,10 +167,10 @@ public class EditMapNameActivity extends AppCompatActivity {
             switch (which){
                 case DialogInterface.BUTTON_POSITIVE:
                     //'DELETE' button clicked, remove map from imported maps
-                    //mActionMode.finish(); // hide the edit menu
                     Intent mainIntent = new Intent(EditMapNameActivity.this, MainActivity.class);
                     mainIntent.putExtra("ID",id);
                     mainIntent.putExtra("DELETE","true");
+                    mainIntent.putExtra("UPDATES", "true");
                     mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(mainIntent);
                     break;
@@ -190,7 +190,6 @@ public class EditMapNameActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.edit_menu, menu);
-        //menu.findItem(R.id.action_quality).setChecked(bestQuality);
         return true;
     }
 
@@ -211,6 +210,7 @@ public class EditMapNameActivity extends AppCompatActivity {
             // back button pressed, return
             Intent mainIntent = new Intent(EditMapNameActivity.this, MainActivity.class);
             mainIntent.putExtra("ID",id);
+            mainIntent.putExtra("UPDATES", "true");
             mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(mainIntent);
             return true;
@@ -226,6 +226,7 @@ public class EditMapNameActivity extends AppCompatActivity {
             mainIntent.putExtra("NAME", name);
             mainIntent.putExtra("ID", id);
             mainIntent.putExtra("RENAME", "true");
+            mainIntent.putExtra("UPDATES", "true");
             mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(mainIntent);
             return true;

@@ -1,6 +1,6 @@
 package com.dnrcpw.cpwmobilepdf.activities;
 
-import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -57,13 +57,16 @@ public class GetMoreActivity extends AppCompatActivity {
                         Cursor cursor = GetMoreActivity.this.getContentResolver().query(uri, null, null, null, null);
                         if (cursor != null && cursor.getCount() != 0) {
                             cursor.moveToFirst();
-                            name = cursor.getString(
-                                    cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-                            fileSize = cursor.getLong(cursor.getColumnIndex(OpenableColumns.SIZE));
-                            if (fileSize == 0) {
-                                Toast.makeText(GetMoreActivity.this, "File is empty. File size is 0B", Toast.LENGTH_LONG).show();
-                                downloadsBtn.performClick(); // Show file picker again
-                                return;
+                            int dispName = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                            int size = cursor.getColumnIndex(OpenableColumns.SIZE);
+                            if (dispName != -1 && size != -1) {
+                                name = cursor.getString(dispName);
+                                fileSize = cursor.getLong(size);
+                                if (fileSize == 0) {
+                                    Toast.makeText(GetMoreActivity.this, "File is empty. File size is 0B", Toast.LENGTH_LONG).show();
+                                    downloadsBtn.performClick(); // Show file picker again
+                                    return;
+                                }
                             }
                         }
                         if (cursor != null) {
@@ -149,6 +152,7 @@ public class GetMoreActivity extends AppCompatActivity {
                     Intent mainIntent = new Intent(GetMoreActivity.this, MainActivity.class);
                     mainIntent.putExtra("IMPORT_MAP", true);
                     mainIntent.putExtra("PATH", newPath);
+                    mainIntent.putExtra("UPDATES", "true");
                     mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(mainIntent);
                 }
@@ -187,7 +191,7 @@ public class GetMoreActivity extends AppCompatActivity {
             // To search for all documents available via installed storage providers,
             // it would be "*/*".
             //intent.setType("application/pdf");
-            // TODO: deprecated startActivityForResult
+            // deprecated startActivityForResult
             //startActivityForResult (intent, READ_REQUEST_CODE);
             mGetContent.launch("application/pdf");
         });
@@ -275,6 +279,7 @@ public class GetMoreActivity extends AppCompatActivity {
                     Intent mainIntent = new Intent(GetMoreActivity.this, MainActivity.class);
                     mainIntent.putExtra("IMPORT_MAP", true);
                     mainIntent.putExtra("PATH", newPath);
+                    mainIntent.putExtra("UPDATES", "true");
                     mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(mainIntent);
                 } catch (FileNotFoundException e) {
@@ -296,11 +301,14 @@ public class GetMoreActivity extends AppCompatActivity {
     DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
         switch (which){
             case DialogInterface.BUTTON_POSITIVE:
-                //Show browser
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://cpw.state.co.us/learn/Pages/Maps.aspx"));
-                startActivity(browserIntent);
+                //Show Browser - if the web  page does not load make sure you are signed in to you gmail account in settings on the emulator
+                try {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://cpw.state.co.us/learn/Pages/Maps.aspx"));
+                    startActivity(browserIntent);
+                } catch(ActivityNotFoundException browserNotFound){
+                    Toast.makeText(this, "Cannot start your browser.", Toast.LENGTH_SHORT).show();
+                }
                 break;
-
             case DialogInterface.BUTTON_NEGATIVE:
                 //CANCEL button clicked
                 break;
@@ -331,6 +339,16 @@ public class GetMoreActivity extends AppCompatActivity {
             Intent intent = new Intent(GetMoreActivity.this, GetMoreHelpActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
+        }
+        // return flag UPDATES, to tell MainActivity to not show
+        // "you need to update" dialog again!
+        else if (item.getItemId() == android.R.id.home) {
+            // back button pressed, return
+            Intent mainIntent = new Intent(GetMoreActivity.this, MainActivity.class);
+            mainIntent.putExtra("UPDATES", "true");
+            mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(mainIntent);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);

@@ -40,12 +40,13 @@ android {
     buildToolsVersion "30.0.3"
     // For new release change versionCode and versionName
     // versionCode must be an interger!
+    // minSdkVersion 21 for update installs from Google Play
     defaultConfig {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 21
         targetSdkVersion 32
-        versionCode 21
-        versionName "1.2.9"
+        versionCode 23
+        versionName "1.2.11"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions */

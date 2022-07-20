@@ -1528,6 +1528,15 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             Intent i = new Intent(PDFActivity.this, PDFHelpActivity.class);
             startActivity(i);
         }
+        else if (item.getItemId() == android.R.id.home){
+            // back button pressed, return
+            Intent mainIntent = new Intent(PDFActivity.this, MainActivity.class);
+            mainIntent.putExtra("ID",id);
+            mainIntent.putExtra("UPDATES", "true");
+            mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(mainIntent);
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
