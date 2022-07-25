@@ -243,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         appUpdateManager.completeUpdate();
                     }
                     else {
-                        Toast.makeText(getApplicationContext(), "Restart the app now", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Please restart the app now", Toast.LENGTH_LONG).show();
                     }
                 })
                 .setNegativeButton("CANCEL", (dialog, i) -> {
