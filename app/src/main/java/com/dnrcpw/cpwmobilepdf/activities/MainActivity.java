@@ -190,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             else if (state.installStatus() == InstallStatus.DOWNLOADED) {
                 // After the update is downloaded, show a notification
                 // and request user confirmation to restart the app.
-                popupSnackbarForCompleteUpdate();
+                popupForCompleteUpdate();
             }
             else if (state.installStatus() == InstallStatus.INSTALLED) {
                 removeInstallStateUpdateListener();
@@ -216,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         startUpdateFlow(appUpdateInfo);
                 }
                 else if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED){
-                    popupSnackbarForCompleteUpdate();
+                    popupForCompleteUpdate();
                 }
             }
         });
@@ -231,29 +231,24 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             e.printStackTrace();
         }
     }
-    // Update Downloaded? Displays the snackbar notification and call to action.
-    private void popupSnackbarForCompleteUpdate() {
-        Snackbar snackbar =
-                Snackbar.make(
-                        findViewById(android.R.id.content).getRootView(),
-                        "The update has downloaded.",
-                        Snackbar.LENGTH_INDEFINITE);
-        snackbar.setAction("RESTART", view -> {
-            if (appUpdateManager != null) {
-                appUpdateManager.completeUpdate();
-            }
-        });
-        int col;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            col = getResources().getColor(R.color.primary_text,getTheme());
-        }
-        else {
-            // deprecated in API 23
-            col = getResources().getColor(R.color.primary_text);
-        }
-        snackbar.setActionTextColor(col);
-
-        snackbar.show();
+    // Update Downloaded? Displays the dialog notification and call to action.
+    private void popupForCompleteUpdate() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("Update Downloaded");
+        builder.setMessage("Please restart the app for these changes to take affect.")
+                .setPositiveButton("RESTART", (dialog, id) -> {
+                    // User clicked Restart button.
+                    dialog.dismiss();
+                    if (appUpdateManager != null) {
+                        appUpdateManager.completeUpdate();
+                    }
+                    else {
+                        Toast.makeText(getApplicationContext(), "Restart the app now", Toast.LENGTH_LONG).show();
+                    }
+                })
+                .setNegativeButton("CANCEL", (dialog, i) -> {
+                   dialog.dismiss();
+                }).create().show();
     }
     private void removeInstallStateUpdateListener() {
         if (appUpdateManager != null) {
@@ -264,16 +259,27 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == APP_UPDATE_REQUEST_CODE) {
             if (resultCode == RESULT_CANCELED) {
-                Toast.makeText(getApplicationContext(), "Update canceled by user!", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Update Canceled", Toast.LENGTH_LONG).show();
             } else if (resultCode == RESULT_OK) {
-                Toast.makeText(getApplicationContext(),"Update success!", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(),"Downloading Update", Toast.LENGTH_LONG).show();
             } else {
-                Toast.makeText(getApplicationContext(), "Update Failed! Result Code: " + resultCode, Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Update Failed!", Toast.LENGTH_LONG).show();
                 checkForUpdate();
             }
         }
     }
+    // When update has downloaded tell user to restart
+    DialogInterface.OnClickListener downloadClickListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which) {
+                // Restart
+                case DialogInterface.BUTTON_POSITIVE:
 
+                    break;
+            }
+        }
+    };
 
 
     protected void setupLocation(){
@@ -528,7 +534,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                 else // If the update is downloaded but not installed,
                                     // notify the user to complete the update.
                                     if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
-                                        popupSnackbarForCompleteUpdate();
+                                        popupForCompleteUpdate();
                                     }
                             });
         }
