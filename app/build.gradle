@@ -39,7 +39,7 @@ android {
     compileSdkVersion 32
     buildToolsVersion "30.0.3"
     // For new release change versionCode and versionName
-    // versionCode must be an interger!
+    // versionCode must be an integer!
     // minSdkVersion 21 for update installs from Google Play
     defaultConfig {
         applicationId 'com.dnrcpw.cpwmobilepdf'
@@ -49,12 +49,11 @@ android {
         versionName "1.2.11"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        /* to use Java 8 Lambda expressions */
+        /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
         compileOptions {
-            sourceCompatibility JavaVersion.VERSION_1_8
-            targetCompatibility JavaVersion.VERSION_1_8
+            sourceCompatibility JavaVersion.VERSION_11 //1_8
+            targetCompatibility JavaVersion.VERSION_11 //1_8
         }
-        //signingConfig signingConfigs.debug // move to debug section below
     }
     buildTypes {
         debug {
