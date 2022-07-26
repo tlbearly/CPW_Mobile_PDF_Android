@@ -36,17 +36,17 @@ android {
     // File / Settings / under System Settings / Android SDK. Select SDK Tools tab. Check Show Package Details. Look at NDK version.
     // Use 'FULL' or if > 300mb use 'SYMBOL_TABLE'
     ndkVersion "23.1.7779620"
-    compileSdkVersion 32
+    compileSdkVersion 33
     buildToolsVersion "30.0.3"
     // For new release change versionCode and versionName
-    // versionCode must be an interger!
+    // versionCode must be an integer!
     // minSdkVersion 21 for update installs from Google Play
     defaultConfig {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 21
-        targetSdkVersion 32
-        versionCode 23
-        versionName "1.2.11"
+        targetSdkVersion 33
+        versionCode 24
+        versionName "1.2.12"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
