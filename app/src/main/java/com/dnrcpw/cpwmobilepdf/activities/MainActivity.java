@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private AppUpdateManager appUpdateManager;
     private static final int APP_UPDATE_REQUEST_CODE = 123;
     private InstallStateUpdatedListener installStateUpdatedListener;
-    private boolean checkedForUpdates;
+    private boolean checkedForUpdates = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -183,8 +183,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 // Implement progress.
                 Snackbar snackbar =
                         Snackbar.make(
-                                findViewById(R.id.content).getRootView(),
-                                "Downloading update "+String.format(Locale.US,"%.2f",bytesDownloaded/1000000)+" of "+String.format(Locale.US,"%.2f",totalBytesToDownload/1000000)+ " mb",
+                                getWindow().getDecorView().getRootView(),
+                                "Downloading update "+String.format(Locale.US,"%.0f",bytesDownloaded/totalBytesToDownload*100)+"%",
                                 Snackbar.LENGTH_SHORT);
                 snackbar.show();
             }
@@ -205,17 +205,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     // Check for Updates in the Play Store
     protected void checkForUpdate(){
         // Check for app update
-        checkedForUpdates = true;
         Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
         appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
-            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+            if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED){
+                popupForCompleteUpdate();
+            }
+            else if (!checkedForUpdates && appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
                 && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
                     // For flexable update type need to install listener for download and prompt to restart
                     // See: https://developer.android.com/guide/playcore/in-app-updates/kotlin-java#java
                     startUpdateFlow(appUpdateInfo);
-            }
-            else if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED){
-                popupForCompleteUpdate();
             }
         });
     }
@@ -257,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             if (resultCode == RESULT_CANCELED) {
                 Toast.makeText(getApplicationContext(), "Update Canceled", Toast.LENGTH_LONG).show();
             } else if (resultCode == RESULT_OK) {
-                Toast.makeText(getApplicationContext(),"Downloading Update", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(),"Downloading Update...", Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(getApplicationContext(), "Update Failed!", Toast.LENGTH_LONG).show();
                 checkForUpdate();
@@ -666,8 +665,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         }
 
-        if (!checkedForUpdates)
-            checkForUpdate();
+        // check for updates or download new update complete
+        checkForUpdate();
     }
 
 
@@ -871,8 +870,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         public void onClick(DialogInterface dialog, int which) {
             switch (which){
                 case DialogInterface.BUTTON_POSITIVE:
-                    //DELETE all imported maps clicked and recreate the database *****
-                    //dbHandler.deleteTable(MainActivity.this); // this removes the database table. Do this if added/removed fields to/from the database
+                    //DELETE all imported maps clicked and recreate the database
                     myAdapter.removeAll();
                     // Disable "Delete all Imported Maps" if there aren't any maps
                     MenuItem delMapsMenuItem = toolbar.getMenu().findItem(R.id.action_deleteAll);
@@ -906,20 +904,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // Found in res/menu/menu_main.xml
         int id = item.getItemId();
 
-        // Rename or delete map
-       /* if (id == R.id.action_edit){
-            myAdapter.setEditing(true);
-            setTitle("Edit");
-            fab.setVisibility(View.GONE);
-            // display back arrow
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            sortView.setVisibility(View.GONE);
-            hideMoreIcon = true;
-            invalidateOptionsMenu();
-            lv.setAdapter(myAdapter);
-            //Snackbar.make(findViewById(android.R.id.content), "Select map to rename or delete.", Snackbar.LENGTH_LONG).show();
-            return true;
-        } else*/
         // Delete all imported maps
         if (id == R.id.action_deleteAll){
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -934,18 +918,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             startActivity(intent);
             return true;
         }
-        /*else if (id == android.R.id.home){
-            myAdapter.setEditing(false);
-            setTitle("Imported Maps");
-            fab.setVisibility(View.VISIBLE);
-            sortView.setVisibility(View.VISIBLE);
-            hideMoreIcon = false;
-            invalidateOptionsMenu();
-            // display back arrow
-            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-            lv.setAdapter(myAdapter);
-            return true;
-        }*/
 
         return super.onOptionsItemSelected(item);
     }
