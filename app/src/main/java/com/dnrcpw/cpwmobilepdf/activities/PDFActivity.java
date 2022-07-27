@@ -957,7 +957,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 }
 
                 // Draw popup if waypoint was clicked on
-                if ((newWP || clickedWP != -1) && !showAllWayPtLabels) {
+                if ((newWP || clickedWP != -1) && !showAllWayPtLabels && showAllWayPts) {
                     //Log.d("PDFActivity", "onDraw: draw waypoint and popup balloon. newWP="+newWP+" clickedWP="+clickedWP);
                     int i12 = clickedWP;
                     double xLong = wayPts.get(i12).getX();//*(float)zoom;
