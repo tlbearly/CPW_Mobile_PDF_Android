@@ -27,7 +27,7 @@ allprojects {
         maven { url 'https://jitpack.io' }
     }
 
-    // compile with extra debug notes
+    // -Xlint compile with extra debug notes
     tasks.withType(JavaCompile) {
         options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
     }

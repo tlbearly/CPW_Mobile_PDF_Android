@@ -32,6 +32,11 @@ import java.io.OutputStream;
 public class GetMoreActivity extends AppCompatActivity {
     // final String TAG = "DEBUG";
     Button downloadsBtn;
+    // link to USFS webapp to download PDFs https://www.arcgis.com/apps/webappviewer/index.html?id=b70e11a68aac46b3a5bd911b82b53c1e
+    // USFS https://data.fs.usda.gov/geodata/rastergateway/states-regions/states.php
+    // USGS https://ngmdb.usgs.gov/topoview/viewer/
+    // old USGS link: https://store.usgs.gov/map-locator
+
     //private static final int READ_REQUEST_CODE = 42; // For file picker
 
     // use to avoid startActivityForResult deprecated!!!!!

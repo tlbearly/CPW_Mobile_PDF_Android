@@ -394,7 +394,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         pdfView.enableAntialiasing(true); // improve rendering a little bit on low-res screens
 
         // SET UP LOCATION SERVICES
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        try {
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        } catch (Exception e){
+            // no gps service
+            return;
+        }
 
         // UPDATE CURRENT POSITION
         mLocationCallback = new LocationCallback() {
@@ -429,7 +434,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 }
             }
         };
-
         setupPDFView();
     }
 
@@ -1241,21 +1245,36 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     //  LOCATION UPDATES
     private void startLocationUpdates() {
         LocationRequest mLocationRequest;
-        mLocationRequest = LocationRequest.create();
-        //mLocationRequest = new LocationRequest(); // depricated
-        mLocationRequest.setInterval(1000); //update location every 1 seconds
-        //mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY); // depricated
-        mLocationRequest.setPriority(Priority.PRIORITY_HIGH_ACCURACY);
+        if (Build.VERSION.SDK_INT >= 31){
+            mLocationRequest = LocationRequest.create();
+            if (mLocationRequest != null) {
+                mLocationRequest.setPriority(Priority.PRIORITY_HIGH_ACCURACY);
+                mLocationRequest.setInterval(1000); //update location every 30 seconds
+            }
+        }
+        // API <= 30
+        else{
+            mLocationRequest = new LocationRequest();
+            if (mLocationRequest != null) {
+                mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+                mLocationRequest.setInterval(1000); //update location every 30 seconds
+            }
+        }
+
         if ((ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
                 (ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
-            mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback,  Looper.getMainLooper());
+            if (mFusedLocationClient != null) {
+                mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.getMainLooper());
+            }
         }
     }
 
     private void stopLocationUpdates() {
         if ((ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
                 (ContextCompat.checkSelfPermission(PDFActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
-            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+            if (mFusedLocationClient != null) {
+                mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+            }
         }
     }
 

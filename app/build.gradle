@@ -1,33 +1,38 @@
 apply plugin: 'com.android.application'
 
+// TESTING!!!!!!!! Don't know where to put this???? Add compiler options here fortify and clang sanitize
+//cmake {
+//    arguments '-D_FORTIFY_SOURCE=2', '-DANDROID_PLATFORM=android-33','-DANDROID_TOOLCHAIN=clang',
+//            'DANDROID_ARM_NEON=TRUE','-DANDROID_STL=c++_static'
+//    cFlags '-O3', '-fsigned-char'
+//    cppFlags '-std=c++11', '-fsigned-char', '-fPIC'
+//}
+
+// Load keystore
+// Create a variable called keystorePropertiesFile, and initialize it to your
+// keystore.properties file, in the rootProject folder.
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 // To use Vector Drawables add "vectorDrawables.useSupportLibrary = true" to defaultConfig. VectorDrawables is available at sdk 21 but can use
 // appcompat to use VectorDrawableCompat for backward compatible. Allows SVG graphics.
 // if min SDK version >= 19 permission to read write external files is not required if using getExternalFilesDir.
 android {
-
-    /*
-    // Create a variable called keystorePropertiesFile, and initialize it to your
-    // keystore.properties file, in the rootProject folder.
-    def keystorePropertiesFile = rootProject.file("keystore.properties")
-    if (keystorePropertiesFile.exists()) {
-        Properties keystoreProperties = new Properties();
-        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-
-        signingConfigs {
-            release {
-                keyAlias keystoreProperties['keyAlias']
-                keyPassword keystoreProperties['keyPassword']
-                storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
-                storePassword keystoreProperties['storePassword']
-            }
-        }
-    }*/
     signingConfigs {
         release {
-            storeFile file('C:\\Users\\tammy\\AndroidStudioProjects\\key_store\\cpw_key.jks')
-            storePassword 'cpw4Agwsme!'
-            keyAlias 'key1'
-            keyPassword 'cpw4Agwsme!'
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword keystoreProperties['storePassword']
+        }
+        debug {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword keystoreProperties['storePassword']
         }
     }
 
@@ -45,8 +50,8 @@ android {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 24
-        versionName "1.2.12"
+        versionCode 28
+        versionName "1.2.16"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
@@ -100,7 +105,7 @@ dependencies {
     // Google Play Location Services
     // compile is deprecated use api or implementation. Must have SDK version 28.0.0
     implementation 'com.google.android.gms:play-services-location:20.0.0'
-    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'androidx.appcompat:appcompat:1.5.1' //1.4.2'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'com.google.android.material:material:1.6.1'
 

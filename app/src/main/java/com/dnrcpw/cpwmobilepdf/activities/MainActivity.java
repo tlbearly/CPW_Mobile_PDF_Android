@@ -59,7 +59,6 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     // Displays list of imported pdf maps and an add more button. When an item is clicked, it loads the map.
     private ListView lv;
-    private final Boolean debug=false;
     private CustomAdapter myAdapter; // list of imported pdf maps
     private DBHandler dbHandler;
     //private String TAG = "MainActivity";
@@ -84,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // added to report non sdk apis 12/13/21
+        boolean debug = false;
         if (debug) {
             StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
                     .detectLeakedSqlLiteObjects()
@@ -265,8 +265,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     protected void setupLocation(){
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
+        try {
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        } catch (Exception e){
+            // no gps service
+            return;
+        }
         // UPDATE CURRENT POSITION
         mLocationCallback = new LocationCallback() {
             @Override
@@ -678,13 +682,26 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private void startLocationUpdates() {
         try {
             LocationRequest mLocationRequest;
-            mLocationRequest = LocationRequest.create();
-            mLocationRequest.setInterval(30000); //update location every 30 seconds
-            //mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-            mLocationRequest.setPriority(Priority.PRIORITY_HIGH_ACCURACY);
+            if (Build.VERSION.SDK_INT >= 31){
+                mLocationRequest = LocationRequest.create();
+                if (mLocationRequest != null) {
+                    mLocationRequest.setPriority(Priority.PRIORITY_HIGH_ACCURACY);
+                    mLocationRequest.setInterval(30000); //update location every 30 seconds
+                }
+            }
+            // API <= 30
+            else{
+                mLocationRequest = new LocationRequest();
+                if (mLocationRequest != null) {
+                    mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+                    mLocationRequest.setInterval(30000); //update location every 30 seconds
+                }
+            }
+
 
             if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
-                mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null /*Looper.getMainLooper()*/);
+                if (mFusedLocationClient != null)
+                    mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null /*Looper.getMainLooper()*/);
             } else {
                 Toast.makeText(MainActivity.this, "Fine Location Services are off.", Toast.LENGTH_LONG).show();
             }
@@ -696,7 +713,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     private void stopLocationUpdates() {
-        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        if (mFusedLocationClient != null) {
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        }
     }
 
 
