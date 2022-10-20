@@ -254,12 +254,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == APP_UPDATE_REQUEST_CODE) {
             if (resultCode == RESULT_CANCELED) {
+                checkedForUpdates = true;
                 Toast.makeText(getApplicationContext(), "Update Canceled", Toast.LENGTH_LONG).show();
             } else if (resultCode == RESULT_OK) {
                 Toast.makeText(getApplicationContext(),"Downloading Update...", Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(getApplicationContext(), "Update Failed!", Toast.LENGTH_LONG).show();
-                checkForUpdate();
+                if(!checkedForUpdates){
+                    checkForUpdate();
+                }
             }
         }
     }
@@ -670,7 +673,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
 
         // check for updates or download new update complete
-        checkForUpdate();
+        if(!checkedForUpdates) {
+            checkForUpdate();
+        }
     }
 
 

@@ -796,9 +796,9 @@ public class CustomAdapter extends BaseAdapter {
                 else {
                     String direction;
                     double dist;
-                    if (latNow > lat1) direction = "S";
-                    else if (latNow > lat2) direction = "";
-                    else direction = "N";
+                    if (latNow < lat1) direction = "N";
+                    else if (latNow > lat2) direction = "S";
+                    else direction = "";
                     if (longNow < long1) direction += "E";
                     else if (longNow > long2) direction += "W";
 
@@ -811,25 +811,30 @@ public class CustomAdapter extends BaseAdapter {
                             Location.distanceBetween(latNow, longNow, lat1, longNow, results);
                             break;
                         case "E":
-                            Location.distanceBetween(latNow, longNow, latNow, long2, results);
-                            break;
-                        case "W":
                             Location.distanceBetween(latNow, longNow, latNow, long1, results);
                             break;
+                        case "W":
+                            Location.distanceBetween(latNow, longNow, latNow, long2, results);
+                            break;
                         case "SE":
-                            Location.distanceBetween(latNow, longNow, lat2, long2, results);
-                            break;
-                        case "SW":
-                            Location.distanceBetween(latNow, longNow, lat1, long2, results);
-                            break;
-                        case "NE":
                             Location.distanceBetween(latNow, longNow, lat2, long1, results);
                             break;
-                        case "NW":
+                        case "SW":
+                            Location.distanceBetween(latNow, longNow, lat2, long2, results);
+                            break;
+                        case "NE":
                             Location.distanceBetween(latNow, longNow, lat1, long1, results);
+                            break;
+                        case "NW":
+                            Location.distanceBetween(latNow, longNow, lat1, long2, results);
                             break;
                     }
                     dist = results[0] * 0.00062137119;
+                    if (dist < 0.09){
+                        map.setMiles(0.0);
+                        map.setDistToMap("");
+                        return;
+                    }
                     map.setMiles(dist);
                     String str = "    ";
 

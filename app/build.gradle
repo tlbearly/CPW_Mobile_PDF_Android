@@ -50,8 +50,8 @@ android {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 28
-        versionName "1.2.16"
+        versionCode 29
+        versionName "1.2.17"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
