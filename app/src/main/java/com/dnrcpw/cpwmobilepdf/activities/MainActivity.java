@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -295,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                         // if accuracy is worse than 1/10 of a mile do not update distance to map
                         float accuracy = location.getAccuracy();
-                        //Log.d(TAG, "onLocationResult: accuracy="+accuracy);
+                        Log.d("Accuracy", "onLocationResult: accuracy="+accuracy);
                         if (accuracy > 160.9344) {
                             Toast.makeText(MainActivity.this, "Acquiring location...", Toast.LENGTH_SHORT).show();
                             return;
@@ -310,7 +311,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         }
 
                         // if change in location is > .1 miles update distance to map
-                        if (results[0] > updateProximityDist || latBefore == 0.0) {
+                        if (latBefore == 0.0 || results[0] > updateProximityDist) {
+
+
                             // Update distance to map.
                             myAdapter.getDistToMap();
 
@@ -326,7 +329,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                 for (int i = 0; i < myAdapter.pdfMaps.size(); i++) {
                                     View v = lv.getChildAt(i - lv.getFirstVisiblePosition());
                                     if (v == null)
-                                        return;
+                                        continue;
 
                                     ImageView img = v.findViewById(R.id.pdfImage);
                                     try {
@@ -348,11 +351,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                     fileSize.setText(myAdapter.pdfMaps.get(i).getFileSize());
                                     TextView distToMap = v.findViewById(R.id.distToMapTxt);
                                     String dist = myAdapter.pdfMaps.get(i - lv.getFirstVisiblePosition()).getDistToMap();
-                                    distToMap.setText(dist);
-                                    if (dist.equals("")) {
+                                    if (dist.equals("onmap")) {
                                         v.findViewById(R.id.locationIcon).setVisibility(View.VISIBLE);
+                                        distToMap.setText("");
                                     } else {
                                         v.findViewById(R.id.locationIcon).setVisibility(View.GONE);
+                                        distToMap.setText(dist);
                                     }
                                 }
                             }
@@ -362,14 +366,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                 for (int i = 0; i < myAdapter.pdfMaps.size(); i++) {
                                     View v = lv.getChildAt(i - lv.getFirstVisiblePosition());
                                     if (v == null)
-                                        return;
+                                        continue;
                                     TextView distToMap = v.findViewById(R.id.distToMapTxt);
                                     String dist = myAdapter.pdfMaps.get(i).getDistToMap();
-                                    distToMap.setText(dist);
-                                    if (dist.equals("")) {
+                                    Log.d("Distance", "accuracy:"+accuracy+"  "+myAdapter.pdfMaps.get(i).getName()+" "+dist);
+                                    if (dist.equals("onmap")) {
                                         v.findViewById(R.id.locationIcon).setVisibility(View.VISIBLE);
+                                        distToMap.setText("");
                                     } else {
                                         v.findViewById(R.id.locationIcon).setVisibility(View.GONE);
+                                        distToMap.setText(dist);
                                     }
                                 }
                             }
@@ -561,12 +567,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //--------------------
     private void fillList() {
         // GET THE LIST FROM THE DATABASE
-        // TODO: Start the new thread to read maps from database
-        //this did not work!!!!!
-        // new Thread(new Runnable() {
-        //    public void run() {
-        //Looper.prepare();
-        //dbHandler = DBHandler.getInstance(MainActivity.this);
         dbHandler = new DBHandler(MainActivity.this);
         try {
             myAdapter = new CustomAdapter(MainActivity.this, dbHandler.getAllMaps(MainActivity.this));
@@ -609,9 +609,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 break;
         }
         sortByDropdown.setSelection(sortID, true);
+        sortMaps(sort); // added 10-24-22 When returning from activity or paused, if setSelection was not changing anything it would not sort. Defaulted to date added sorting.
         // Update myAdapter list and database if import/rename/delete happened
         checkForActivityResult();
-        // check of returned from another activity and change the maps list accordingly
+        // check if returned from another activity and change the maps list accordingly
         // When return from GetMoreActivity or EditMapNameActivity update maps list
     }
 

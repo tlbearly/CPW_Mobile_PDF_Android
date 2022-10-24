@@ -789,7 +789,7 @@ public class CustomAdapter extends BaseAdapter {
                 // On map
                 if (latNow >= lat1 && latNow <= lat2 && longNow >= long1 && longNow <= long2) {
                     map.setMiles(0.0);
-                    map.setDistToMap("");
+                    map.setDistToMap("onmap");
                     // Log.d(TAG, "updateDistToMap: " + map.getName() + " on map");
                 }
                 // Off map, calculate distance away
@@ -832,7 +832,7 @@ public class CustomAdapter extends BaseAdapter {
                     dist = results[0] * 0.00062137119;
                     if (dist < 0.09){
                         map.setMiles(0.0);
-                        map.setDistToMap("");
+                        map.setDistToMap("onmap");
                         return;
                     }
                     map.setMiles(dist);
@@ -1072,12 +1072,16 @@ public class CustomAdapter extends BaseAdapter {
             }*/
             fileSizeTxt.setText(pdfMap.getFileSize());
             // getDistToMap sets miles also
-            distToMapTxt.setText(pdfMap.getDistToMap());
+            String dist = pdfMap.getDistToMap();
             if (latNow != null) {
-                if (!pdfMap.getDistToMap().equals(""))
+                if (!dist.equals("onmap")) {
                     locIcon.setVisibility(View.GONE);
-                else
+                    distToMapTxt.setText(dist);
+                }
+                else {
                     locIcon.setVisibility(View.VISIBLE);
+                    distToMapTxt.setText("");
+                }
             } else
                 locIcon.setVisibility(View.GONE);
         }
