@@ -497,6 +497,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // Importing a Map hides this button, show it again
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setVisibility(View.VISIBLE);
+        latBefore=0.0; //reset location so it updates
         fillList(); // get maps list from database
         // Start Location Services
         if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
