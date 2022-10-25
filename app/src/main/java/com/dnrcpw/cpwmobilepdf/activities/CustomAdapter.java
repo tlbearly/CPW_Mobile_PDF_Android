@@ -789,16 +789,16 @@ public class CustomAdapter extends BaseAdapter {
                 // On map
                 if (latNow >= lat1 && latNow <= lat2 && longNow >= long1 && longNow <= long2) {
                     map.setMiles(0.0);
-                    map.setDistToMap("");
+                    map.setDistToMap("onmap");
                     // Log.d(TAG, "updateDistToMap: " + map.getName() + " on map");
                 }
                 // Off map, calculate distance away
                 else {
                     String direction;
                     double dist;
-                    if (latNow > lat1) direction = "S";
-                    else if (latNow > lat2) direction = "";
-                    else direction = "N";
+                    if (latNow < lat1) direction = "N";
+                    else if (latNow > lat2) direction = "S";
+                    else direction = "";
                     if (longNow < long1) direction += "E";
                     else if (longNow > long2) direction += "W";
 
@@ -811,25 +811,30 @@ public class CustomAdapter extends BaseAdapter {
                             Location.distanceBetween(latNow, longNow, lat1, longNow, results);
                             break;
                         case "E":
-                            Location.distanceBetween(latNow, longNow, latNow, long2, results);
-                            break;
-                        case "W":
                             Location.distanceBetween(latNow, longNow, latNow, long1, results);
                             break;
+                        case "W":
+                            Location.distanceBetween(latNow, longNow, latNow, long2, results);
+                            break;
                         case "SE":
-                            Location.distanceBetween(latNow, longNow, lat2, long2, results);
-                            break;
-                        case "SW":
-                            Location.distanceBetween(latNow, longNow, lat1, long2, results);
-                            break;
-                        case "NE":
                             Location.distanceBetween(latNow, longNow, lat2, long1, results);
                             break;
-                        case "NW":
+                        case "SW":
+                            Location.distanceBetween(latNow, longNow, lat2, long2, results);
+                            break;
+                        case "NE":
                             Location.distanceBetween(latNow, longNow, lat1, long1, results);
+                            break;
+                        case "NW":
+                            Location.distanceBetween(latNow, longNow, lat1, long2, results);
                             break;
                     }
                     dist = results[0] * 0.00062137119;
+                    if (dist < 0.09){
+                        map.setMiles(0.0);
+                        map.setDistToMap("onmap");
+                        return;
+                    }
                     map.setMiles(dist);
                     String str = "    ";
 
@@ -1067,12 +1072,16 @@ public class CustomAdapter extends BaseAdapter {
             }*/
             fileSizeTxt.setText(pdfMap.getFileSize());
             // getDistToMap sets miles also
-            distToMapTxt.setText(pdfMap.getDistToMap());
+            String dist = pdfMap.getDistToMap();
             if (latNow != null) {
-                if (!pdfMap.getDistToMap().equals(""))
+                if (!dist.equals("onmap")) {
                     locIcon.setVisibility(View.GONE);
-                else
+                    distToMapTxt.setText(dist);
+                }
+                else {
                     locIcon.setVisibility(View.VISIBLE);
+                    distToMapTxt.setText("");
+                }
             } else
                 locIcon.setVisibility(View.GONE);
         }

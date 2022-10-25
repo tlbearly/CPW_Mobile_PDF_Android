@@ -26,7 +26,7 @@ public class PDFMap {
         this.name = name;
         this.fileSize = fileSize;
         this.distToMap = distToMap;
-        if (distToMap.equals(""))
+        if (distToMap.equals("onmap") || distToMap.equals(""))
             this.miles = 0.0;
         else
             this.miles = Double.parseDouble(distToMap);
