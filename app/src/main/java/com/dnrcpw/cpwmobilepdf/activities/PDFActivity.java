@@ -26,6 +26,7 @@ import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -143,9 +144,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private int margX; // distance on each side of waypoint to register user click
     private int margTop; // distance above waypoint to register user click
     private int margBottom; // distance below waypoint to register user click
-    private boolean clickedTopHalf; // user clicked in top half of screen
     private int screenWidth; // Used to see if popup balloon goes off page to the left or right
-    private int screenHeight; // Used to get clickedTopHalf
     private StaticLayout lsLayout; // arrow right in waypoint balloon popup
     private String path;
     String bounds;
@@ -205,22 +204,17 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         margTop = Math.round(getResources().getDimension(R.dimen.wayPtTmarg));
         margBottom = Math.round(getResources().getDimension(R.dimen.wayPtBmarg));
 
-        // Get variables to check for user click in top or bottom half of screen
-        clickedTopHalf = false;
         if (Build.VERSION.SDK_INT >= 28 && Build.VERSION.SDK_INT < 30) {
-            screenHeight = getResources().getDisplayMetrics().heightPixels;
             screenWidth = getResources().getDisplayMetrics().widthPixels;
 
         } else if (Build.VERSION.SDK_INT >= 30) {
             WindowMetrics deviceWindowMetrics = getApplicationContext().getSystemService(WindowManager.class).getMaximumWindowMetrics();
             screenWidth = deviceWindowMetrics.getBounds().width();
-            screenHeight = deviceWindowMetrics.getBounds().height();
 
         } else {
             DisplayMetrics displayMetrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
             screenWidth = displayMetrics.widthPixels;
-            screenHeight = displayMetrics.heightPixels;
         }
 
         // keep app from timing out and going to screen saver
@@ -505,10 +499,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     .onTap(e -> {
                         //Log.d("onTap","Clicked on map. clickedWP="+clickedWP);
                         updatePageSize(); // get new pdf page width and height
-                        // set flag if user clicked on a waypoint in the top or bottom half of the map. Used to display popup balloon above or below waypoint
-                        if ((clickedWP == -1 || (lastClickedWP != -1 && lastClickedWP != clickedWP)) && !showAllWayPtLabels) {
-                            clickedTopHalf = e.getY() < screenHeight / 2.0;
-                        }
 
                         if (!showAllWayPts && !addWayPtFlag) {
                             //Toast.makeText(PDFActivity.this,"Waypoints are hidden.",Toast.LENGTH_LONG).show();
@@ -546,9 +536,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                                 // Test for balloon popup going off top of screen
                                 int offsetYBox = 0;
-                                if (clickedTopHalf) {
+
+                                if ((wayPtY + pdfView.getCurrentYOffset()) < (pdfView.getHeight() / 2.0)) {
                                     offsetYBox = getOffsetYBox();//startY + boxHt;
                                 }
+                                Log.d("PDFActivity","y="+y+" wayPtY="+wayPtY+" marg="+marg+" offsetYBox="+offsetYBox+" boxHt="+boxHt);
                                 if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
                                         y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)) {
                                     try {
@@ -604,7 +596,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                     // Test for balloon popup going off top or bottom of screen
                                     int offsetYBox = 0;
                                     if ((wayPtY + pdfView.getCurrentYOffset()) < (pdfView.getHeight()/2.0)){
-                                    //if (clickedTopHalf) {
                                         offsetYBox = getOffsetYBox();//startY + boxHt;
                                     }
                                     if (x > ((wayPtX - (textWidth / 2) - marg) + offsetBox) && x < ((wayPtX + (textWidth / 2) + marg + emoji_width1) + offsetBox) &&
@@ -988,6 +979,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             // Test for waypoint at top half of screen, display popup below
                             int offsetYBox = 0;
                             int offsetYTriangle = 0;
+                            Log.d("Draw Popup","y="+y+"+ pdfViewYoffset="+pdfView.getCurrentYOffset()+" "+(y + pdfView.getCurrentYOffset())+" < "+(pdfView.getHeight() / 2.0));
                             if ((y + pdfView.getCurrentYOffset()) < (pdfView.getHeight() / 2.0)) {
                                 offsetYBox = getOffsetYBox();//startY + boxHt;
                                 offsetYTriangle = getOffsetYTriangle();//2 * startY - 3 - boxHt;
@@ -1294,17 +1286,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
         // Reset screen width and height
         if (Build.VERSION.SDK_INT >= 28 && Build.VERSION.SDK_INT < 30) {
-            screenHeight = getResources().getDisplayMetrics().heightPixels;
             screenWidth = getResources().getDisplayMetrics().widthPixels;
         } else if (Build.VERSION.SDK_INT >= 30) {
             WindowMetrics deviceWindowMetrics = getApplicationContext().getSystemService(WindowManager.class).getMaximumWindowMetrics();
             screenWidth = deviceWindowMetrics.getBounds().width();
-            screenHeight = deviceWindowMetrics.getBounds().height();
         } else {
             DisplayMetrics displayMetrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
             screenWidth = displayMetrics.widthPixels;
-            screenHeight = displayMetrics.heightPixels;
         }
         // Checks the orientation of the screen for landscape and portrait
          if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE)  {

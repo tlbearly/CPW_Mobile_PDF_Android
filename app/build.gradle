@@ -50,8 +50,8 @@ android {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 30
-        versionName "1.2.18"
+        versionCode 31
+        versionName "1.2.19"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
@@ -104,15 +104,15 @@ dependencies {
 
     // Google Play Location Services
     // compile is deprecated use api or implementation. Must have SDK version 28.0.0
-    implementation 'com.google.android.gms:play-services-location:20.0.0'
-    implementation 'androidx.appcompat:appcompat:1.5.1' //1.4.2'
+    implementation 'com.google.android.gms:play-services-location:21.0.0'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'com.google.android.material:material:1.6.1'
+    implementation 'com.google.android.material:material:1.7.0'
 
     // Google Play In-App Update Library
     // This dependency is downloaded from the Google’s Maven repository.
     // So, make sure you also include that repository in your project's build.gradle file.
-    implementation 'com.google.android.play:app-update:2.0.0'
+    implementation 'com.google.android.play:app-update:2.0.1'
 
     // for displaying pdfs
     // Use lib from https://github.com/barteksc/AndroidPdfViewer

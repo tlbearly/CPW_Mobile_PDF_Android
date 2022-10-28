@@ -829,19 +829,21 @@ public class CustomAdapter extends BaseAdapter {
                             Location.distanceBetween(latNow, longNow, lat1, long2, results);
                             break;
                     }
-                    dist = results[0] * 0.00062137119;
-                    if (dist < 0.09){
-                        map.setMiles(0.0);
-                        map.setDistToMap("onmap");
-                        return;
-                    }
-                    map.setMiles(dist);
                     String str = "    ";
-
-                    String distStr = String.format(Locale.US, "%s %.1f %s %s", str, dist, c.getResources().getString(R.string.miles), direction);
-                    map.setDistToMap(distStr);
-
-                    // Log.d(TAG, "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
+                    String distStr;
+                    dist = results[0] * 0.00062137119;
+                    // use 2 decimal points
+                    if (dist < 0.1){
+                        map.setMiles(dist);
+                        distStr = String.format(Locale.US, "%s %.2f %s %s", str, dist, c.getResources().getString(R.string.miles), direction);
+                        map.setDistToMap(distStr);
+                    }else {
+                        // use 1 decimal point
+                        map.setMiles(dist);
+                        distStr = String.format(Locale.US, "%s %.1f %s %s", str, dist, c.getResources().getString(R.string.miles), direction);
+                        map.setDistToMap(distStr);
+                    }
+                    //Log.d("CustomAdapter", "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
                 }
             }
         } catch (Exception e){

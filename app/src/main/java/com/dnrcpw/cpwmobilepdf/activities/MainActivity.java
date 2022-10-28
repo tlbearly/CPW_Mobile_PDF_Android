@@ -16,7 +16,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -296,7 +295,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                         // if accuracy is worse than 1/10 of a mile do not update distance to map
                         float accuracy = location.getAccuracy();
-                        Log.d("Accuracy", "onLocationResult: accuracy="+accuracy);
+                        //Log.d("Accuracy", "onLocationResult: accuracy="+accuracy);
                         if (accuracy > 160.9344) {
                             Toast.makeText(MainActivity.this, "Acquiring location...", Toast.LENGTH_SHORT).show();
                             return;
@@ -369,7 +368,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                         continue;
                                     TextView distToMap = v.findViewById(R.id.distToMapTxt);
                                     String dist = myAdapter.pdfMaps.get(i).getDistToMap();
-                                    Log.d("Distance", "accuracy:"+accuracy+"  "+myAdapter.pdfMaps.get(i).getName()+" "+dist);
+                                    //Log.d("Distance", "accuracy:"+accuracy+"  "+myAdapter.pdfMaps.get(i).getName()+" "+dist);
                                     if (dist.equals("onmap")) {
                                         v.findViewById(R.id.locationIcon).setVisibility(View.VISIBLE);
                                         distToMap.setText("");
