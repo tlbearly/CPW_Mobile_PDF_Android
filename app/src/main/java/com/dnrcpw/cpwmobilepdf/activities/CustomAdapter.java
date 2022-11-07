@@ -794,11 +794,10 @@ public class CustomAdapter extends BaseAdapter {
                 }
                 // Off map, calculate distance away
                 else {
-                    String direction;
+                    String direction = "";
                     double dist;
                     if (latNow < lat1) direction = "N";
                     else if (latNow > lat2) direction = "S";
-                    else direction = "";
                     if (longNow < long1) direction += "E";
                     else if (longNow > long2) direction += "W";
 
