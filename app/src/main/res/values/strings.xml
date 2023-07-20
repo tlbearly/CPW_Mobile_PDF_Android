@@ -3,7 +3,7 @@
     <string name="app_name_short">Mobile PDF</string>
     <string name="name">Name</string>
     <string name="onMap">On Map?</string>
-    <string name="pdfimg">Image of PDF</string>
+    <string name="pdfimg">Image of the PDF</string>
     <string name="markCurrent">Mark current location</string>
     <string name="add_way_pt">Add a waypoint</string>
     <string name="open_pdf">Open a new map</string>
@@ -48,14 +48,13 @@
     <string name="load_maps_help">Open File Picker to select PDF maps that you downloaded. They will be copied into this app.</string>
     <string name="file_picker">File Picker</string>
     <string name="importdone">Import Done</string>
+    <string name="importdonemsg">Import done. Map copied to App folder.</string>
 
     <string name="notice">NOTICE</string>
     <string name="Mb"> Mb</string>
     <string name="Kb"> Kb</string>
     <string name="miles"> mi</string>
 
-
-    <!--string name="title_activity_web">Import Map</string-->
     <string name="deleteAllDBrecords">Delete All Maps</string>
     <!--string name="editMap">Edit Maps</string-->
     <!--string name="edit">Edit</string-->

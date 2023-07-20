@@ -22,6 +22,7 @@
     <include layout="@layout/content_main" />
 
     <!--android:tint="@color/common_google_signin_btn_text_dark_pressed"-->
+    <!-- app:tint is for after api 22 -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
@@ -30,6 +31,7 @@
         android:layout_margin="@dimen/fab_margin"
         android:contentDescription="@string/add_btn_desc"
         android:tint="#fff"
+        app:tint="#fff"
         app:srcCompat="@android:drawable/ic_input_add" />
 
     <!-- display blank list message if no maps imported -->

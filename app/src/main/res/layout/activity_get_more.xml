@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_weight="1"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    android:id="@+id/getMoreLayout">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -38,7 +39,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginLeft="40dp">
+            android:layout_marginStart="40dp">
             <TextView
                 app:drawableLeftCompat="@drawable/bullet"
                 android:layout_width="wrap_content"
@@ -56,7 +57,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginLeft="40dp">
+            android:layout_marginStart="40dp">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -74,7 +75,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginLeft="40dp">
+            android:layout_marginStart="40dp">
             <TextView
                 app:drawableLeftCompat="@drawable/bullet"
                 android:layout_width="wrap_content"
@@ -92,7 +93,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginLeft="40dp">
+            android:layout_marginStart="40dp">
             <TextView
                 app:drawableLeftCompat="@drawable/bullet"
                 android:layout_width="wrap_content"
@@ -106,14 +107,16 @@
                 android:layout_marginBottom="10dp"
                 android:text="@string/downloadInstr5" />
         </LinearLayout>
+
         <TextView
-            android:id="@+id/textView17"
+            android:id="@+id/seeHelpTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
             android:layout_marginBottom="10dp"
-            android:text="@string/downloadInstr6" />
+            android:text="@string/downloadInstr6"
+            android:textColor="#2962FF" />
 
         <Button
             android:id="@+id/downloadMapsBtn"

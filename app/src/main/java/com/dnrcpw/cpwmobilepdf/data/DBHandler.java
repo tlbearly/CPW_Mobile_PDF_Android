@@ -103,7 +103,7 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
     // Adding new PDF Map
-    public void addMap(PDFMap map) throws SQLException {
+    public Integer addMap(PDFMap map) throws SQLException {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_PATH, map.getPath()); // Path and file name of map
@@ -115,7 +115,8 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(KEY_FILESIZE, map.getFileSize()); // Map pdf file size 267 Kb
         values.put(KEY_DISTTOMAP, map.getDistToMap()); // Current distance to map
         // Inserting Row
-        db.insert(TABLE_MAPS, null, values);
+        long index = db.insert(TABLE_MAPS, null, values);
+        return (int) index;
         //db.close(); // 5-21-21 Closing database connection
     }
 
@@ -254,23 +255,27 @@ public class DBHandler extends SQLiteOpenHelper {
 
     // Updating a PDF Map
     public void updateMap(PDFMap map) throws SQLException {
-        // updat a map in the database
-        SQLiteDatabase db = this.getWritableDatabase();
+        // update a map in the database
+        try {
+            SQLiteDatabase db = this.getWritableDatabase();
 
-        ContentValues values = new ContentValues();
-        values.put(KEY_PATH, map.getPath());
-        values.put(KEY_BOUNDS, map.getBounds());
-        values.put(KEY_MEDIABOX, map.getMediabox());
-        values.put(KEY_VIEWPORT, map.getViewport());
-        values.put(KEY_THUMBNAIL, map.getThumbnail());
-        values.put(KEY_NAME, map.getName());
-        values.put(KEY_FILESIZE, map.getFileSize());
-        values.put(KEY_DISTTOMAP, map.getDistToMap());
+            ContentValues values = new ContentValues();
+            values.put(KEY_PATH, map.getPath());
+            values.put(KEY_BOUNDS, map.getBounds());
+            values.put(KEY_MEDIABOX, map.getMediabox());
+            values.put(KEY_VIEWPORT, map.getViewport());
+            values.put(KEY_THUMBNAIL, map.getThumbnail());
+            values.put(KEY_NAME, map.getName());
+            values.put(KEY_FILESIZE, map.getFileSize());
+            values.put(KEY_DISTTOMAP, map.getDistToMap());
 
-        // updating row
-        db.update(TABLE_MAPS, values, KEY_ID + " = ?",
-            new String[]{String.valueOf(map.getId())});
-        //db.close(); // 5-21-21
+            // updating row
+            db.update(TABLE_MAPS, values, KEY_ID + " = ?",
+                    new String[]{String.valueOf(map.getId())});
+            //db.close(); // 5-21-21
+        }catch (SQLException e){
+            throw e;
+        }
     }
 
     // Deleting a PDF Map

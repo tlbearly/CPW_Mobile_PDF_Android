@@ -10,6 +10,7 @@ import android.provider.OpenableColumns;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultCallback;
@@ -19,7 +20,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dnrcpw.cpwmobilepdf.R;
-import com.dnrcpw.cpwmobilepdf.data.DBHandler;
 import com.dnrcpw.cpwmobilepdf.model.PDFMap;
 
 import java.io.File;
@@ -44,13 +44,13 @@ public class GetMoreActivity extends AppCompatActivity {
     // GetContent creates an ActivityResultLauncher<String> to allow you to pass
     // in the mime type you'd like to allow the user to select
     ActivityResultLauncher<String> mGetContent = registerForActivityResult(new ActivityResultContracts.GetContent(),
-            new ActivityResultCallback<Uri>() {
+            new ActivityResultCallback<>() {
                 @Override
                 public void onActivityResult(Uri uri) {
                     if (uri == null) return;
                     // Handle the returned Uri
-                    Toast.makeText(GetMoreActivity.this, getResources().getString(R.string.importing), Toast.LENGTH_LONG).show();
-                    //uri = resultData.getData();
+                    Toast toast = Toast.makeText(GetMoreActivity.this, getResources().getString(R.string.importing), Toast.LENGTH_SHORT);
+                    toast.show();
                     String name = "";
                     long fileSize;
 
@@ -98,9 +98,9 @@ public class GetMoreActivity extends AppCompatActivity {
                         return;
                     }
                     try {
-                        outFile.setWritable(true, true); // ownerOnly was false(world write permissions!) always returns false???? but works
-                    }catch (Exception e){
-                        Toast.makeText(GetMoreActivity.this,getResources().getString(R.string.writePermission)+" error: "+e.getMessage(), Toast.LENGTH_LONG).show();
+                        boolean err = outFile.setWritable(true, true); // ownerOnly was false(world write permissions!) always returns false???? but works
+                    } catch (Exception e) {
+                        Toast.makeText(GetMoreActivity.this, getResources().getString(R.string.writePermission) + " error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                         return;
                     }
                     // Copy the file from file picker to app directory. Don't delete the original.
@@ -149,17 +149,34 @@ public class GetMoreActivity extends AppCompatActivity {
                         Toast.makeText(GetMoreActivity.this, getResources().getString(R.string.createFile), Toast.LENGTH_LONG).show();
                     }
                     PDFMap map = new PDFMap(newPath, "", "", "", null, getResources().getString(R.string.loading), "", "");
-                    DBHandler db = new DBHandler(GetMoreActivity.this);
-                    db.addMap(map);
-                    db.close();
+                    //DBHandler db = new DBHandler(GetMoreActivity.this);
+                    //Integer index = db.addMap(map);
+                    //map.setId(index);
 
-                    // CALL MAIN ACTIVITY TO DISPLAY LIST OF IMPORTED MAPS
-                    Intent mainIntent = new Intent(GetMoreActivity.this, MainActivity.class);
-                    mainIntent.putExtra("IMPORT_MAP", true);
-                    mainIntent.putExtra("PATH", newPath);
-                    mainIntent.putExtra("UPDATES", "true");
-                    mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(mainIntent);
+                    String result = map.importMap(GetMoreActivity.this);
+                    if (!result.equals(getResources().getString(R.string.importdone))) {
+                        toast.cancel();
+                        Toast.makeText(GetMoreActivity.this, result, Toast.LENGTH_LONG).show();
+                        //db.deleteMap(map);
+                        //db.close();
+                    }
+                    // Map Import Success
+                    else {
+                        // Display message and load map
+                        toast.cancel();
+                        Toast.makeText(GetMoreActivity.this, getResources().getString(R.string.importdonemsg), Toast.LENGTH_SHORT).show();
+                        //db.updateMap(map);
+                        //db.close();
+                        // open map
+                        Intent i = new Intent(GetMoreActivity.this, PDFActivity.class);
+                        //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        i.putExtra("PATH", map.getPath());
+                        i.putExtra("NAME", map.getName());
+                        i.putExtra("BOUNDS", map.getBounds());
+                        i.putExtra("MEDIABOX", map.getMediabox());
+                        i.putExtra("VIEWPORT", map.getViewport());
+                        startActivity(i);
+                    }
                 }
             });
 
@@ -175,8 +192,13 @@ public class GetMoreActivity extends AppCompatActivity {
             builder.setTitle(getString(R.string.notice));
             builder.setMessage(getString(R.string.start_browser)).setPositiveButton("OK", dialogClickListener)
                     .setNegativeButton("CANCEL",dialogClickListener).show();
-            //Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://cpw.state.co.us/learn/Pages/Maps.aspx"));
-            //    startActivity(browserIntent);
+        });
+
+        // add hyperlink to open help 1-8-23
+        TextView openHelp = findViewById(R.id.seeHelpTextView);
+        openHelp.setOnClickListener(v -> {
+            Intent mainIntent = new Intent(GetMoreActivity.this, GetMoreHelpActivity.class);
+            startActivity(mainIntent);
         });
 
         // Open Android File Picker for PDF files API 1
@@ -185,19 +207,6 @@ public class GetMoreActivity extends AppCompatActivity {
             /* Fires an intent to spin up the "file chooser" UI and select a pdf
             * ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
             * browser. */
-            //Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-
-            // Filter to only show results that can be "opened", such as a
-            // file (as opposed to a list of contacts or timezones)
-            //intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-            // Filter to show only pdfs, using the pdf MIME data type.
-            // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
-            // To search for all documents available via installed storage providers,
-            // it would be "*/*".
-            //intent.setType("application/pdf");
-            // deprecated startActivityForResult
-            //startActivityForResult (intent, READ_REQUEST_CODE);
             mGetContent.launch("application/pdf");
         });
     }
