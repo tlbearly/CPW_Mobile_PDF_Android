@@ -17,10 +17,13 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -37,6 +40,7 @@ import androidx.core.content.ContextCompat;
 
 import com.dnrcpw.cpwmobilepdf.R;
 import com.dnrcpw.cpwmobilepdf.data.DBHandler;
+import com.dnrcpw.cpwmobilepdf.model.PDFMap;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -65,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //private String TAG = "MainActivity";
     boolean sortFlag = true;
     Toolbar toolbar;
-    Integer selectedId;
+    int selectedId;
     static final int MY_PERMISSIONS_LOCATION = 0;
 
     // location variables
@@ -75,11 +79,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     double longNow, longBefore = 0.0;
     double updateProximityDist = 160.9344; // default change in distance that triggers updating proximity .1 miles
     Spinner sortByDropdown;
+    TextView sortTitle;
     // Update App
     private AppUpdateManager appUpdateManager;
     private static final int APP_UPDATE_REQUEST_CODE = 123;
     private InstallStateUpdatedListener installStateUpdatedListener;
     private boolean checkedForUpdates = false;
+
+    // Edit Menu
+    ActionMode mActionMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -588,6 +596,39 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         registerForContextMenu(lv); // set up edit/trash context menu
         // Make sure all the maps in the database still exist
         myAdapter.checkIfExists();
+
+        lv.setLongClickable(true);
+        lv.setChoiceMode(lv.CHOICE_MODE_MULTIPLE);
+        lv.setOnItemLongClickListener(new OnItemLongClickListener() {
+            // Called when the user long-clicks on someView
+            @Override
+            public boolean onItemLongClick(AdapterView<?> view, View row,
+                                           int position, long id) {
+                view.setActivated(true);
+                if (mActionMode != null) {
+                    return false;
+                }
+
+                setTitle("Editing");
+                sortByDropdown.setVisibility(View.GONE);
+                sortTitle.setVisibility(View.GONE);
+                // Start the CAB using the ActionMode.Callback defined above
+                mActionMode = MainActivity.this.startActionMode(mActionModeCallback);
+                return true;
+            }
+        });
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // clicking on an activated item unactivates it
+                if (mActionMode != null) {
+                    if (view.isActivated())
+                        view.setActivated(false);
+                    else view.setActivated(true);
+                }
+            }
+        });
+
         // Display note if no records found
         showHideNoImportsMessage();
 
@@ -634,32 +675,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             // IMPORT NEW MAP INTO LIST
             // GetMoreActivity adds a record to the DBHandler database with map name of "Loading..."
             // CustomAdapter calls importMap in CustomAdapter.java
-            if (i.getExtras().containsKey("IMPORT_MAP") && i.getExtras().containsKey("PATH")) {
+            /*if (i.getExtras().containsKey("IMPORT_MAP") && i.getExtras().containsKey("PATH")) {
                 boolean import_map = i.getExtras().getBoolean("IMPORT_MAP");
                 // IMPORT MAP SELECTED
                 if (import_map) {
                     // read the map pdf and load the database
                     String newPath = i.getExtras().getString("PATH");
                     //PDFMap pdfMap = new PDFMap(newPath, "", "", "", null, getResources().getString(R.string.loading), "", "");
-
-                    //DBHandler db = new DBHandler(MainActivity.this);
-                    //dbHandler.addMap(pdfMap);
-                    //db.close();
-                    //myAdapter.notifyDataSetChanged(); // call CustomAdapter getView to import the map
-                    //String result = myAdapter.importMap(pdfMap);
-                    // Map Import Failed
-                    /*if (!result.equals(MainActivity.this.getResources().getString(R.string.importdone))) {
-                        Toast.makeText(MainActivity.this, result, Toast.LENGTH_LONG).show();
-                        myAdapter.removeItem(pdfMap.getId());
-                    }
-                    // Map Import Success
-                    else {
-                        // Display message and load map
-                        Toast.makeText(MainActivity.this, "Map copied to App folder.", Toast.LENGTH_LONG).show();
-                        dbHandler.updateMap(pdfMap);
-                        //myAdapter.notifyDataSetChanged(); // Refresh list of pdf maps
-                        myAdapter.openPDFView(pdfMap.getPath(), pdfMap.getName(), pdfMap.getBounds(), pdfMap.getMediabox(), pdfMap.getViewport());
-                    }*/
 
                     sortFlag = false; // hold off on sorting.
                     FloatingActionButton fab = findViewById(R.id.fab);
@@ -674,10 +696,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 }
                 i.removeExtra("PATH");
                 i.removeExtra("IMPORT_MAP");
-            }
+            }*/
 
-            // RENAME MAP
-            else if (i.getExtras().containsKey("RENAME") && i.getExtras().containsKey("NAME") && i.getExtras().containsKey("ID")) {
+            // RENAME MAP (EditWayPointActivity)
+            if (i.getExtras().containsKey("RENAME") && i.getExtras().containsKey("NAME") && i.getExtras().containsKey("ID")) {
                 // Renamed map, update with new name
                 //myAdapter.setEditing(false);
                 String name = i.getExtras().getString("NAME");
@@ -907,7 +929,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     // Show or Hide no maps imported message
     private void showHideNoImportsMessage(){
         TextView msg = findViewById(R.id.txtMessage);
-        TextView sortTitle = findViewById(R.id.sortTitle);
+        sortTitle = findViewById(R.id.sortTitle);
         Spinner sortBy = findViewById(R.id.sortBy);
         if (myAdapter.pdfMaps.size() == 0){
             msg.setVisibility(View.VISIBLE);
@@ -980,4 +1002,128 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         return super.onOptionsItemSelected(item);
     }
+
+
+
+    // 7-24-23 try using context menu
+    // EDIT MENU
+    private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+        // Called when the action mode is created; startActionMode() was called
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            // Inflate a menu resource providing context menu items
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.edit_menu, menu);
+            return true;
+        }
+
+        // Called each time the action mode is shown. Always called after onCreateActionMode, but
+        // may be called multiple times if the mode is invalidated.
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false; // Return false if nothing is done
+        }
+
+        // Called when the user selects a contextual menu item
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            switch (item.getItemId()) {
+                //case R.id.edit_map_name:
+                    /*for (int i=0; i<myAdapter.pdfMaps.size();i++ ) {
+                        PDFMap map = myAdapter.pdfMaps.get(i);
+                        if (map.getSelected()) {
+                            Log.d("edit","renaming="+map.getName()+" to "+map.getRename());
+                            myAdapter.rename(map.getId(),map.getRename());
+                        }
+
+                    }*/
+
+
+                //    return true;
+                case R.id.delete_map:
+                    // display alert dialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("Delete");
+                    builder.setMessage("Delete all selected maps?").setPositiveButton("DELETE", deleteDialogClickListener)
+                            .setNegativeButton("CANCEL",deleteDialogClickListener).show();
+                    //mode.finish(); // Action picked, so close the CAB
+                    return true;
+                case R.id.info:
+                    // display alert dialog
+                    AlertDialog.Builder builder2 = new AlertDialog.Builder(MainActivity.this);
+                    builder2.setTitle("Info");
+                    String msg = "";
+                    for (int i=0; i<myAdapter.pdfMaps.size(); i++) {
+                        if (myAdapter.pdfMaps.get(i).getSelected()) {
+                            Toast.makeText(MainActivity.this, "Deleting "+myAdapter.pdfMaps.get(i).getName(), Toast.LENGTH_SHORT).show();
+                            msg += myAdapter.pdfMaps.get(i).getRename()+" \nLat Long: ";
+                            msg += myAdapter.pdfMaps.get(i).getBounds()+"\n\n";
+                        }
+                    }
+                    builder2.setMessage(msg).setPositiveButton("OK", infoDialogClickListener)
+                            .show();
+                    //mode.finish(); // Action picked, so close the CAB
+                    return true;
+                default:
+                    mode.finish(); // Action picked, so close the CAB
+                    return false;
+            }
+        }
+        // Remove Imported Map dialog
+        DialogInterface.OnClickListener deleteDialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        //'DELETE' button clicked, remove selected maps from imported maps
+                        for (int i=myAdapter.pdfMaps.size()-1; i>-1; i--) {
+                            Log.d("Map "+i+" ",myAdapter.pdfMaps.get(i).getName());
+                            if (myAdapter.pdfMaps.get(i).getSelected()) {
+                                Toast.makeText(MainActivity.this, "Deleting "+myAdapter.pdfMaps.get(i).getName(), Toast.LENGTH_SHORT).show();
+                                Log.d("DELETING ",myAdapter.pdfMaps.get(i).getName());
+                                myAdapter.removeItem(myAdapter.pdfMaps.get(i).getId());
+                            }
+                        }
+                        mActionMode.finish();
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        //'CANCEL' button clicked, do nothing
+                        break;
+                }
+            }
+        };
+        // Remove Imported Map dialog
+        DialogInterface.OnClickListener infoDialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        //'OK' button clicked, close
+                        break;
+                }
+            }
+        };
+
+        // Called when the user exits the action mode by clicking back arrow or back button
+        // Rename all selected items and unselect all
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            mActionMode = null;
+            // unselect all rows
+            for (int i=0;i<myAdapter.pdfMaps.size();i++) {
+                // Save name changes. Must be done here since CustomAdapter renameTxt.setOnFocusChangeListener is called after onDestroyActionMode
+                PDFMap map = myAdapter.pdfMaps.get(i);
+                if (map.getSelected()) {
+                    Log.d("edit","renaming="+map.getName()+" to "+map.getRename());
+                    myAdapter.rename(map.getId(),map.getRename()); // make the name change permanent
+                }
+                myAdapter.pdfMaps.get(i).setSelected(false);
+            }
+            myAdapter.setEditing(false);
+            myAdapter.notifyDataSetChanged();
+            setTitle("Imported Maps");
+            sortByDropdown.setVisibility(View.VISIBLE);
+            sortTitle.setVisibility(View.VISIBLE);
+        }
+    };
 }

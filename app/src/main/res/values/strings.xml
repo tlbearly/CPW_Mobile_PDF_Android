@@ -57,8 +57,12 @@
 
     <string name="deleteAllDBrecords">Delete All Maps</string>
     <!--string name="editMap">Edit Maps</string-->
-    <!--string name="edit">Edit</string-->
+    <string name="edit">Edit</string>
+    <string name="editing">Editing</string>
     <string name="delete">Delete</string>
+    <string name="info">Info</string>
+    <string name="selected_icon">Item selected icon</string>
+
     <!--string name="rename">Rename</string-->
     <string name="ok">OK</string>
     <string name="splash">Colorado Parks and Wildlife</string>

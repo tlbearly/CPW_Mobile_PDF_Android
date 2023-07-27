@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -40,11 +41,14 @@ public class CustomAdapter extends BaseAdapter {
     private final Context c;
     ArrayList<PDFMap> pdfMaps;
     TextView nameTxt;
-    //EditText renameTxt;
-    ImageView deleteBtn;
+    EditText renameTxt;
+    //ImageView deleteBtn;
+    Integer selectedId;
     TextView fileSizeTxt;
     TextView distToMapTxt;
     ImageView locIcon;
+    ImageView img;
+    ImageView selectedIcon;
     Double latNow, longNow;
     static String viewport, mediabox, bounds;
     private Boolean loading = false;
@@ -93,6 +97,13 @@ public class CustomAdapter extends BaseAdapter {
     public void SortByProximityReverse(){
         // Sort array list pdfMaps of objects of type pdfMap by proximity.
         Collections.sort((this.pdfMaps), PDFMap.ProximityComparatorReverse);
+    }
+
+    public Boolean getEditing() {
+        return this.editing;
+    }
+    public void setEditing(Boolean value) {
+        this.editing = value;
     }
 
     public void setLocation(Location location){
@@ -406,21 +417,41 @@ public class CustomAdapter extends BaseAdapter {
             // INFLATE CUSTOM LAYOUT
             view = LayoutInflater.from(c).inflate(R.layout.model, viewGroup, false);
         }
-        view.setBackgroundResource(android.R.color.transparent);
+
         view.setClickable(true);
         view.setLongClickable(true);
         final PDFMap pdfMap = (PDFMap) this.getItem(i);
 
         nameTxt = view.findViewById(R.id.nameTxt);
-        //renameTxt = view.findViewById(R.id.renameTxt);
-        deleteBtn = view.findViewById(R.id.ic_delete); // hidden at start
+        renameTxt = view.findViewById(R.id.renameTxt);
+        //deleteBtn = view.findViewById(R.id.ic_delete); // hidden at start
         fileSizeTxt = view.findViewById(R.id.fileSizeTxt);
         distToMapTxt = view.findViewById(R.id.distToMapTxt);
         locIcon = view.findViewById(R.id.locationIcon);
         locIcon.setVisibility(View.GONE);
-        ImageView img = view.findViewById(R.id.pdfImage);
+        img = view.findViewById(R.id.pdfImage);
+        selectedIcon = view.findViewById((R.id.ic_selected_icon));
         ProgressBar progressBar = view.findViewById(R.id.loadProgress);
         progressBar.setVisibility(View.GONE);
+
+        // set background color
+        if (pdfMap.getSelected()) {
+            selectedIcon.setVisibility(View.VISIBLE);
+            img.setVisibility(View.GONE);
+            renameTxt.setVisibility(View.VISIBLE);
+            nameTxt.setVisibility(View.GONE);
+            renameTxt.setText(pdfMap.getRename());
+            // first byte is alpha FF for opaque
+            view.setBackgroundColor (0xFFEFEF00);
+        } else {
+            selectedIcon.setVisibility(View.GONE); // check mark
+            img.setVisibility(View.VISIBLE);       // pdf thumbnail
+            renameTxt.setVisibility(View.GONE);
+            nameTxt.setVisibility(View.VISIBLE);
+            renameTxt.setText(pdfMap.getRename());
+            view.setBackgroundColor (0xFFFFFFFF);
+            //view.setBackgroundResource(android.R.color.transparent);
+        }
 
         //  load thumbnail from file
         String path = pdfMap.getThumbnail();
@@ -446,20 +477,7 @@ public class CustomAdapter extends BaseAdapter {
             removeItem(pdfMap.getId());
         } else {
             nameTxt.setText(pdfMap.getName());
-            /*renameTxt.setText(pdfMap.getName());
-            // 2-4-2022 editing state
-            if (editing) {
-                deleteBtn.setVisibility(View.VISIBLE);
-                renameTxt.setVisibility(view.VISIBLE);
-                nameTxt.setVisibility(View.GONE);
-
-            }
-            // 2-4-2022 normal state
-            else {
-                deleteBtn.setVisibility(View.GONE);
-                renameTxt.setVisibility(view.GONE);
-                nameTxt.setVisibility(View.VISIBLE);
-            }*/
+            renameTxt.setText(pdfMap.getRename());
             fileSizeTxt.setText(pdfMap.getFileSize());
             // getDistToMap sets miles also
             String dist = pdfMap.getDistToMap();
@@ -478,78 +496,132 @@ public class CustomAdapter extends BaseAdapter {
 
         // VIEW ITEM CLICK
         view.setOnClickListener(view1 -> {
+            nameTxt = view1.findViewById(R.id.nameTxt);
+            renameTxt = view1.findViewById(R.id.renameTxt);
+            img = view1.findViewById(R.id.pdfImage);
+            selectedIcon = view1.findViewById((R.id.ic_selected_icon));
             // if editing do not open the map
+            if (editing) {
+                if (pdfMap.getSelected()) {
+                    // unselect it
+                    pdfMap.setSelected(false);
+                    selectedIcon.setVisibility(View.GONE); // check mark
+                    img.setVisibility(View.VISIBLE);       // pdf thumbnail
+                    renameTxt.setVisibility(View.GONE);
+                    nameTxt.setVisibility(View.VISIBLE);
+                    pdfMap.setRename(pdfMap.getName());// didn't save it reset it
+                } else {
+                    // select it
+                    pdfMap.setSelected(true);
+                    selectedIcon.setVisibility(View.VISIBLE);
+                    img.setVisibility(View.GONE);
+                    renameTxt.setVisibility(View.VISIBLE);
+                    nameTxt.setVisibility(View.GONE);
+                    pdfMap.setRename(pdfMap.getName());
+                    renameTxt.setText(pdfMap.getName());
+                }
+
             /*if (deleteBtn.getVisibility() == View.VISIBLE) {
                 deleteBtn.setVisibility(View.GONE);
                 editing = false;
                 return;
             };*/
-            // Display the map
-            String bounds = pdfMap.getBounds();
-            if (bounds == null) {
-                Toast.makeText(c, "This file is not a Geo PDF. Missing GPTS Bounds.", Toast.LENGTH_LONG).show();
-                return;
             }
-            String mediaBox = pdfMap.getMediabox();
-            if (mediaBox == null) {
-                Toast.makeText(c, "This file is not a Geo PDF. Missing MediaBox.", Toast.LENGTH_LONG).show();
-                return;
+            // open map
+            else {
+                // Display the map
+                String bounds = pdfMap.getBounds();
+                if (bounds == null) {
+                    Toast.makeText(c, "This file is not a Geo PDF. Missing GPTS Bounds.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                String mediaBox = pdfMap.getMediabox();
+                if (mediaBox == null) {
+                    Toast.makeText(c, "This file is not a Geo PDF. Missing MediaBox.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                String viewPort = pdfMap.getViewport();
+                if (viewPort == null) {
+                    Toast.makeText(c, "This file is not a Geo PDF. Missing Viewport.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                openPDFView(pdfMap.getPath(), pdfMap.getName(), bounds, mediaBox, viewPort);
             }
-            String viewPort = pdfMap.getViewport();
-            if (viewPort == null) {
-                Toast.makeText(c, "This file is not a Geo PDF. Missing Viewport.", Toast.LENGTH_LONG).show();
-                return;
-            }
-            openPDFView(pdfMap.getPath(), pdfMap.getName(), bounds, mediaBox, viewPort);
         });
 
 
         // ITEM LONG CLICK - show menu delete item, rename item
         view.setOnLongClickListener(view12 -> {
-            //deleteBtn.setVisibility(View.VISIBLE);
-            //return true;
+            nameTxt = view12.findViewById(R.id.nameTxt);
+            renameTxt = view12.findViewById(R.id.renameTxt);
+            img = view12.findViewById(R.id.pdfImage);
+            selectedIcon = view12.findViewById((R.id.ic_selected_icon));
+
+            editing = true;
+            // unselect it
+            if (pdfMap.getSelected()){
+                pdfMap.setSelected(false);
+                img.setVisibility(View.GONE);
+                selectedIcon.setVisibility(View.VISIBLE);
+                nameTxt.setVisibility(View.GONE);
+                renameTxt.setVisibility(View.VISIBLE);
+            }
+            // select it
+            else {
+                pdfMap.setSelected(true);
+                img.setVisibility(View.GONE);
+                selectedIcon.setVisibility(View.VISIBLE);
+                nameTxt.setVisibility(View.GONE);
+                renameTxt.setVisibility(View.VISIBLE);
+                pdfMap.setRename(pdfMap.getName());
+                renameTxt.setText(pdfMap.getName());
+
+                //deleteBtn = view.findViewById(R.id.ic_delete); // hidden at start
+                //deleteBtn.setVisibility(View.VISIBLE);
+            }
 
             // Open edit activity
-            Intent i1 = new Intent(c, EditMapNameActivity.class);
+            /*Intent i1 = new Intent(c, EditMapNameActivity.class);
             i1.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             i1.putExtra("PATH", pdfMap.getPath());
             i1.putExtra("NAME", pdfMap.getName());
             i1.putExtra("BOUNDS", pdfMap.getBounds());
             i1.putExtra("ID", pdfMap.getId());
             i1.putExtra("IMG", pdfMap.getThumbnail());
-            c.startActivity(i1);
-            return true;
+            c.startActivity(i1);*/
+            return false;
         });
 
         // RENAME MAP
-        /*renameTxt.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        renameTxt.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 /*
                  * When focus is lost save the entered value for
                  * later use
                  */
-                /*if (!hasFocus) {
+                TextView renameTV = v.findViewById(R.id.renameTxt);
+                if (!hasFocus) {
                     Log.d("getView","Focus has changed");
-                    String newMapName = ((EditText) v).getText()
-                            .toString();
-                    rename(pdfMap.getId(), newMapName);
+                    pdfMap.setRename(renameTV.getText().toString());
+                    pdfMap.setName(renameTV.getText().toString());
+                    rename(pdfMap.getId(),pdfMap.getName());// save it permanently
                 }
             }
-        });*/
+        });
 
         // DELETE MAP
-        deleteBtn.setOnClickListener(view2 -> {
+       /* deleteBtn.setOnClickListener(view2 -> {
            // removeItem(pdfMap.getId());
             Log.d("CustomAdapter",pdfMap.getName());
             Toast.makeText(c, "Map removed", Toast.LENGTH_LONG).show();
-        });
+        });*/
 
         return view;
     }
 
     // EDIT MENU
- /*   private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+    /*private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
         // Called when the action mode is created; startActionMode() was called
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -575,8 +647,8 @@ public class CustomAdapter extends BaseAdapter {
                         if (pdfMaps.get(i).getId() == selectedId)
                             renameTxt.setText(pdfMaps.get(i).getName());
                     }
-                    nameTxt.setVisibility(hide);
-                    renameTxt.setVisibility(vis);
+                    nameTxt.setVisibility(View.GONE);
+                    renameTxt.setVisibility(View.VISIBLE);
                     renameTxt.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                         @Override
                         public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
@@ -628,8 +700,12 @@ public class CustomAdapter extends BaseAdapter {
                     break;
             }
         }
-    };
-    */
+    };*/
+
+
+
+
+
 
     private void openMainView() {
         Intent i = new Intent(c, MainActivity.class);

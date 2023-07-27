@@ -29,20 +29,25 @@ import java.util.Locale;
  */
 
 public class PDFMap {
-    private String path, bounds, mediabox, viewport, name, fileSize, distToMap;
+    private String path, bounds, mediabox, viewport, name, rename, fileSize, distToMap;
+    private Boolean selected;
     private int id;
     private Double miles;
     private String thumbnail; // image filename
 
-    public PDFMap(){}
+    public PDFMap(){
+        this.selected=false;
+    }
 
     public PDFMap(String path, String bounds, String mediabox, String viewport, String thumbnail, String name, String fileSize, String distToMap){
+        this.selected=false;
         this.path = path;
         this.bounds = bounds;
         this.mediabox = mediabox;
         this.viewport = viewport;
         this.thumbnail = thumbnail;
         this.name = name;
+        this.rename = name;
         this.fileSize = fileSize;
         this.distToMap = distToMap;
         if (distToMap.equals("onmap") || distToMap.equals(""))
@@ -405,6 +410,30 @@ public class PDFMap {
             scaled.recycle();
             pdfiumCore.closeDocument(pdfDocument); // 12-17-21 added close document
 
+            // Get Map Name
+            String name = file.getName();
+
+            // Get File Size
+            String fileSize;
+            double size = file.length() / 1024.0; // Get size and convert bytes into Kb.
+            if (size >= 1024) {
+                fileSize = String.format(Locale.US,"%.1f %s", (size / 1024.0), c.getResources().getString(R.string.Mb));
+            } else {
+                fileSize = String.format(Locale.US,"%.0f %s", size, c.getResources().getString(R.string.Kb));
+            }
+
+            // IMPORT INTO the DATABASE
+            pdfMap.setName(name);
+            pdfMap.setFileSize(fileSize);
+            //pdfMap.setThumbnail(thumbnail);
+            pdfMap.setViewport(viewport);
+            pdfMap.setMediabox(mediabox);
+            pdfMap.setBounds(bounds);
+            DBHandler db = new DBHandler(c);
+       //     db.updateMap(pdfMap);
+            Integer index = db.addMap(pdfMap);
+            pdfMap.setId(index);
+
             // Save thumbnail to a file in app directory (/data/data/com/dnrcpw/cpwmobilepdf/files), save the path to it.
             File img;
             try {
@@ -430,30 +459,8 @@ public class PDFMap {
                 Toast.makeText(c, c.getResources().getString(R.string.problemThumbnailSaving) + e.getMessage(), Toast.LENGTH_LONG).show();
                 pdfMap.setThumbnail(null);
             }
-
-            // Get Map Name
-            String name = file.getName();
-
-            // Get File Size
-            String fileSize;
-            double size = file.length() / 1024.0; // Get size and convert bytes into Kb.
-            if (size >= 1024) {
-                fileSize = String.format(Locale.US,"%.1f %s", (size / 1024.0), c.getResources().getString(R.string.Mb));
-            } else {
-                fileSize = String.format(Locale.US,"%.0f %s", size, c.getResources().getString(R.string.Kb));
-            }
-
-            // IMPORT INTO the DATABASE
-            pdfMap.setName(name);
-            pdfMap.setFileSize(fileSize);
-            //pdfMap.setThumbnail(thumbnail);
-            pdfMap.setViewport(viewport);
-            pdfMap.setMediabox(mediabox);
-            pdfMap.setBounds(bounds);
-            DBHandler db = new DBHandler(c);
-       //     db.updateMap(pdfMap);
-            Integer index = db.addMap(pdfMap);
-            pdfMap.setId(index);
+            // update the thumbnail
+            db.updateMap(pdfMap);
             db.close();
             fd.close(); // thumbnail file descriptor
         } catch (IOException ex) {
@@ -495,7 +502,9 @@ public class PDFMap {
         return new double[]{d18,d17};
     }
 
+    public Boolean getSelected(){return selected;}
 
+    public void setSelected(Boolean value){selected=value;}
 
     public String getThumbnail() {
         return thumbnail;
@@ -549,6 +558,12 @@ public class PDFMap {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getRename() { return rename; }
+
+    public void setRename(String name) {
+        this.rename = name;
     }
 
     public String getFileSize() { return fileSize; }

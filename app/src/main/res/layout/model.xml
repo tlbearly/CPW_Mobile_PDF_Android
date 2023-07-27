@@ -5,31 +5,45 @@
     style="@style/Widget.AppCompat.Button.Colored"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:visibility="visible">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:layout_margin="5dp"
+        android:layout_margin="1dp"
         card_view:cardCornerRadius="5dp"
-        card_view:cardElevation="5dp">
+        card_view:cardElevation="1dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="5dp"
+            android:layout_margin="1dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:background="@drawable/list_item_background">
 
             <!-- Red X button -->
-            <ImageView
+            <!--ImageView
                 android:id="@+id/ic_delete"
                 android:layout_width="40dp"
                 android:layout_height="80dp"
                 android:contentDescription="@string/deleteFile"
                 android:src="@android:drawable/ic_delete"
                 android:visibility="gone"
-                 />
+                 /-->
+
+            <!-- Check Mark for selected state
+            android:layout_width="50dp"
+                android:layout_height="80dp"-->
+            <ImageView
+                android:id="@+id/ic_selected_icon"
+                android:layout_width="50dp"
+                android:layout_height="80dp"
+                android:contentDescription="@string/selected_icon"
+                card_view:srcCompat="@drawable/ic_baseline_check_circle_24"
+                android:visibility="gone"
+                tools:ignore="RedundantDescriptionCheck" />
 
             <ImageView
                 android:id="@+id/pdfImage"
@@ -54,21 +68,23 @@
                     android:textStyle="bold" />
 
                 <!-- Edit Map Name - did not work, scrolling irradically! -->
-                <!--EditText
+                <EditText
                     android:id="@+id/renameTxt"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_marginStart="10dp"
-                    android:hint="@string/renameMap"
                     android:autofillHints="@string/renameMap"
-                    android:textStyle="bold"
-                    android:focusable="true"
                     android:background="@drawable/edit_box"
-                    android:padding="8dp"
+                    android:focusable="true"
                     android:focusableInTouchMode="true"
-                    android:inputType="text">
+                    android:hint="@string/renameMap"
+                    android:inputType="text"
+                    android:padding="8dp"
+                    android:textStyle="bold"
+                    android:visibility="gone">
+
                     <requestFocus />
-                </EditText-->
+                </EditText>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -114,7 +130,7 @@
                     android:indeterminate="true"
                     android:max="100"
                     android:progress="0"
-                    android:visibility="visible" />
+                    android:visibility="gone" />
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
