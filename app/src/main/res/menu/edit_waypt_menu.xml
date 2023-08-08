@@ -10,11 +10,6 @@
         android:title="@string/delete"
         app:showAsAction="always" />
     <item
-        android:id="@+id/info"
-        android:title="@string/info"
-        android:icon="@android:drawable/ic_info"
-        app:showAsAction="always" />
-    <item
         android:id="@+id/save"
         android:title="@string/save"
         app:showAsAction="always" />

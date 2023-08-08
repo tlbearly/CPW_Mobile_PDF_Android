@@ -48,7 +48,7 @@
     <string name="load_maps_help">Open File Picker to select PDF maps that you downloaded. They will be copied into this app.</string>
     <string name="file_picker">File Picker</string>
     <string name="importdone">Import Done</string>
-    <string name="importdonemsg">Import done. Map copied to App folder.</string>
+    <string name="importdonemsg">Map copied to app folder.</string>
 
     <string name="notice">NOTICE</string>
     <string name="Mb"> Mb</string>
@@ -56,6 +56,7 @@
     <string name="miles"> mi</string>
 
     <string name="deleteAllDBrecords">Delete All Maps</string>
+    <string name="deleteAllMaps">"Delete all imported maps?"</string>
     <!--string name="editMap">Edit Maps</string-->
     <string name="edit">Edit</string>
     <string name="editing">Editing</string>

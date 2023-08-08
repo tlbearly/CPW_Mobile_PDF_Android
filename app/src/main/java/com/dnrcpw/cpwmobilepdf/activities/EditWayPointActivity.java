@@ -173,7 +173,7 @@ public class EditWayPointActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.edit_menu, menu);
+        getMenuInflater().inflate(R.menu.edit_waypt_menu, menu);
         //menu.findItem(R.id.action_quality).setChecked(bestQuality);
         return true;
     }
