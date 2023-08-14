@@ -1285,12 +1285,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         super.onConfigurationChanged(newConfig);
 
         // Reset screen width and height
-        if (Build.VERSION.SDK_INT >= 28 && Build.VERSION.SDK_INT < 30) {
-            screenWidth = getResources().getDisplayMetrics().widthPixels;
-        } else if (Build.VERSION.SDK_INT >= 30) {
+         if (Build.VERSION.SDK_INT >= 30) {
             WindowMetrics deviceWindowMetrics = getApplicationContext().getSystemService(WindowManager.class).getMaximumWindowMetrics();
             screenWidth = deviceWindowMetrics.getBounds().width();
-        } else {
+        } else if (Build.VERSION.SDK_INT >= 28 && Build.VERSION.SDK_INT < 30) {
+            screenWidth = getResources().getDisplayMetrics().widthPixels;
+        } else if (Build.VERSION.SDK_INT < 28) {
             DisplayMetrics displayMetrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
             screenWidth = displayMetrics.widthPixels;

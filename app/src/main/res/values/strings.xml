@@ -48,7 +48,7 @@
     <string name="load_maps_help">Open File Picker to select PDF maps that you downloaded. They will be copied into this app.</string>
     <string name="file_picker">File Picker</string>
     <string name="importdone">Import Done</string>
-    <string name="importdonemsg">Import done. Map copied to App folder.</string>
+    <string name="importdonemsg">Done. Map copied to app.</string>
 
     <string name="notice">NOTICE</string>
     <string name="Mb"> Mb</string>

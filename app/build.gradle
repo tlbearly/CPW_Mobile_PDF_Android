@@ -105,15 +105,15 @@ dependencies {
 
     // Google Play Location Services
     // compile is deprecated use api or implementation. Must have SDK version 28.0.0
-    implementation 'com.google.android.gms:play-services-location:21.0.0'
-    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'com.google.android.material:material:1.7.0'
+    implementation 'com.google.android.material:material:1.9.0'
 
     // Google Play In-App Update Library
     // This dependency is downloaded from the Google’s Maven repository.
     // So, make sure you also include that repository in your project's build.gradle file.
-    implementation 'com.google.android.play:app-update:2.0.1'
+    implementation 'com.google.android.play:app-update:2.1.0'
 
     // for displaying pdfs
     // Use lib from https://github.com/barteksc/AndroidPdfViewer

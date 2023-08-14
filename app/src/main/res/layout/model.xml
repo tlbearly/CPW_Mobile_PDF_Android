@@ -2,7 +2,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/Widget.AppCompat.Button.Colored"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -11,17 +10,18 @@
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:layout_margin="1dp"
-        card_view:cardCornerRadius="5dp"
-        card_view:cardElevation="1dp">
+        android:layout_margin="0dp"
+        card_view:cardCornerRadius="0dp"
+        card_view:cardElevation="0dp"
+        android:foreground="@drawable/list_item_background">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_margin="1dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:background="@drawable/list_item_background">
+            android:orientation="horizontal">
+            <!--android:background="@drawable/list_item_background"-->
 
             <!-- Red X button -->
             <!--ImageView
@@ -36,14 +36,14 @@
             <!-- Check Mark for selected state
             android:layout_width="50dp"
                 android:layout_height="80dp"-->
-            <ImageView
+            <!--ImageView
                 android:id="@+id/ic_selected_icon"
                 android:layout_width="50dp"
                 android:layout_height="80dp"
                 android:contentDescription="@string/selected_icon"
                 card_view:srcCompat="@drawable/ic_baseline_check_circle_24"
                 android:visibility="gone"
-                tools:ignore="RedundantDescriptionCheck" />
+                tools:ignore="RedundantDescriptionCheck" /-->
 
             <ImageView
                 android:id="@+id/pdfImage"
@@ -68,7 +68,7 @@
                     android:textStyle="bold" />
 
                 <!-- Edit Map Name - did not work, scrolling irradically! -->
-                <EditText
+                <!--EditText
                     android:id="@+id/renameTxt"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
@@ -84,7 +84,7 @@
                     android:visibility="gone">
 
                     <requestFocus />
-                </EditText>
+                </EditText-->
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -120,7 +120,7 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <ProgressBar
+                <!--ProgressBar
                     android:id="@+id/loadProgress"
                     style="@style/CustomProgressBar"
                     android:layout_width="match_parent"
@@ -130,7 +130,7 @@
                     android:indeterminate="true"
                     android:max="100"
                     android:progress="0"
-                    android:visibility="gone" />
+                    android:visibility="gone" /-->
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>

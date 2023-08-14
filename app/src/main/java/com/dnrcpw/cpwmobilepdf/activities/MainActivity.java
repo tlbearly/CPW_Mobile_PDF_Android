@@ -17,13 +17,10 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.ActionMode;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -40,7 +37,6 @@ import androidx.core.content.ContextCompat;
 
 import com.dnrcpw.cpwmobilepdf.R;
 import com.dnrcpw.cpwmobilepdf.data.DBHandler;
-import com.dnrcpw.cpwmobilepdf.model.PDFMap;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -53,6 +49,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.play.core.appupdate.AppUpdateInfo;
 import com.google.android.play.core.appupdate.AppUpdateManager;
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+import com.google.android.play.core.appupdate.AppUpdateOptions;
 import com.google.android.play.core.install.InstallStateUpdatedListener;
 import com.google.android.play.core.install.model.AppUpdateType;
 import com.google.android.play.core.install.model.InstallStatus;
@@ -87,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private boolean checkedForUpdates = false;
 
     // Edit Menu
-    ActionMode mActionMode;
+    //ActionMode mActionMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -229,10 +226,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
     private void startUpdateFlow(AppUpdateInfo appUpdateInfo) {
         try {
-            appUpdateManager.startUpdateFlowForResult(appUpdateInfo,
+            /*appUpdateManager.startUpdateFlowForResult(appUpdateInfo,
                     AppUpdateType.FLEXIBLE,
                     this,
+                    APP_UPDATE_REQUEST_CODE);*/
+            appUpdateManager.startUpdateFlowForResult(appUpdateInfo,
+                    this,
+                    AppUpdateOptions.defaultOptions(AppUpdateType.FLEXIBLE),
                     APP_UPDATE_REQUEST_CODE);
+
         } catch (IntentSender.SendIntentException e) {
             e.printStackTrace();
         }
@@ -320,8 +322,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                         // if change in location is > .1 miles update distance to map
                         if (latBefore == 0.0 || results[0] > updateProximityDist) {
-
-
                             // Update distance to map.
                             myAdapter.getDistToMap();
 
@@ -393,7 +393,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         latBefore = latNow;
                         longBefore = longNow;
                     }
-
                 }
                 // try to keep app from crashing no gps 6-15-22
                 catch (Exception e) {
@@ -448,20 +447,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setTitle("Location Permission Needed");
                     builder.setMessage("This app will not run without permission to access this device's location. Please click ALLOW when asked.")
-                            .setPositiveButton("OK", (dialog, id) -> {
-                                // User clicked OK button. Hide dialog. Ask again
-                                dialog.dismiss();
-                                ActivityCompat.requestPermissions(MainActivity.this,
-                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                                        MY_PERMISSIONS_LOCATION);
-                            })
-                            .setNegativeButton("No, Exit App", (dialogInterface, i) -> {
-                                // (Build.VERSION.SDK_INT >= 21) {
-                                    finishAndRemoveTask();
-                                //} else {
-                                //    finish();
-                                //}
-                            }).create().show();
+                        .setPositiveButton("OK", (dialog, id) -> {
+                            // User clicked OK button. Hide dialog. Ask again
+                            dialog.dismiss();
+                            ActivityCompat.requestPermissions(MainActivity.this,
+                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                                    MY_PERMISSIONS_LOCATION);
+                        })
+                        .setNegativeButton("No, Exit App", (dialogInterface, i) -> {
+                            finishAndRemoveTask();
+                        }).create().show();
                 }
                 // permission is denied (and never ask again is checked) go to Settings or exit
                 // shouldShowRequestPermissionRationale will return false
@@ -470,28 +465,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setTitle("Permissions Needed");
                     builder.setMessage("You have denied some needed permissions. Go to Settings, click on Permissions and allow all permissions.  Then restart this app.")
-                            .setPositiveButton("Yes, Go to Settings", (dialog, id) -> {
-                                // User clicked OK button. Hide dialog. Ask again
-                                dialog.dismiss();
-                                // Go to app settings
-                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                        Uri.fromParts("package", getPackageName(), null));
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                startActivity(intent);
-                                //if (Build.VERSION.SDK_INT >= 21) {
-                                    finishAndRemoveTask();
-                                //} else {
-                                //    finish();
-                                //}
-                            })
-                            .setNegativeButton("No, Exit App", (dialog, i) -> {
-                                dialog.dismiss();
-                                //if (Build.VERSION.SDK_INT >= 21) {
-                                    finishAndRemoveTask();
-                                //} else {
-                                //    finish();
-                                //}
-                            }).create().show();
+                        .setPositiveButton("Yes, Go to Settings", (dialog, id) -> {
+                            // User clicked OK button. Hide dialog. Ask again
+                            dialog.dismiss();
+                            // Go to app settings
+                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    Uri.fromParts("package", getPackageName(), null));
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                            finishAndRemoveTask();
+                        })
+                        .setNegativeButton("No, Exit App", (dialog, i) -> {
+                            dialog.dismiss();
+                            finishAndRemoveTask();
+                        }).create().show();
                 }
             }
             else
@@ -525,10 +512,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                             == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
                         // If an in-app update is already running, resume the update.
                         try {
-                            appUpdateManager.startUpdateFlowForResult(
+                            /*appUpdateManager.startUpdateFlowForResult(
                                     appUpdateInfo,
                                     AppUpdateType.FLEXIBLE,
                                     MainActivity.this,
+                                    APP_UPDATE_REQUEST_CODE);*/
+                            appUpdateManager.startUpdateFlowForResult(
+                                    appUpdateInfo,
+                                    MainActivity.this,
+                                    AppUpdateOptions.defaultOptions(AppUpdateType.FLEXIBLE),
                                     APP_UPDATE_REQUEST_CODE);
                         } catch (IntentSender.SendIntentException e) {
                             Toast.makeText(getApplicationContext(), "Failed to update. " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -567,13 +559,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void onDestroy() {
         super.onDestroy();
         dbHandler.close();
+        if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+                (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+            stopLocationUpdates();
+        }
     }
 
     @Override
     protected void onStop(){
         super.onStop();
-
         dbHandler.close();
+        if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+                (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+            stopLocationUpdates();
+        }
         // try to free memory leaks. Did not seem to help!!!!!!
         // Unregister mLocationCallback
         // unregister  dialogClickListener !!!!!!!!!!!
@@ -593,11 +592,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
         lv = findViewById(R.id.lv);
         lv.setAdapter(myAdapter);
-        registerForContextMenu(lv); // set up edit/trash context menu
+
         // Make sure all the maps in the database still exist
         myAdapter.checkIfExists();
 
-        lv.setLongClickable(true);
+        /*lv.setLongClickable(true);
+        //registerForContextMenu(lv); // set up edit/trash context menu
         lv.setChoiceMode(lv.CHOICE_MODE_MULTIPLE);
         lv.setOnItemLongClickListener(new OnItemLongClickListener() {
             // Called when the user long-clicks on someView
@@ -616,8 +616,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 mActionMode = MainActivity.this.startActionMode(mActionModeCallback);
                 return true;
             }
-        });
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        });*/
+        /*lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // clicking on an activated item unactivates it
@@ -627,7 +627,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     else view.setActivated(true);
                 }
             }
-        });
+        });*/
 
         // Display note if no records found
         showHideNoImportsMessage();
@@ -745,6 +745,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         try {
             LocationRequest mLocationRequest;
             if (Build.VERSION.SDK_INT >= 31){
+                mLocationRequest = new LocationRequest.Builder(30000)
+                        .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+                        .setWaitForAccurateLocation(false)
+                        .setMinUpdateIntervalMillis(30000)
+                        .setMaxUpdateDelayMillis(60000)
+                        .build();
+            }
+            else if (Build.VERSION.SDK_INT < 31){
                 mLocationRequest = LocationRequest.create();
                 if (mLocationRequest != null) {
                     mLocationRequest.setPriority(Priority.PRIORITY_HIGH_ACCURACY);
@@ -1007,7 +1015,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     // 7-24-23 try using context menu
     // EDIT MENU
-    private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+    /*private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
         // Called when the action mode is created; startActionMode() was called
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -1040,7 +1048,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
                 //    return true;
-                case R.id.delete_map:
+    /*            case R.id.delete_map:
                     // display alert dialog
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setTitle("Delete");
@@ -1068,9 +1076,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     mode.finish(); // Action picked, so close the CAB
                     return false;
             }
-        }
+        }*/
         // Remove Imported Map dialog
-        DialogInterface.OnClickListener deleteDialogClickListener = new DialogInterface.OnClickListener() {
+       /* DialogInterface.OnClickListener deleteDialogClickListener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which){
@@ -1091,9 +1099,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         break;
                 }
             }
-        };
-        // Remove Imported Map dialog
-        DialogInterface.OnClickListener infoDialogClickListener = new DialogInterface.OnClickListener() {
+        };*/
+        // Show Info on Imported Map dialog
+        /*DialogInterface.OnClickListener infoDialogClickListener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which){
@@ -1102,11 +1110,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         break;
                 }
             }
-        };
+        };*/
 
         // Called when the user exits the action mode by clicking back arrow or back button
         // Rename all selected items and unselect all
-        @Override
+        /*@Override
         public void onDestroyActionMode(ActionMode mode) {
             mActionMode = null;
             // unselect all rows
@@ -1125,5 +1133,5 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             sortByDropdown.setVisibility(View.VISIBLE);
             sortTitle.setVisibility(View.VISIBLE);
         }
-    };
+    };*/
 }

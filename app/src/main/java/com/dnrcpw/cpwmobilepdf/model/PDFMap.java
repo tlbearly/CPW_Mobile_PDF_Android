@@ -29,25 +29,21 @@ import java.util.Locale;
  */
 
 public class PDFMap {
-    private String path, bounds, mediabox, viewport, name, rename, fileSize, distToMap;
-    private Boolean selected;
+    private String path, bounds, mediabox, viewport, name, fileSize, distToMap;
     private int id;
     private Double miles;
     private String thumbnail; // image filename
 
     public PDFMap(){
-        this.selected=false;
     }
 
     public PDFMap(String path, String bounds, String mediabox, String viewport, String thumbnail, String name, String fileSize, String distToMap){
-        this.selected=false;
         this.path = path;
         this.bounds = bounds;
         this.mediabox = mediabox;
         this.viewport = viewport;
         this.thumbnail = thumbnail;
         this.name = name;
-        this.rename = name;
         this.fileSize = fileSize;
         this.distToMap = distToMap;
         if (distToMap.equals("onmap") || distToMap.equals(""))
@@ -502,9 +498,9 @@ public class PDFMap {
         return new double[]{d18,d17};
     }
 
-    public Boolean getSelected(){return selected;}
+    //public Boolean getSelected(){return selected;}
 
-    public void setSelected(Boolean value){selected=value;}
+    //public void setSelected(Boolean value){selected=value;}
 
     public String getThumbnail() {
         return thumbnail;
@@ -558,12 +554,6 @@ public class PDFMap {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getRename() { return rename; }
-
-    public void setRename(String name) {
-        this.rename = name;
     }
 
     public String getFileSize() { return fileSize; }
