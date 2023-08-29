@@ -16,6 +16,7 @@
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/ic_launcher_background.xml" value="0.29102564102564105" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/ic_nearme.xml" value="0.15982905982905982" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/list_item_background.xml" value="0.1945" />
+        <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/location_search.xml" value="0.1515" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/splash_screen.xml" value="0.14" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/activity_edit_map_name.xml" value="0.25" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/activity_get_more.xml" value="0.22" />
@@ -29,6 +30,7 @@
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/content_main.xml" value="0.1" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/model.xml" value="0.33" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/spinner_dropdown_item.xml" value="0.16171171171171173" />
+        <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/menu/done_adjusting_menu.xml" value="0.19444444444444445" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/menu/edit_menu.xml" value="0.24375" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/menu/map_menu.xml" value="0.19270833333333334" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/menu/menu_get_more.xml" value="0.29684684684684687" />

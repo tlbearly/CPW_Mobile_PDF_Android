@@ -60,6 +60,8 @@
     <string name="edit">Edit</string>
     <string name="editing">Editing</string>
     <string name="delete">Delete</string>
+    <string name="done">Done</string>
+    <string name="move">Move</string>
     <string name="info">Info</string>
     <string name="selected_icon">Item selected icon</string>
 

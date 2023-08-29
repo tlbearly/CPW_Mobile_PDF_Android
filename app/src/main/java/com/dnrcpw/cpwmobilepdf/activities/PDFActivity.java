@@ -4,6 +4,7 @@ import static android.graphics.Color.argb;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -13,6 +14,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PointF;
 import android.graphics.RectF;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -27,16 +29,21 @@ import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.WindowMetrics;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -45,6 +52,7 @@ import com.dnrcpw.cpwmobilepdf.data.DBWayPtHandler;
 import com.dnrcpw.cpwmobilepdf.model.WayPt;
 import com.dnrcpw.cpwmobilepdf.model.WayPts;
 import com.github.barteksc.pdfviewer.PDFView;
+import com.github.barteksc.pdfviewer.listener.OnLongPressListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -132,6 +140,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     //private DBHandler db2;
     private Boolean markCurrent;
     private int clickedWP; // index of waypoint that was clicked on
+    private int adjustWP; // index of waypoint that was long clicked on to adjust location
+    private float adjustX; // XY screen coordinate of the adjust location icon (fixed place on screen, map moves behind it)
+    private float adjustY; // XY screen coordinate
+    private int del_id; // the id of the selected wayPt to delete in the adjust waypoint menu
+    ImageView moveIcon; // icon used to adjust the location of the waypoint
+    // Adjust Waypoint Menu
+    ActionMode mActionMode;
     private int lastClickedWP;
     private Boolean newWP; // if added a new waypoint show balloon too
     private TextPaint txtCol; // text color for waypoint balloon popup
@@ -145,6 +160,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private int margTop; // distance above waypoint to register user click
     private int margBottom; // distance below waypoint to register user click
     private int screenWidth; // Used to see if popup balloon goes off page to the left or right
+    private int screenHeight;
     private StaticLayout lsLayout; // arrow right in waypoint balloon popup
     private String path;
     String bounds;
@@ -161,7 +177,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     MenuItem wayPtMenuItem;
     Double[] LatLong;
 
-    @SuppressLint("SourceLockedOrientationActivity")
+    //    @SuppressLint("SourceLockedOrientationActivity")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // final RelativeLayout wait; // indeterminate progress bar
@@ -192,6 +208,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         markCurrent = false;
         clickedWP = -1; // index of waypoint that was clicked on
         lastClickedWP = -1;
+        adjustWP = -1; // long press on pin to adjust location
         newWP = false; // if added a new waypoint show balloon too
         txtCol = new TextPaint(); // text color for waypoint balloon popup
         txtSize = Math.round(getResources().getDimension(R.dimen.balloon_txt_size)); // text size of waypoint balloon popup ( used to be 30 pixels)
@@ -206,15 +223,16 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
         if (Build.VERSION.SDK_INT >= 28 && Build.VERSION.SDK_INT < 30) {
             screenWidth = getResources().getDisplayMetrics().widthPixels;
-
+            screenHeight = getResources().getDisplayMetrics().heightPixels;
         } else if (Build.VERSION.SDK_INT >= 30) {
             WindowMetrics deviceWindowMetrics = getApplicationContext().getSystemService(WindowManager.class).getMaximumWindowMetrics();
             screenWidth = deviceWindowMetrics.getBounds().width();
-
+            screenHeight = deviceWindowMetrics.getBounds().height();
         } else {
             DisplayMetrics displayMetrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
             screenWidth = displayMetrics.widthPixels;
+            screenHeight = displayMetrics.heightPixels;
         }
 
         // keep app from timing out and going to screen saver
@@ -428,9 +446,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 }
             }
         };
+
         setupPDFView();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void setupPDFView(){
         // Set color and fill of the current location point
         cyan = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -485,6 +505,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             lsLayout = new StaticLayout(emoji, txtPaint, emoji_width, Layout.Alignment.ALIGN_CENTER, 1, 1, true);
         }
 
+        // add moveIcon for fine adjustment of location on longclick on waypoint pin
+        moveIcon = new ImageView(PDFActivity.this);
+        moveIcon.setImageResource(R.drawable.location_search);
+        int w = Math.round(screenWidth * 0.1f);
+        pdfView.addView(moveIcon,w,w);
+
         // GET THE PDF FILE
         File file = new File(path);
         if (file.canRead()) {
@@ -495,9 +521,68 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             pdfView.fromFile(file).defaultPage(0).pages(0).onRender((onRenderListener) -> {
                 pdfView.fitToWidth(0); // optionally pass page number
             })
+                    // long press allows moving waypoint
+                    .onLongPress(new OnLongPressListener() {
+                        @Override
+                        public void onLongPress(MotionEvent event) {
+                            // Show Adjust Waypoint menu and move icon to move location, edit, or delete waypoint
+                            float zoom = pdfView.getZoom();
+                            double toScreenCordX = (optimalPageWidth.get() * zoom) / mediaBoxWidth;
+                            double toScreenCordY = (optimalPageHeight.get() * zoom) / mediaBoxHeight;
+                            double marginL = toScreenCordX * marginLeft;
+                            double marginT = toScreenCordY * marginTop;
+                            double marginx = toScreenCordX * marginXworld;
+                            double marginy = toScreenCordY * marginYworld;
+                            float x = (event.getX() - pdfView.getCurrentXOffset());
+                            float y = (event.getY() - pdfView.getCurrentYOffset());
+                            double wayPtX;
+                            double wayPtY;
+                            adjustWP = -1;
+                            int i1;
+                            // Check if clicked on existing waypoint
+                            for (i1 = wayPts.size() - 1; i1 > -1; i1--) {
+                                // convert this waypoint lat, long to screen coordinates
+                                wayPtX = ((wayPts.get(i1).getX() - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                                wayPtY = (((lat2 - wayPts.get(i1).getY()) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
+                                if (x > (wayPtX - margX) && x < (wayPtX + margX) &&
+                                        y < (wayPtY + margBottom) && y >= (wayPtY - margTop)) {
+                                    adjustWP = i1;
+                                    //Log.d("onTap","Clicked on existing waypoint.");
+                                    break;
+                                }
+                            }
+                            // return if not clicked on a waypoint
+                            if (adjustWP == -1)return;
+                            // show menu
+                            if (mActionMode != null) {
+                                return;
+                            }
+                            // Start the CAB using the ActionMode.Callback defined above
+                            mActionMode = PDFActivity.this.startActionMode(mActionModeCallback);
+                            Toast.makeText(PDFActivity.this,"Pan or zoom to move pin.",Toast.LENGTH_LONG).show();
+                            clickedWP = -1;
+                            double xLong = wayPts.get(i1).getX();
+                            double yLat = wayPts.get(i1).getY();
+                            // convert lat, long to screen coordinates for exact location of pin
+                            float x1 = (float) (((xLong - long1) / longDiff) * (((optimalPageWidth.get() * zoom) - marginx)) + marginL);
+                            float y1 = (float) (((lat2 - yLat) / latDiff) * (((optimalPageHeight.get() * zoom) - marginy)) + marginT);
+
+                            Log.d("SELECT","longpress");
+
+                            moveIcon.setVisibility(View.VISIBLE);
+                            adjustX = x1 + pdfView.getCurrentXOffset();
+                            adjustY = y1 + pdfView.getCurrentYOffset();
+                            moveIcon.setX(adjustX - moveIcon.getWidth()/2);
+                            moveIcon.setY(adjustY - moveIcon.getHeight()/2);
+                            PointF point = new PointF(adjustX,adjustY);
+                            if (pdfView.getZoom() < 2)
+                                pdfView.zoomCenteredTo(3,point);
+                        }
+                    })
+
                     // SINGLE TAP
                     .onTap(e -> {
-                        //Log.d("onTap","Clicked on map. clickedWP="+clickedWP);
+                        Log.d("onTap","Clicked on map. clickedWP="+clickedWP);
                         updatePageSize(); // get new pdf page width and height
 
                         if (!showAllWayPts && !addWayPtFlag) {
@@ -545,17 +630,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                         y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)) {
                                     try {
                                         //Log.d("onTap","Clicked on waypoint balloon.");
-                                        // Open EditWayPointActivity
-                                        Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
-                                        //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                        i1.putExtra("CLICKED", clickedWP);
-                                        i1.putExtra("NAME", mapName);
-                                        i1.putExtra("PATH", path);
-                                        i1.putExtra("BOUNDS", strBounds);
-                                        i1.putExtra("MEDIABOX", strMediaBox);
-                                        i1.putExtra("VIEWPORT", strViewPort);
-                                        //i1.putExtra("LANDSCAPE", landscape);
-                                        startActivity(i1);
+                                        openEditWayPointActivity(clickedWP);
                                         // hide wait icon
                                         wait.setVisibility(View.GONE);
                                         return false;
@@ -650,6 +725,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 lastClickedWP = clickedWP;
                                 clickedWP = i1;
                                 found = true;
+                                pdfView.invalidate();
                                 //Log.d("onTap","Clicked on existing waypoint.");
                                 break;
                             }
@@ -864,6 +940,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 if (showAllWayPts) {
                     for (int i12 = 0; i12 < wayPts.size(); i12++) {
                         //Log.d("PDFActivity","drawing waypoint "+i12);
+
                         double xLong = wayPts.get(i12).getX();
                         double yLat = wayPts.get(i12).getY();
                         // convert lat, long to screen coordinates
@@ -875,6 +952,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         float cl_offset = getResources().getDimension(R.dimen.pin_cl_offset); // catch light offset
                         float cl_radius = getResources().getDimension(R.dimen.pin_cl_radius);
                         float pt_radius = getResources().getDimension(R.dimen.pin_pt_radius);
+                        // Adjusting waypoint location draw point at location for reference
+                        if (adjustWP == i12){
+                            Paint color = blue;
+                            canvas.drawCircle(x, y, 10, color); // center color
+                            continue; // hide pin if adjusting location
+                        }
                         canvas.drawCircle(x, y - pin_ht, pin_radius, white); // white outline
                         Paint color = blue;
                         if (wayPts.get(i12).getColorName().equals("cyan")) color = cyan;
@@ -894,7 +977,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         canvas.drawLine(x + 2, y - pin_stem, x + 2, y, white);
 
                         // Show all Waypoint Labels
-                        if (showAllWayPtLabels) {
+                        if (showAllWayPtLabels && (adjustWP != i12)) {
                             String desc = wayPts.get(i12).getDesc();
                             if (desc.length() > 13) desc = desc.substring(0, 12);
 
@@ -956,7 +1039,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 }
 
                 // Draw popup if waypoint was clicked on
-                if ((newWP || clickedWP != -1) && !showAllWayPtLabels && showAllWayPts) {
+                if ((newWP || clickedWP != -1) && !showAllWayPtLabels && showAllWayPts && adjustWP == -1) {
                     //Log.d("PDFActivity", "onDraw: draw waypoint and popup balloon. newWP="+newWP+" clickedWP="+clickedWP);
                     if (clickedWP != -1 && clickedWP < wayPts.size()) {
                         int i12 = clickedWP;
@@ -979,7 +1062,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             // Test for waypoint at top half of screen, display popup below
                             int offsetYBox = 0;
                             int offsetYTriangle = 0;
-                            Log.d("Draw Popup","y="+y+"+ pdfViewYoffset="+pdfView.getCurrentYOffset()+" "+(y + pdfView.getCurrentYOffset())+" < "+(pdfView.getHeight() / 2.0));
+                            //Log.d("Draw Popup","y="+y+"+ pdfViewYoffset="+pdfView.getCurrentYOffset()+" "+(y + pdfView.getCurrentYOffset())+" < "+(pdfView.getHeight() / 2.0));
                             if ((y + pdfView.getCurrentYOffset()) < (pdfView.getHeight() / 2.0)) {
                                 offsetYBox = getOffsetYBox();//startY + boxHt;
                                 offsetYTriangle = getOffsetYTriangle();//2 * startY - 3 - boxHt;
@@ -1122,6 +1205,20 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         // Convert pixels to dp (device independent)
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, px, resource.getDisplayMetrics());
     }*/
+
+    private void openEditWayPointActivity(int id) {
+        // Open EditWayPointActivity
+        Intent i1 = new Intent(PDFActivity.this, EditWayPointActivity.class);
+        //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        i1.putExtra("CLICKED", id);
+        i1.putExtra("NAME", mapName);
+        i1.putExtra("PATH", path);
+        i1.putExtra("BOUNDS", strBounds);
+        i1.putExtra("MEDIABOX", strMediaBox);
+        i1.putExtra("VIEWPORT", strViewPort);
+        //i1.putExtra("LANDSCAPE", landscape);
+        startActivity(i1);
+    }
 
     public int getOffsetXBox(float x,float textWidth, int emoji_width){
         // Return the adjustment for popup going off screen horizontally
@@ -1554,4 +1651,95 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
         return super.onOptionsItemSelected(item);
     }
+
+    // ADJUST WAYPOINT MENU
+    private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+        // Called when the action mode is created; startActionMode() was called
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            // Inflate a menu resource providing context menu items
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.done_adjusting_menu, menu);
+            return true;
+        }
+
+        // Called each time the action mode is shown. Always called after onCreateActionMode, but
+        // may be called multiple times if the mode is invalidated.
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false; // Return false if nothing is done
+        }
+
+        // Called when the user selects a contextual menu item
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            if (item.getItemId() == R.id.done_adjusting){
+                float x = adjustX - pdfView.getCurrentXOffset();
+                float y = adjustY - pdfView.getCurrentYOffset();
+                float zoom = pdfView.getZoom();
+                double toScreenCordX = (optimalPageWidth.get() * zoom) / mediaBoxWidth;
+                double toScreenCordY = (optimalPageHeight.get() * zoom) / mediaBoxHeight;
+                double marginL = toScreenCordX * marginLeft;
+                double marginT = toScreenCordY * marginTop;
+                double marginx = toScreenCordX * marginXworld;
+                double marginy = toScreenCordY * marginYworld;
+                double longitude = (((x - marginL) / ((optimalPageWidth.get() * zoom) - marginx)) * longDiff) + long1;
+                double latitude = ((((y - marginT) / ((optimalPageHeight.get() * zoom) - marginy)) * latDiff) - lat2) * -1;
+                WayPt wayPt = wayPts.get(adjustWP);
+                wayPt.setX((float) longitude);
+                wayPt.setY((float) latitude);
+                DBWayPtHandler dbWayPtHandler = new DBWayPtHandler(PDFActivity.this);
+                dbWayPtHandler.updateWayPt(wayPt);
+                mode.finish(); //hide menu
+                return false;
+            }
+            else if (item.getItemId() == R.id.edit_wp) {
+                int id = adjustWP;
+                mode.finish();
+                openEditWayPointActivity(id);
+                return false;
+            }
+            else if (item.getItemId() == R.id.delete_wp){
+                del_id = adjustWP;
+                // display alert dialog
+                AlertDialog.Builder builder = new AlertDialog.Builder(PDFActivity.this);
+                builder.setTitle("Delete");
+                builder.setMessage("Delete this waypoint?").setPositiveButton("DELETE", dialogClickListener)
+                        .setNegativeButton("CANCEL", dialogClickListener).show();
+                mode.finish(); // Action picked, so close the CAB
+                return false;
+            }
+            else {
+                mode.finish(); // Action picked, so close the CAB
+                return false;
+            }
+        }
+
+        // Called when the user exits the action mode by clicking back arrow or back button
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            adjustWP = -1; // start drawing waypoint pin again
+            moveIcon.setVisibility(View.GONE);
+            mActionMode = null;
+            setTitle("Imported Maps");
+        }
+    };
+    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which){
+                case DialogInterface.BUTTON_POSITIVE:
+                    //'DELETE' button clicked, remove map from imported maps
+                    WayPt wayPt = wayPts.get(del_id);
+                    DBWayPtHandler dbWayPtHandler = new DBWayPtHandler(PDFActivity.this);
+                    dbWayPtHandler.deleteWayPt(wayPt);
+                    wayPts.remove(wayPt.getX(),wayPt.getY());
+                    break;
+
+                case DialogInterface.BUTTON_NEGATIVE:
+                    //'CANCEL' button clicked, do nothing
+                    break;
+            }
+        }
+    };
 }
