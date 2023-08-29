@@ -7,5 +7,5 @@
        android:icon="@android:drawable/ic_menu_help"
        android:title="@string/help"
        android:visible="true"
-       app:showAsAction="never"/>
+       app:showAsAction="always"/>
 </menu>
