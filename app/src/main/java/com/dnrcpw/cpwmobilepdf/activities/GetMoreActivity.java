@@ -10,7 +10,6 @@ import android.provider.OpenableColumns;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultCallback;
@@ -192,13 +191,6 @@ public class GetMoreActivity extends AppCompatActivity {
             builder.setTitle(getString(R.string.notice));
             builder.setMessage(getString(R.string.start_browser)).setPositiveButton("OK", dialogClickListener)
                     .setNegativeButton("CANCEL",dialogClickListener).show();
-        });
-
-        // add hyperlink to open help 1-8-23
-        TextView openHelp = findViewById(R.id.seeHelpTextView);
-        openHelp.setOnClickListener(v -> {
-            Intent mainIntent = new Intent(GetMoreActivity.this, GetMoreHelpActivity.class);
-            startActivity(mainIntent);
         });
 
         // Open Android File Picker for PDF files API 1

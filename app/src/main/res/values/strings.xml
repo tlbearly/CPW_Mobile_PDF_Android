@@ -3,6 +3,7 @@
     <string name="app_name_short">Mobile PDF</string>
     <string name="name">Name</string>
     <string name="onMap">On Map?</string>
+    <string name="offMap">Off Map</string>
     <string name="pdfimg">Image of the PDF</string>
     <string name="markCurrent">Mark current location</string>
     <string name="add_way_pt">Add a waypoint</string>
@@ -110,7 +111,7 @@
     <string name="help_cpw_mapslib_title">CPW Maps Library</string>
     <string name="help_cpw_mapslib">Click on \'Maps Library page\'. Select file type, GeoPDF, and press \'Search\'. Click on a map name to download it.</string>
     <string name="help_atlas_title">Hunting or Fishing Atlas</string>
-    <string name="help_atlas">Click on the \'Colorado Hunting Atlas\' or the \'Colorado Fishing Atlas\'. Select your map layers by clicking on the menu icon in the top-left. Set your zoom level. Then press the down arrow icon. It will allow you to change: map scale, map size, and orientation. Smaller map scales will show more detail. Larger map sizes will show larger map areas. Enter a PDF file name and press the Create PDF button. Wait for it to be created and then press Download PDF.</string>
+    <string name="help_atlas">Click on the \'Colorado Hunting Atlas\' or the \'Colorado Fishing Atlas\'. Select your map layers by tapping on the menu icon in the top-left. Set your zoom level. Then press the down arrow icon. It will allow you to change: map scale, map size, and orientation. Smaller map scales will show more detail. Larger map sizes will show larger map areas. Enter a PDF file name and press the Create PDF button. Wait for it to be created and then press Download PDF.</string>
     <string name="help_FS_title">Forest Service</string>
     <string name="help_FS">Click on \'Forest Service topographical maps for free\' under Hunting. Below the map that loads, click on \'here\' to open the map viewer as full screen. Search by name or use the +/- buttons to zoom in or out. When the forest service individual map boundaries are showing click on one of the rectangles. Then in the popup box, click the \'>\' icon. Lastly, click on \'Download PDF\'.</string>
     <string name="help_FS_img">Forest service web app image</string>
@@ -118,12 +119,12 @@
     <string name="help_USGS">Click on \'U.S. Geological Survey Store\' under Hunting. Then click on \'Map Locator Tool\'. Search for a location name with the \'Map Locator\' or use the +/- buttons to zoom in or out and double tap the map at the desired location. In the popup, click \'View Products\'. Click on the \'View PDF\' button on the most recent map. Click \'OK\' on the popup that says \'you are navigating away&#8230;\' It may download immediately. If it does not download, wait for it to display, click on the menu icon, and then click on \'download\'.</string>
     <string name="help_USGS_img">USGS web app image</string>
     <string name="help_import_title"><u>STEP 2: Import Maps</u></string>
-    <string name="help_importmaps1">After you have downloaded PDF maps *go back to this app and import them by clicking on the File Picker button. Use the menu in the top-left to select from Recent, Documents, or Downloads folders. Or select the Google Drive icon if the file is located there. Click on the PDF file and it will import it and display the map. The map file is copied to the app directory so deleting the original will not affect the imported maps.</string>
+    <string name="help_importmaps1">After you have downloaded PDF maps *go back to this app and import them by tapping on the File Picker button. Use the menu in the top-left to select from Recent, Documents, or Downloads folders. Or select the Google Drive icon if the file is located there. Click on the PDF file and it will import it and display the map. The map file is copied to the app directory so deleting the original will not affect the imported maps.</string>
     <string name="help_importmaps2">* Hint to get back to this app: click the back icon next to the home icon at the bottom of your phone.</string>
 
     <!-- View Map Help -->
     <string name="help_view_map_title">View Map Help</string>
-    <string name="help_view_map">Your current latitude and longitude will be displayed at the top of the map, and it will be displayed on the map as a cyan circle outlined in white. Double tap or pinch to zoom. To add waypoints, click on the push pin icon at the top-right, then click the map at the desired location. To cancel adding a waypoint, click again on the push pin icon at the top-right. If the waypoint label is showing, clicking on the map will hide it. Clicking on a waypoint will display it\'s label. Clicking on a waypoint label will let you edit the label and pushpin color.</string>
+    <string name="help_view_map">Location:\nYour current latitude and longitude will be displayed at the top of the map, and it will be displayed on the map as a cyan circle outlined in white.\n\nViewing the Map:\nDouble tap or pinch to zoom in or out. Drag to pan the map.\n\nWaypoints:\nTo add waypoints, click on the push pin icon at the top-right, then click the map at the desired location. To cancel adding a waypoint, click again on the push pin icon at the top-right. If the waypoint label is showing, tapping on the map will hide it. Tapping on a waypoint will display it\'s label. Tapping on a waypoint label will let you edit the label and pushpin color. Long-pressing on a waypoint with let you edit, delete, or move the waypoint.</string>
 
     <!-- Error Messages -->
     <string name="deleteFile">Problem removing map file from App.</string>

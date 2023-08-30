@@ -507,6 +507,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
         // add moveIcon for fine adjustment of location on longclick on waypoint pin
         moveIcon = new ImageView(PDFActivity.this);
+        moveIcon.setVisibility(View.GONE);
         moveIcon.setImageResource(R.drawable.location_search);
         int w = Math.round(screenWidth * 0.1f);
         pdfView.addView(moveIcon,w,w);
@@ -526,6 +527,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         @Override
                         public void onLongPress(MotionEvent event) {
                             // Show Adjust Waypoint menu and move icon to move location, edit, or delete waypoint
+                            // if action menu is showing already, return
+                            if (mActionMode != null) {
+                                return;
+                            }
                             float zoom = pdfView.getZoom();
                             double toScreenCordX = (optimalPageWidth.get() * zoom) / mediaBoxWidth;
                             double toScreenCordY = (optimalPageHeight.get() * zoom) / mediaBoxHeight;
@@ -554,9 +559,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             // return if not clicked on a waypoint
                             if (adjustWP == -1)return;
                             // show menu
-                            if (mActionMode != null) {
-                                return;
-                            }
                             // Start the CAB using the ActionMode.Callback defined above
                             mActionMode = PDFActivity.this.startActionMode(mActionModeCallback);
                             Toast.makeText(PDFActivity.this,"Pan or zoom to move pin.",Toast.LENGTH_LONG).show();
@@ -576,7 +578,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             moveIcon.setY(adjustY - moveIcon.getHeight()/2);
                             PointF point = new PointF(adjustX,adjustY);
                             if (pdfView.getZoom() < 2)
-                                pdfView.zoomCenteredTo(3,point);
+                                pdfView.zoomCenteredTo(4.5f,point);
                         }
                     })
 
@@ -739,7 +741,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             //Log.d("onTap", "map click detected (not on existing waypoint.)");
                             // Make sure user click is not off the map!
                             if (!(latitude > lat1 && latitude < lat2 && longitude > long1 && longitude < long2)) {
-                                Toast.makeText(PDFActivity.this, " Off Map.", Toast.LENGTH_LONG).show();
+                                Toast.makeText(PDFActivity.this, getString(R.string.offMap), Toast.LENGTH_LONG).show();
+                                addWayPtFlag = false;
                                 clickedWP = -1;
                             }
                             // Check if clicked too close to edge, Warn user
@@ -1685,6 +1688,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 double marginy = toScreenCordY * marginYworld;
                 double longitude = (((x - marginL) / ((optimalPageWidth.get() * zoom) - marginx)) * longDiff) + long1;
                 double latitude = ((((y - marginT) / ((optimalPageHeight.get() * zoom) - marginy)) * latDiff) - lat2) * -1;
+                if (!(latitude > lat1 && latitude < lat2 && longitude > long1 && longitude < long2)) {
+                    Toast.makeText(PDFActivity.this, getString(R.string.offMap), Toast.LENGTH_LONG).show();
+                    mode.finish(); //hide menu
+                    return false;
+                }
                 WayPt wayPt = wayPts.get(adjustWP);
                 wayPt.setX((float) longitude);
                 wayPt.setY((float) latitude);

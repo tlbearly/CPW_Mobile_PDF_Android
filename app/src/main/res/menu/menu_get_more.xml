@@ -4,7 +4,6 @@
     tools:context="com.dnrcpw.cpwmobilepdf.activities.GetMoreActivity">
    <item
        android:id="@+id/action_help"
-       android:icon="@android:drawable/ic_menu_help"
        android:title="@string/help"
        android:visible="true"
        app:showAsAction="always"/>
