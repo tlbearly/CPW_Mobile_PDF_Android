@@ -45,7 +45,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.play.core.appupdate.AppUpdateInfo;
 import com.google.android.play.core.appupdate.AppUpdateManager;
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
@@ -186,13 +185,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 if (state.installStatus() == InstallStatus.DOWNLOADING) {
                     float bytesDownloaded = (float) state.bytesDownloaded();
                     float totalBytesToDownload = (float) state.totalBytesToDownload();
-                    // Implement progress.
-                    Snackbar snackbar =
-                            Snackbar.make(
-                                    getWindow().getDecorView().getRootView(),
-                                    "Downloading update " + String.format(Locale.US, "%.0f", bytesDownloaded / totalBytesToDownload * 100) + "%",
-                                    Snackbar.LENGTH_SHORT);
-                    snackbar.show();
+                    // Implement progress
+                    Toast.makeText(getApplicationContext(),"Downloading update " + String.format(Locale.US, "%.0f", bytesDownloaded / totalBytesToDownload * 100f) + "%",Toast.LENGTH_SHORT).show();
                 } else if (state.installStatus() == InstallStatus.DOWNLOADED) {
                     // After the update is downloaded, show a notification
                     // and request user confirmation to restart the app.

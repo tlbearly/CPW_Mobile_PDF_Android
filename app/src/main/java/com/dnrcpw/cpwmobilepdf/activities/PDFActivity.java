@@ -160,7 +160,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private int margTop; // distance above waypoint to register user click
     private int margBottom; // distance below waypoint to register user click
     private int screenWidth; // Used to see if popup balloon goes off page to the left or right
-    private int screenHeight;
     private StaticLayout lsLayout; // arrow right in waypoint balloon popup
     private String path;
     String bounds;
@@ -223,16 +222,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
         if (Build.VERSION.SDK_INT >= 28 && Build.VERSION.SDK_INT < 30) {
             screenWidth = getResources().getDisplayMetrics().widthPixels;
-            screenHeight = getResources().getDisplayMetrics().heightPixels;
         } else if (Build.VERSION.SDK_INT >= 30) {
             WindowMetrics deviceWindowMetrics = getApplicationContext().getSystemService(WindowManager.class).getMaximumWindowMetrics();
             screenWidth = deviceWindowMetrics.getBounds().width();
-            screenHeight = deviceWindowMetrics.getBounds().height();
         } else {
             DisplayMetrics displayMetrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
             screenWidth = displayMetrics.widthPixels;
-            screenHeight = displayMetrics.heightPixels;
         }
 
         // keep app from timing out and going to screen saver
@@ -245,7 +241,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         mediaBox = null;
 
         Intent i = this.getIntent();
-
         //  GET LAT LONG BOUNDS, CONVERT FROM STRING "LAT1 LONG1 LAT2 LONG1 LAT2 LONG2 LAT1 LONG2" TO FLOATS
         try {
             // Check that values were passed
@@ -259,8 +254,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             // Display Map Name
             mapName = i.getExtras().getString("NAME");
             this.setTitle(mapName);
-            wayPts = db.getWayPts(mapName);
-            wayPts.SortPts();
+            //wayPts = db.getWayPts(mapName);
+           // wayPts.SortPts();
 
             // GET LAT/LONG
             try {
@@ -507,10 +502,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
         // add moveIcon for fine adjustment of location on longclick on waypoint pin
         moveIcon = new ImageView(PDFActivity.this);
-        moveIcon.setVisibility(View.GONE);
         moveIcon.setImageResource(R.drawable.location_search);
-        int w = Math.round(screenWidth * 0.1f);
-        pdfView.addView(moveIcon,w,w);
+        int moveIconWidth = Math.round(screenWidth * 0.1f);
+        pdfView.addView(moveIcon,moveIconWidth,moveIconWidth);
+        moveIcon.setVisibility(View.GONE);
 
         // GET THE PDF FILE
         File file = new File(path);
@@ -574,8 +569,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             moveIcon.setVisibility(View.VISIBLE);
                             adjustX = x1 + pdfView.getCurrentXOffset();
                             adjustY = y1 + pdfView.getCurrentYOffset();
-                            moveIcon.setX(adjustX - moveIcon.getWidth()/2);
-                            moveIcon.setY(adjustY - moveIcon.getHeight()/2);
+                            moveIcon.setX(adjustX - moveIconWidth/2);
+                            moveIcon.setY(adjustY - moveIconWidth/2);
                             PointF point = new PointF(adjustX,adjustY);
                             if (pdfView.getZoom() < 2)
                                 pdfView.zoomCenteredTo(4.5f,point);
@@ -1327,7 +1322,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     protected void onPause() {
         super.onPause();
         //Log.d("PDFActivity:onPause","close dbWayPtHandler, stop location updates");
-        db.close();
+        // move db.close to onStop 9-8-23
         stopLocationUpdates();
 
         // Stop Screen Sensor Listener
@@ -1338,6 +1333,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     @Override
     protected void onStop() {
         super.onStop();
+        db.close();
     }
 
     //  LOCATION UPDATES
@@ -1676,6 +1672,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         // Called when the user selects a contextual menu item
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            // Move pin
             if (item.getItemId() == R.id.done_adjusting){
                 float x = adjustX - pdfView.getCurrentXOffset();
                 float y = adjustY - pdfView.getCurrentYOffset();
@@ -1696,17 +1693,20 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 WayPt wayPt = wayPts.get(adjustWP);
                 wayPt.setX((float) longitude);
                 wayPt.setY((float) latitude);
-                DBWayPtHandler dbWayPtHandler = new DBWayPtHandler(PDFActivity.this);
-                dbWayPtHandler.updateWayPt(wayPt);
+                String location = String.format(Locale.US,"%.5f, %.5f", latitude,longitude);
+                wayPt.setLocation(location);
+                db.updateWayPt(wayPt);
                 mode.finish(); //hide menu
                 return false;
             }
+            // Edit
             else if (item.getItemId() == R.id.edit_wp) {
                 int id = adjustWP;
                 mode.finish();
                 openEditWayPointActivity(id);
                 return false;
             }
+            // Delete
             else if (item.getItemId() == R.id.delete_wp){
                 del_id = adjustWP;
                 // display alert dialog
@@ -1732,6 +1732,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             setTitle("Imported Maps");
         }
     };
+    // Delete Way Point
     DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
@@ -1739,8 +1740,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 case DialogInterface.BUTTON_POSITIVE:
                     //'DELETE' button clicked, remove map from imported maps
                     WayPt wayPt = wayPts.get(del_id);
-                    DBWayPtHandler dbWayPtHandler = new DBWayPtHandler(PDFActivity.this);
-                    dbWayPtHandler.deleteWayPt(wayPt);
+                    db.deleteWayPt(wayPt);
                     wayPts.remove(wayPt.getX(),wayPt.getY());
                     break;
 
