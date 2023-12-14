@@ -388,7 +388,7 @@ public class CustomAdapter extends BaseAdapter {
         }
     }
 
-    class ViewHolder{
+    static class ViewHolder{
         TextView nameTxt;
         TextView fileSizeTxt;
         TextView distToMapTxt;
@@ -397,7 +397,7 @@ public class CustomAdapter extends BaseAdapter {
     }
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
-        ViewHolder holder = null;
+        ViewHolder holder;
         if (view == null) {
             holder = new ViewHolder();
             // INFLATE CUSTOM LAYOUT
@@ -495,10 +495,6 @@ public class CustomAdapter extends BaseAdapter {
         return view;
     }
 
-    private void openMainView() {
-        Intent i = new Intent(c, MainActivity.class);
-        c.startActivity(i);
-    }
     // OPEN PDF VIEW - load the map
     public void openPDFView(String path, String name, String bounds, String mediaBox, String viewPort) {
         Intent i = new Intent(c, PDFActivity.class);

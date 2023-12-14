@@ -322,9 +322,9 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="opacityPercent" value="78" />
-                            <entry key="outputName" value="location_search" />
-                            <entry key="sourceFile" value="C:\Users\tammy\AndroidStudioProjects\CPWMobilePDF" />
+                            <entry key="assetSourceType" value="FILE" />
+                            <entry key="outputName" value="ic_my_location" />
+                            <entry key="sourceFile" value="C:\Users\tammy\Downloads\my_location_FILL0_wght400_GRAD0_opsz24.svg" />
                           </map>
                         </option>
                       </PersistentState>

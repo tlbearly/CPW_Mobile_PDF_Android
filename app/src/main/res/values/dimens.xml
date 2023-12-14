@@ -10,7 +10,8 @@
     <dimen name="pin_height">35dp</dimen><!-- length of pin from the point to the center of the pin head. One radius short of total height -->
     <dimen name="balloon_txt_size">18sp</dimen>
     <dimen name="balloon_margin">15dp</dimen><!-- height of triangle, margins around text inside balloon -->
-    <dimen name="emoji_width">40dp</dimen><!-- width of right arrow in push pin balloon -->
+    <dimen name="emoji_width">40dp</dimen><!-- width of right arrow, edit, move, delete buttons in push pin balloon -->
+    <dimen name="btn_size">40dp</dimen><!-- width and height of edit, move, delete buttons in push pin balloon -->
     <dimen name="ten_dp">10dp</dimen><!-- margin for clicking on waypoint balloon -->
     <dimen name="wayPtXmarg">25dp</dimen><!-- margin for clicking on waypoint in X direction -->
     <dimen name="wayPtBmarg">15dp</dimen><!-- margin for clicking on below waypoint -->

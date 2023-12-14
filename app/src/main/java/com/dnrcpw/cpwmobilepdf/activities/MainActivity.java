@@ -746,13 +746,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         .setMaxUpdateDelayMillis(60000)
                         .build();
             }
-            else if (Build.VERSION.SDK_INT < 31){
-                mLocationRequest = LocationRequest.create();
-                if (mLocationRequest != null) {
-                    mLocationRequest.setPriority(Priority.PRIORITY_HIGH_ACCURACY);
-                    mLocationRequest.setInterval(30000); //update location every 30 seconds
-                }
-            }
             // API <= 30
             else{
                 mLocationRequest = new LocationRequest();

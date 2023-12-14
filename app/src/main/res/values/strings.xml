@@ -40,8 +40,8 @@
     <string name="downloadInstr1">Show a list of map resources from the CPW website. The following resources will work with this app:</string>
     <string name="downloadInstr2"> Maps Library (use GeoPDF file type)</string>
     <string name="downloadInstr3"> Hunting Atlas or Fishing Atlas</string>
-    <string name="downloadInstr4"> Forest Service topographical maps</string>
-    <string name="downloadInstr5"> U.S. Geological Survey Store</string>
+    <string name="downloadInstr4"> U.S. Forest Service</string>
+    <string name="downloadInstr5"> U.S. Geological Survey</string>
     <string name="downloadInstr6">See Help for more detailed instructions.</string>
     <string name="start_browser">Leaving this app and starting your browser. Once your map has downloaded, please return to this app to import it.</string>
     <string name="open_browser">Open Browser</string>
@@ -62,7 +62,9 @@
     <string name="editing">Editing</string>
     <string name="delete">Delete</string>
     <string name="done">Done</string>
-    <string name="move">Move</string>
+    <string name="move_here">Move Here</string>
+    <string name="move_instructions">Zoom or pan map to move waypoint.</string>
+    <string name="cancel">Cancel</string>
     <string name="info">Info</string>
     <string name="selected_icon">Item selected icon</string>
 
@@ -106,17 +108,17 @@
     <!-- Add Map Help -->
     <string name="help_get_more_title">Adding Maps Help</string>
     <string name="help_download_title"><u>STEP 1: Download Maps</u></string>
-    <string name="help_download1">Click on the Open Browser button to download a map. Note that this requires an internet connection. It will notify you that it is starting up your browser app. Then it will load a page from the CPW website with resources to download georeferenced PDFs. Use one of the resources described below to download a map.</string>
+    <string name="help_download1">Click on the Open Browser button to download a map. Note that this requires an internet connection. It will notify you that it is starting up your browser app. Then it will load a page from the CPW website with resources to download georeferenced PDFs. Use one of the resources described below to download a map. If you have changed the default app that displays PDFs and that app does not allow saving the map, reset the default PDF viewer in Settings/Apps.</string>
     <string name="help_download2">Map Resources:</string>
     <string name="help_cpw_mapslib_title">CPW Maps Library</string>
-    <string name="help_cpw_mapslib">Click on \'Maps Library page\'. Select file type, GeoPDF, and press \'Search\'. Click on a map name to download it.</string>
+    <string name="help_cpw_mapslib">Click on \'CPW online Map Library\'. Select file type, GeoPDF, and press \'Search\'. Click on a map name to download it.</string>
     <string name="help_atlas_title">Hunting or Fishing Atlas</string>
-    <string name="help_atlas">Click on the \'Colorado Hunting Atlas\' or the \'Colorado Fishing Atlas\'. Select your map layers by tapping on the menu icon in the top-left. Set your zoom level. Then press the down arrow icon. It will allow you to change: map scale, map size, and orientation. Smaller map scales will show more detail. Larger map sizes will show larger map areas. Enter a PDF file name and press the Create PDF button. Wait for it to be created and then press Download PDF.</string>
+    <string name="help_atlas">Click on \'Colorado Hunting Atlas\' or \'Fishing Atlas\'. Select your map layers by tapping on the menu icon in the top-left. Set your zoom level. Then press the down arrow icon. It will allow you to change: map scale, map size, and orientation. Smaller map scales will show more detail. Larger map sizes will show larger map areas. Enter a PDF file name and press the Create PDF button. Wait for it to be created and then press Download PDF.</string>
     <string name="help_FS_title">Forest Service</string>
-    <string name="help_FS">Click on \'Forest Service topographical maps for free\' under Hunting. Below the map that loads, click on \'here\' to open the map viewer as full screen. Search by name or use the +/- buttons to zoom in or out. When the forest service individual map boundaries are showing click on one of the rectangles. Then in the popup box, click the \'>\' icon. Lastly, click on \'Download PDF\'.</string>
+    <string name="help_FS">Click on \'USFS\'. Search for a location. When the forest service individual map boundaries are showing, click on one of the rectangles. Then in the popup box, click the \'>\' icon. Lastly, click on \'Download PDF\'.</string>
     <string name="help_FS_img">Forest service web app image</string>
     <string name="help_USGS_title">USGS</string>
-    <string name="help_USGS">Click on \'U.S. Geological Survey Store\' under Hunting. Then click on \'Map Locator Tool\'. Search for a location name with the \'Map Locator\' or use the +/- buttons to zoom in or out and double tap the map at the desired location. In the popup, click \'View Products\'. Click on the \'View PDF\' button on the most recent map. Click \'OK\' on the popup that says \'you are navigating away&#8230;\' It may download immediately. If it does not download, wait for it to display, click on the menu icon, and then click on \'download\'.</string>
+    <string name="help_USGS">Click on \'USGS\'. Search for a location and tap on it. Scroll down to the most recent map and tap on it. Scroll down and select GeoPDF. It may download immediately. If it does not, wait for it to display, click on the menu icon, and then click on \'download\' or \'save\'.</string>
     <string name="help_USGS_img">USGS web app image</string>
     <string name="help_import_title"><u>STEP 2: Import Maps</u></string>
     <string name="help_importmaps1">After you have downloaded PDF maps *go back to this app and import them by tapping on the File Picker button. Use the menu in the top-left to select from Recent, Documents, or Downloads folders. Or select the Google Drive icon if the file is located there. Click on the PDF file and it will import it and display the map. The map file is copied to the app directory so deleting the original will not affect the imported maps.</string>
