@@ -67,6 +67,7 @@
     <string name="cancel">Cancel</string>
     <string name="info">Info</string>
     <string name="selected_icon">Item selected icon</string>
+    <string name="load_adjacent_maps">Load Adjacent Maps?</string>
 
     <!--string name="rename">Rename</string-->
     <string name="ok">OK</string>
