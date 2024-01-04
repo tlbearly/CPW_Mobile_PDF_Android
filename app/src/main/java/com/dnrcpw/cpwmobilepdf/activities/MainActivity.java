@@ -739,11 +739,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         try {
             LocationRequest mLocationRequest;
             if (Build.VERSION.SDK_INT >= 31){
-                mLocationRequest = new LocationRequest.Builder(30000)
+                mLocationRequest = new LocationRequest.Builder(500)
                         .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
                         .setWaitForAccurateLocation(false)
-                        .setMinUpdateIntervalMillis(30000)
-                        .setMaxUpdateDelayMillis(60000)
+                        .setMinUpdateIntervalMillis(500)
+                        .setMaxUpdateDelayMillis(1000)
                         .build();
             }
             // API <= 30
@@ -751,7 +751,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 mLocationRequest = new LocationRequest();
                 if (mLocationRequest != null) {
                     mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-                    mLocationRequest.setInterval(30000); //update location every 30 seconds
+                    mLocationRequest.setInterval(1000); //update location every 1 seconds
                 }
             }
 

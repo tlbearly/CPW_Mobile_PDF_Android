@@ -54,7 +54,13 @@ android {
         versionName "1.3.09"
         // history
         // v1.3.01 Removed asynctask
-        // v1.3.02 Adjust waypoint on long click
+        // v1.3.02 Adjust waypoint on long click, added edit, move, delete buttons to top menu
+        // v1.3.06-07 Check in app installs. Upload to Internal App Sharing
+        // v1.3.08 Update USGS, USFS help
+        // v1.3.09 On waypoint click, show edit, move, delete buttons in popup. Removed code for having them in top menu.
+        //      - load new map if current location goes off screen
+        //      - update location every 1 second instead of 30 seconds
+        //      - For the map, display "Current location: Acquiring..."
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
@@ -99,9 +105,9 @@ dependencies {
     //implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     // Google Play Services for Location
-    androidTestImplementation('androidx.test.espresso:espresso-core:3.4.0', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
+    //androidTestImplementation('androidx.test.espresso:espresso-core:3.4.0', {
+    //    exclude group: 'com.android.support', module: 'support-annotations'
+    //})
 
     // add pdfbox (NOT USED)
     //compile files('libs/pdfbox-2.0.7.jar')

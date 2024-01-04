@@ -25,16 +25,16 @@
   </RelativeLayout>
   <!-- Load adjacent maps menu button -->
   <RelativeLayout
-      android:id="@+id/adjacent_maps_button"
+      android:id="@+id/adjacent_maps"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      android:gravity="center"
-      android:visibility="gone">
+      android:gravity="center">
     <Button
         android:id="@+id/load_adjacent_maps"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/load_adjacent_maps" />
+        android:text="@string/load_adjacent_maps"
+        android:visibility="gone"/>
   </RelativeLayout>
 
   <!-- Must have width and height set to wrap_content or it will not show up on top -->

@@ -172,12 +172,12 @@ public class PDFMap {
                 //---------------------------------------------
                 PdfDictionary measure = vpDict.getAsDict(PdfName.MEASURE);
                 // get unit box correction for BBox if [0,1, 0,0, 1,0, 1,1] needs no correction
-                /*String unitBox = measure.get(PdfName.BOUNDS).toString();
+                String unitBox = measure.get(PdfName.BOUNDS).toString();
                 unitBox = unitBox.trim();
                 unitBox = unitBox.substring(1,unitBox.length() -1);
                 unitBox = unitBox.replaceAll(",", ""); // remove commas
-                units = unitBox.split(" ");
-                */
+                String [] units = unitBox.split(" ");
+
 
                 // adjust bbox by unitBox
                 // top-left

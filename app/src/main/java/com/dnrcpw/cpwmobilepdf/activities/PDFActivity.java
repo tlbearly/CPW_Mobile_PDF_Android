@@ -26,6 +26,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.text.TextPaint;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -191,7 +192,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         setContentView(R.layout.activity_pdf);
         wait = findViewById(R.id.loadingPanel);
         wait.setVisibility(View.VISIBLE);
-
+        latNow = -1;
         addWayPtFlag=false;
 
         // current screen location adjusted by zoom level
@@ -347,6 +348,17 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                     latNow = location.getLatitude();
                     longNow = location.getLongitude(); // make it positive
+
+
+                    //******************************
+                    // DEBUG force current location
+                    //******************************
+                    //latNow = 40.0;
+                    //longNow = 105.0;
+
+
+
+
                     //bearing = location.getBearing(); // 0-360 degrees 0 at North
                     accuracy = location.getAccuracy();
                     // Makes top of map (north) off
@@ -364,9 +376,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //TextView bTxt = (TextView)findViewById(R.id.debug);
                     //bTxt.setText(Float.toString(bearing)+"  adjust: "+Float.toString((geoField.getDeclination()))+ "  bear: "+Float.toString(location.getBearing()));
 
-                    // Redraw the current location point & waypoints
-                    pdfView.invalidate();
+                    // Redraw the current location point & waypoints ***** only redraws every 11 seconds if they have not zoomed ***** way to slow!!!!!!!
 
+                    Log.d("location","update");
+                    pdfView.invalidate();
                     //
                     // Load new map?
                     // check if need to load new map because current location went off map
@@ -906,13 +919,16 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //Log.d("onTap", "clickedWP="+clickedWP);
                     return false;
                 }).onDraw((canvas, pageWidth, pageHeight, displayedPage) -> {
-                    //Log.d("onDraw", "enter onDraw");
+                    Log.d("onDraw", "enter onDraw");
                     updatePageSize(); // get new pdf page width and height
                     // Display current lat/long position
                     TextView pTxt = findViewById(R.id.cur_pos);
                     pTxt.setTextColor(Color.WHITE);
                     String str;
-                    if (latNow >= lat1 && latNow <= lat2 && longNow >= long1 && longNow <= long2) {
+                    if (latNow == -1){
+                        str =  getString(R.string.CurPos) + "Acquiring...";
+                    }
+                    else if (latNow >= lat1 && latNow <= lat2 && longNow >= long1 && longNow <= long2) {
                         str = getString(R.string.CurPos) + String.format(Locale.US,"%.05f", latNow) + ", " + String.format(Locale.US,"%.05f", longNow);
                         onMap = true;
                     } else {
@@ -1520,11 +1536,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private void startLocationUpdates() {
         LocationRequest mLocationRequest;
         if (Build.VERSION.SDK_INT >= 31){
-            mLocationRequest = new LocationRequest.Builder(30000)
+            mLocationRequest = new LocationRequest.Builder(500)
                     .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
                     .setWaitForAccurateLocation(false)
-                    .setMinUpdateIntervalMillis(30000)
-                    .setMaxUpdateDelayMillis(60000)
+                    .setMinUpdateIntervalMillis(500)
+                    .setMaxUpdateDelayMillis(1000)
                     .build();
         }
         // API <= 30
