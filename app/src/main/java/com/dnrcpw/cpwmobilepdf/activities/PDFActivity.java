@@ -345,29 +345,29 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 for (Location location : locationResult.getLocations()) {
                     // Update UI with location data
                     //GeomagneticField geoField;
-
                     latNow = location.getLatitude();
-                    longNow = location.getLongitude(); // make it positive
+                    longNow = location.getLongitude(); // make it positive ???
 
-
+                    Double percentX = 0.13;
+                    Double percentY = 0.10;
                     //******************************
                     // DEBUG force current location
                     //******************************
-                    //latNow = 40.0;
-                    //longNow = 105.0;
-
-
+                    //latNow = lat2 - latDiff*percentY;
+                    //longNow = long2 - longDiff*percentX;
+                    //latNow = lat1 + latDiff*percentY;
+                    //longNow = long1 + longDiff*percentX;
 
 
                     //bearing = location.getBearing(); // 0-360 degrees 0 at North
                     accuracy = location.getAccuracy();
                     // Makes top of map (north) off
-            /*geoField = new GeomagneticField(
-                    Double.valueOf(latNow).floatValue(),
-                    Double.valueOf(longNow).floatValue(),
-                    Double.valueOf(location.getAltitude()).floatValue(),
-                    System.currentTimeMillis()
-            );*/
+                    /*geoField = new GeomagneticField(
+                            Double.valueOf(latNow).floatValue(),
+                            Double.valueOf(longNow).floatValue(),
+                            Double.valueOf(location.getAltitude()).floatValue(),
+                            System.currentTimeMillis()
+                    );*/
                     //bearing += geoField.getDeclination(); // Adjust for declination - difference between magnetic north and true north. Phone returns magnetic north.
                     //bearing -= 90; // Adjust by 90 degrees. Canvas needs 0 at East, this returns 0 at North
                     //if (bearing<0) bearing = 360 + bearing;
@@ -378,13 +378,15 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                     // Redraw the current location point & waypoints ***** only redraws every 11 seconds if they have not zoomed ***** way to slow!!!!!!!
 
-                    Log.d("location","update");
+                    //Log.d("location","update");
                     pdfView.invalidate();
                     //
                     // Load new map?
                     // check if need to load new map because current location went off map
                     //
-                    if (onMap && (latNow < lat1 || latNow > lat2 || longNow < long1 || longNow > long2)){
+                    //Double percent = 0.2; // Alert if close to edge 5% from edge
+                    Button menuBtn = findViewById(R.id.load_adjacent_maps);
+                    if (onMap && (latNow < (lat1 + latDiff*percentX)  || latNow > (lat2 - latDiff*percentX)  || longNow < (long1 + longDiff*percentY) || longNow > (long2 - longDiff*percentY))){
                     //if (debug){
                     //    debug = false;
                         // Get list of all available maps and see if the current location is on one or more of them
@@ -425,17 +427,16 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             }
                         }
                         if (mapIds.size()==0){
-                            Toast.makeText(PDFActivity.this,"No adjacent maps found to load.",Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(PDFActivity.this,"No adjacent maps found to load.",Toast.LENGTH_SHORT).show();
                         }
-                        else if (mapIds.size()==1){
+                        /*else if (mapIds.size()==1){
                             // Only one map found that contains the current location. Load it.
                             loadNewMap(maps, mapIds.get(0));
                             Toast.makeText(PDFActivity.this,"Now showing adjacent map.",Toast.LENGTH_SHORT).show();
-                        }
+                        }*/
                         else {
                             // Several maps found. Display button and menu to load new map.
                             //Toast.makeText(PDFActivity.this,"Several adjacent maps are available",Toast.LENGTH_SHORT).show();
-                            Button menuBtn = findViewById(R.id.load_adjacent_maps);
                             menuBtn.setVisibility(View.VISIBLE);
                             adjacentMapsBtnShowing = true; // if they don't click on the button but click elsewhere, use this to hide the menuBtn in pdfView tap event.
                             menuBtn.setOnClickListener(new View.OnClickListener() {
@@ -470,6 +471,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 }
                             });
                         }
+                    }
+                    else{
+                        menuBtn.setVisibility(View.GONE);
+                        adjacentMapsBtnShowing = true;
                     }
                 }
             }
@@ -512,12 +517,52 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         long1 = LatLong[1];
         lat2 = LatLong[0];
         long2 = LatLong[1];
-        for (int l=0; l<LatLong.length; l=l+2) {
+        int l;
+        for (l=0; l<LatLong.length; l=l+2) {
             if (LatLong[l] < lat1) lat1 = LatLong[l];
             if (LatLong[l] > lat2) lat2 = LatLong[l];
             if (LatLong[l+1] < long1) long1 = LatLong[l+1];
             if (LatLong[l+1] > long2) long2 = LatLong[l+1];
         }
+        // check if not a perfect rectangle
+        // Use the average of the 2 points
+        // get the lat/long value that is closest and use the average
+        if (Double.compare(LatLong[0],LatLong[2]) != 0 && Double.compare(LatLong[0],LatLong[4]) != 0 && Double.compare(LatLong[0],LatLong[6]) != 0){
+            // the lat long that is close to lat1, lat2, long1, long2
+            double lat1a, lat2a, long1a, long2a;
+            lat1a = lat1;
+            lat2a = lat2;
+            long1a = long1;
+            long2a = long2;
+            double smLat1Diff = 1000;
+            double smLat2Diff = 1000;
+            double smLong1Diff = 1000;
+            double smLong2Diff = 1000;
+            for (l=0; l <LatLong.length; l=l+2){
+                if (Math.abs(lat1 - LatLong[l]) != 0 && Math.abs(lat1 - LatLong[l]) < smLat1Diff ){
+                    smLat1Diff = Math.abs(lat1 - LatLong[l]);
+                    lat1a = LatLong[l];
+                }
+                if (Math.abs(lat2 - LatLong[l]) != 0 && Math.abs(lat2 - LatLong[l]) < smLat2Diff ){
+                    smLat2Diff = Math.abs(lat2 - LatLong[l]);
+                    lat2a = LatLong[l];
+                }
+                if (Math.abs(long1 - LatLong[l+1]) != 0 && Math.abs(long1 - LatLong[l+1]) < smLong1Diff ){
+                    smLong1Diff = Math.abs(long1 - LatLong[l+1]);
+                    long1a = LatLong[l+1];
+                }
+                if (Math.abs(long2 - LatLong[l+1]) != 0 && Math.abs(long2 - LatLong[l+1]) < smLong2Diff ){
+                    smLong2Diff = Math.abs(long2 - LatLong[l+1]);
+                    long2a = LatLong[l+1];
+                }
+            }
+            // Average
+            lat1 = (lat1 + lat1a) / 2;
+            lat2 = (lat2 + lat2a) / 2;
+            long1 = (long1 + long1a) / 2;
+            long2 = (long2 + long2a) / 2;
+        }
+
         longDiff = long2 - long1;
         latDiff = lat2 - lat1;
     }
@@ -1918,7 +1963,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             adjustWP = -1; // start drawing waypoint pin again
             moveIcon.setVisibility(View.GONE);
             mActionMode = null;
-            setTitle("Imported Maps");
+            PDFActivity.this.setTitle(mapName);
             TextView note = findViewById(R.id.move_instr);
             note.setVisibility(View.GONE);
             pdfView.invalidate();
