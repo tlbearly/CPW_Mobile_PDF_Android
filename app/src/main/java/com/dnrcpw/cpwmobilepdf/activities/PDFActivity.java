@@ -26,7 +26,6 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.text.TextPaint;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -736,7 +735,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         float x1 = (float) (((xLong - long1) / longDiff) * (((optimalPageWidth.get() * zoom) - marginx)) + marginL);
                         float y1 = (float) (((lat2 - yLat) / latDiff) * (((optimalPageHeight.get() * zoom) - marginy)) + marginT);
 
-                        Log.d("SELECT","longpress");
+                        //Log.d("SELECT","longpress");
 
                         moveIcon.setVisibility(View.VISIBLE);
                         adjustX = x1 + pdfView.getCurrentXOffset();
@@ -964,7 +963,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //Log.d("onTap", "clickedWP="+clickedWP);
                     return false;
                 }).onDraw((canvas, pageWidth, pageHeight, displayedPage) -> {
-                    Log.d("onDraw", "enter onDraw");
+                    //Log.d("onDraw", "enter onDraw");
                     updatePageSize(); // get new pdf page width and height
                     // Display current lat/long position
                     TextView pTxt = findViewById(R.id.cur_pos);

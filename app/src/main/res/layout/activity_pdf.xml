@@ -66,7 +66,7 @@
         android:layout_height="wrap_content"
         android:background="#BF9E9C9C"
         android:text="@string/load_adjacent_maps"
-        android:textColor="#455A64"
+        android:textColor="#263238"
         android:visibility="gone" />
   </RelativeLayout>
 
