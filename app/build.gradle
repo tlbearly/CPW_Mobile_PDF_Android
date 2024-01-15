@@ -48,19 +48,21 @@ android {
     // minSdkVersion 21 for update installs from Google Play
     defaultConfig {
         applicationId 'com.dnrcpw.cpwmobilepdf'
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 34
-        versionCode 41
-        versionName "1.3.09"
+        versionCode 43
+        versionName "1.3.2"
         // history
         // v1.3.01 Removed asynctask
         // v1.3.02 Adjust waypoint on long click, added edit, move, delete buttons to top menu
         // v1.3.06-07 Check in app installs. Upload to Internal App Sharing
         // v1.3.08 Update USGS, USFS help
-        // v1.3.09 On waypoint click, show edit, move, delete buttons in popup. Removed code for having them in top menu.
+        // v1.3.09 & v1.3.1 On waypoint click, show edit, move, delete buttons in popup. Removed code for having them in top menu.
         //      - load new map if current location goes off screen
-        //      - update location every 1 second instead of 30 seconds
+        //      - update location every .5 second instead of 30 seconds
         //      - For the map, display "Current location: Acquiring..."
+        //      - Display button to load new map if current location is 10% from edge
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
@@ -117,7 +119,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:21.0.1'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'com.google.android.material:material:1.10.0'
+    implementation 'com.google.android.material:material:1.11.0'
 
     // Google Play In-App Update Library
     // This dependency is downloaded from the Google’s Maven repository.

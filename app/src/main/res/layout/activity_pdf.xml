@@ -55,8 +55,8 @@
   <!-- Load adjacent maps menu button -->
   <RelativeLayout
       android:id="@+id/adjacent_maps"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
+      android:layout_width="match_parent"
+      android:layout_height="30dp"
       android:layout_below="@+id/cur_pos"
       android:gravity="center">
 
@@ -67,7 +67,7 @@
         android:background="#BF9E9C9C"
         android:text="@string/load_adjacent_maps"
         android:textColor="#263238"
-        android:visibility="gone" />
+        android:visibility="visible" />
   </RelativeLayout>
 
 </RelativeLayout>

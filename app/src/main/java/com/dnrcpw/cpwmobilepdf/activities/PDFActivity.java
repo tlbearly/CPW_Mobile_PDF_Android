@@ -68,7 +68,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /* show the map */
 public class PDFActivity extends AppCompatActivity implements SensorEventListener {
-    boolean debug = true;
+    //boolean debug = true;
     PDFView pdfView;
     Menu mapMenu;
     // Color and style of current location point
@@ -347,8 +347,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     latNow = location.getLatitude();
                     longNow = location.getLongitude(); // make it positive ???
 
-                    Double percentX = 0.13;
-                    Double percentY = 0.10;
+                    double percentX = 0.13;
+                    double percentY = 0.10;
                     //******************************
                     // DEBUG force current location
                     //******************************
@@ -425,7 +425,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 mapIds.add(i);
                             }
                         }
-                        if (mapIds.size()==0){
+                        /*if (mapIds.size()==0){
                             //Toast.makeText(PDFActivity.this,"No adjacent maps found to load.",Toast.LENGTH_SHORT).show();
                         }
                         /*else if (mapIds.size()==1){
@@ -433,7 +433,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             loadNewMap(maps, mapIds.get(0));
                             Toast.makeText(PDFActivity.this,"Now showing adjacent map.",Toast.LENGTH_SHORT).show();
                         }*/
-                        else {
+                        if (mapIds.size() > 0) {
                             // Several maps found. Display button and menu to load new map.
                             //Toast.makeText(PDFActivity.this,"Several adjacent maps are available",Toast.LENGTH_SHORT).show();
                             menuBtn.setVisibility(View.VISIBLE);
@@ -1012,7 +1012,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         //currentLocationX = (((longNow + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
                         //currentLocationY = ((((90 - latNow) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
 
-                        double x1,x2, y1, y2;
+                        //double x1,x2, y1, y2;
                         // long1, lat1
                         /*x1 = (((LatLong[1] + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
                          y1 = ((((90 - LatLong[0]) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
@@ -1031,10 +1031,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         canvas.drawCircle((float) x1+9f, (float) y1+9f, 18f, blue);*/
 
                         // debug:  place black dots at page width/height
-                        canvas.translate(0, 0);
+                        /*canvas.translate(0, 0);
                         canvas.drawCircle(5, 0, 5f, black);
                         canvas.drawCircle((float) (optimalPageWidth.get() * zoom)-5f, (float) (optimalPageHeight.get() * zoom)-5f, 5f, black);
-
+                        */
                         // debug: green dots at bbox Viewport
                         /*canvas.translate(0, 0);
                         x1 = toScreenCordX * bBoxX1;
@@ -1058,14 +1058,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
 
                         // debug: red dots at page margins, works for NREL maps, not for USFS maps
-                       canvas.drawCircle((float) marginL+5f, (float) marginT+5f, 10f, red);
+                      /* canvas.drawCircle((float) marginL+5f, (float) marginT+5f, 10f, red);
                         // Toast.makeText(PDFActivity.this, "xRatio="+xRatio+"  left=" + x1+"  top="+y1+"  width="+pdfView.getOptimalPageWidth(), Toast.LENGTH_SHORT).show();
                         x1 = ((optimalPageWidth.get() * zoom) - (toScreenCordX * marginRight));
                         y1 = ((optimalPageHeight.get() * zoom) - (toScreenCordY * marginBottom));
                         canvas.drawCircle((float) x1-5f, (float) y1-5f, 10f, red);
                         canvas.drawCircle((float) marginL+5f, (float) y1-5f, 10f, red);
                         canvas.drawCircle((float) x1-5f, (float) marginT+5f, 10f, red);
-
+                        */
                     //}
                     // debug lat/long at corners for Poudre Park FS
                     //x1 = (((-105.37499 + 180) - (long1 + 180)) / longDiff) * ((pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
