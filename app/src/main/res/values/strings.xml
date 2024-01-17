@@ -7,6 +7,7 @@
     <string name="pdfimg">Image of the PDF</string>
     <string name="markCurrent">Mark current location</string>
     <string name="add_way_pt">Add a waypoint</string>
+    <string name="add_lat_long">Add a waypoint by lat/long</string>
     <string name="open_pdf">Open a new map</string>
     <string name="showWayPtLabels">Show all waypoint labels</string>
     <string name="showWayPts">Show waypoints</string>

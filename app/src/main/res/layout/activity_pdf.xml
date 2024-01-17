@@ -8,21 +8,22 @@
   <com.github.barteksc.pdfviewer.PDFView
       android:id="@+id/pdfView"
       android:layout_width="match_parent"
-      android:layout_height="match_parent" >
-  </com.github.barteksc.pdfviewer.PDFView>
+      android:layout_height="match_parent"></com.github.barteksc.pdfviewer.PDFView>
 
   <!-- wait icon -->
-  <RelativeLayout
+  <!--RelativeLayout
       android:id="@+id/loadingPanel"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      android:gravity="center" >
-    <ProgressBar
-        android:id="@+id/wait"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:indeterminate="true" />
-  </RelativeLayout>
+      android:gravity="center" -->
+  <ProgressBar
+      android:id="@+id/loadingPanel"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_centerInParent="true"
+      android:indeterminate="true"
+      android:gravity="center"/>
+  <!--/RelativeLayout-->
 
   <!-- Must have width and height set to wrap_content or it will not show up on top -->
   <!-- Current Position -->
@@ -53,21 +54,13 @@
       android:visibility="gone" />
 
   <!-- Load adjacent maps menu button -->
-  <RelativeLayout
-      android:id="@+id/adjacent_maps"
+  <Button
+      android:id="@+id/load_adjacent_maps"
       android:layout_width="match_parent"
-      android:layout_height="30dp"
+      android:layout_height="48dp"
       android:layout_below="@+id/cur_pos"
-      android:gravity="center">
-
-    <Button
-        android:id="@+id/load_adjacent_maps"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#BF9E9C9C"
-        android:text="@string/load_adjacent_maps"
-        android:textColor="#263238"
-        android:visibility="visible" />
-  </RelativeLayout>
-
+      android:background="#BF9E9C9C"
+      android:text="@string/load_adjacent_maps"
+      android:textColor="#212121"
+      android:visibility="gone" />
 </RelativeLayout>

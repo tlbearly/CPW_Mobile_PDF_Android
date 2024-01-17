@@ -66,14 +66,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     boolean sortFlag = true;
     Toolbar toolbar;
     int selectedId;
-    static final int MY_PERMISSIONS_LOCATION = 0;
+    final int MY_PERMISSIONS_LOCATION = 0;
 
     // location variables
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
     double latNow, latBefore = 0.0;
     double longNow, longBefore = 0.0;
-    double updateProximityDist = 160.9344; // default change in distance that triggers updating proximity .1 miles
+    double updateProximityDist = 160.9344; // default change in distance that triggers updating proximity .1 miles*/
     Spinner sortByDropdown;
     TextView sortTitle;
     // Update App
@@ -127,8 +127,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             sortFlag = true;
 
             // Used to keep track of user movement
-            latBefore = 0.0;
-            longBefore = 0.0;
+            //latBefore = 0.0;
+            //longBefore = 0.0;
 
             // FLOATING ACTION BUTTON CLICK
             FloatingActionButton fab = findViewById(R.id.fab);
@@ -272,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
-    protected void setupLocation(){
+   protected void setupLocation(){
         try {
             mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         } catch (Exception e){
@@ -758,7 +758,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
             if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
                 if (mFusedLocationClient != null)
-                    mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null /*Looper.getMainLooper()*/);
+                    mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null );
             } else {
                 Toast.makeText(MainActivity.this, "Fine Location Services are off.", Toast.LENGTH_LONG).show();
             }

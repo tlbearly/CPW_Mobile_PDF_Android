@@ -34,8 +34,9 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.WindowMetrics;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -175,13 +176,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private String strViewPort;
     String mediaBox;
     private String strMediaBox;
-    private RelativeLayout wait; // indeterminate progress bar
+    private ProgressBar wait; // indeterminate progress bar
     private Boolean showAllWayPtLabels = false;
     private Boolean showAllWayPts = true;
     AtomicReference<Double> optimalPageWidth = new AtomicReference<>((double) 0);
     AtomicReference<Double> optimalPageHeight = new AtomicReference<>((double) 0);
     MenuItem wayPtMenuItem;
     Double[] LatLong;
+    EditText txtLatLong;
 
     //    @SuppressLint("SourceLockedOrientationActivity")
     @Override
@@ -935,6 +937,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             try {
                                 db.addWayPt(wayPt);
                             } catch (SQLException exc) {
+                                wayPts.remove((float)longitude,(float)latitude);
                                 Toast.makeText(PDFActivity.this, "Failed to save waypoint. "+exc.getMessage(), Toast.LENGTH_LONG).show();
                                 clickedWP = -1;
                                 newWP = false;
@@ -1880,6 +1883,85 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 wayPtMenuItem.setIcon(R.mipmap.ic_cyan_pin_forgnd);
                 Toast.makeText(PDFActivity.this, getResources().getString(R.string.wayPtInstr), Toast.LENGTH_LONG).show();
         }
+        else if (id == R.id.action_add_lat_long_menu) {
+            // Add Waypoint by Lat/Long
+            txtLatLong = new EditText(this);
+            txtLatLong.setPadding(40,0,0,40);
+            txtLatLong.setHint("lat, long");
+
+            AlertDialog.Builder builderLatLong = new AlertDialog.Builder(PDFActivity.this)
+                .setTitle("Add Waypoint by lat/long")
+                .setMessage("Enter a latitude between "+String.format(Locale.US, "%.4f",lat1)+" and "+String.format(Locale.US, "%.4f",lat2)+" and longitude between "+String.format(Locale.US, "%.4f",long1)+" and "+String.format(Locale.US, "%.4f",long2)+".\n\nExample: "+String.format("%.4f",(lat2+lat1)/2.0)+","+String.format("%.4f",(long2+long1)/2.0)+"\n\n")
+                .setView(txtLatLong)
+                .setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    }
+                });
+
+            final AlertDialog dialogLatLong = builderLatLong.create();
+            dialogLatLong.show();
+            // overriding the handler immediately after show so that it does not call dismiss
+            dialogLatLong.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick(View v)
+                {
+                    String latlong[] = txtLatLong.getText().toString().split(",");
+                    if (latlong.length != 2){
+                        Toast.makeText(PDFActivity.this,"Missing comma. Enter: lat, long", Toast.LENGTH_LONG).show();
+                    }
+                    else{
+                    // Add waypoint
+                    try {
+                        double latitude = Double.parseDouble(latlong[0]);
+                        double longitude = Double.parseDouble(latlong[1]);
+                        if (longitude > 0) longitude = longitude * -1;// make longitude negative
+                        if (latitude <= lat1 || latitude >= lat2) {
+                            Toast.makeText(PDFActivity.this, "latitude is not on map!!!!", Toast.LENGTH_LONG).show();
+                        } else if (longitude <= long1 || longitude >= long2) {
+                            Toast.makeText(PDFActivity.this, "longitude is not on map!!!!", Toast.LENGTH_LONG).show();
+                        } else {
+                            addWayPtFlag = false;
+                            clickedWP = -1; // hide balloon popups
+                            showAllWayPts = true;
+                            wait.setVisibility(View.VISIBLE);
+                            newWP = true;
+                            String location = String.format(Locale.US, "%.5f, %.5f", latitude, longitude);
+                            int num = wayPts.size() + 1;
+                            WayPt wayPt = wayPts.add(mapName, "Waypoint " + num, (float) longitude, (float) latitude, "blue", location);
+                            //String desc = wayPt.getDesc();
+                            wayPts.SortPts();
+                            try {
+                                db.addWayPt(wayPt);
+                                // get the index of the new waypoint
+                                for (int i1 = 0; i1 < wayPts.size(); i1++) {
+                                    //if (wayPts.get(i1).getDesc().equals(desc)) {
+                                    if (wayPts.get(i1).getX() == (float) longitude && wayPts.get(i1).getY() == (float) latitude) {
+                                        lastClickedWP = clickedWP;
+                                        clickedWP = i1;
+                                        break;
+                                    }
+                                }
+                            } catch (SQLException exc) {
+                                Toast.makeText(PDFActivity.this, "Failed to save waypoint. " + exc.getMessage(), Toast.LENGTH_LONG).show();
+                                wayPts.remove((float) longitude, (float) latitude);
+                                clickedWP = -1;
+                                newWP = false;
+                                addWayPtFlag = false;
+                            }
+                            dialogLatLong.dismiss();
+                        }
+                    }catch (NumberFormatException e){
+                        Toast.makeText(PDFActivity.this,"lat, long must be numbers in decimal degrees", Toast.LENGTH_LONG).show();
+                    }
+                }
+                }
+            });
+        }
         else if (id == R.id.action_help){
             Intent i = new Intent(PDFActivity.this, PDFHelpActivity.class);
             startActivity(i);
@@ -1968,6 +2050,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             pdfView.invalidate();
         }
     };
+
     // Delete Way Point
     DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
         @Override
