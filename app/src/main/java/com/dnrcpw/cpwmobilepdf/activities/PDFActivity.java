@@ -26,7 +26,6 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.text.TextPaint;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -930,7 +929,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //Log.d("onTap", "clickedWP="+clickedWP);
                     return false;
                 }).onDraw((canvas, pageWidth, pageHeight, displayedPage) -> {
-                    Log.d("onDraw", "enter onDraw pageWidth="+pageWidth+" pageHeight="+pageHeight+" zoom="+pdfView.getZoom());
+                    //Log.d("onDraw", "enter onDraw pageWidth="+pageWidth+" pageHeight="+pageHeight+" zoom="+pdfView.getZoom());
                     updatePageSize(); // get new pdf page width and height
                     // Display current lat/long position
                     TextView pTxt = findViewById(R.id.cur_pos);
