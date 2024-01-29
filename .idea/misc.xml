@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CMakeSettings">
     <configurations>
@@ -14,9 +13,12 @@
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/grey_button.xml" value="0.2948717948717949" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/ic_baseline_check_circle_24.xml" value="0.244" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/ic_delete.xml" value="0.2295" />
+        <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/ic_edit.xml" value="0.155" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/ic_launcher_background.xml" value="0.29102564102564105" />
+        <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/ic_my_location.xml" value="0.155" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/ic_nearme.xml" value="0.15982905982905982" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/list_item_background.xml" value="0.1945" />
+        <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/loc_icon.xml" value="0.154" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/location_search.xml" value="0.1515" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/drawable/splash_screen.xml" value="0.14" />
         <entry key="..\:/Users/tammy/AndroidStudioProjects/CPWMobilePDF/app/src/main/res/layout/activity_edit_map_name.xml" value="0.25" />
@@ -87,7 +89,7 @@
       </value>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="jbr-17" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

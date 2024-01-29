@@ -26,6 +26,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.text.TextPaint;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -151,6 +152,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private int del_id; // the id of the selected wayPt to delete in the adjust waypoint menu
     ImageView moveIcon; // icon used to adjust the location of the waypoint
     int moveIconWidth;
+    //ImageView locIcon; // current location icon
+    //int count = 0;//debug
     int emoji_width;
     // Adjust Waypoint Menu
     ActionMode mActionMode;
@@ -184,6 +187,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     MenuItem wayPtMenuItem;
     Double[] LatLong;
     EditText txtLatLong;
+    Button menuBtn;
 
     //    @SuppressLint("SourceLockedOrientationActivity")
     @Override
@@ -195,6 +199,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         wait.setVisibility(View.VISIBLE);
         latNow = -1;
         addWayPtFlag=false;
+        menuBtn = findViewById(R.id.load_adjacent_maps); // adjacent map button
 
         // current screen location adjusted by zoom level
         currentLocationX = 0; // start offscreen
@@ -347,7 +352,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     // Update UI with location data
                     //GeomagneticField geoField;
                     latNow = location.getLatitude();
-                    longNow = location.getLongitude(); // make it positive ???
+                    longNow = location.getLongitude();
 
                     double percentX = 0.13;
                     double percentY = 0.10;
@@ -378,15 +383,31 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //bTxt.setText(Float.toString(bearing)+"  adjust: "+Float.toString((geoField.getDeclination()))+ "  bear: "+Float.toString(location.getBearing()));
 
                     // Redraw the current location point & waypoints ***** only redraws every 11 seconds if they have not zoomed ***** way to slow!!!!!!!
+                    double toScreenCordX = (optimalPageWidth.get() * pdfView.getZoom()) / mediaBoxWidth;
+                    double toScreenCordY = (optimalPageHeight.get() * pdfView.getZoom()) / mediaBoxHeight;
+                    double marginL = toScreenCordX * marginLeft;
+                    double marginT = toScreenCordY * marginTop;
+                    double marginx = toScreenCordX * marginXworld;
+                    double marginy = toScreenCordY * marginYworld;
+                    double currentLocationX = ((longNow - long1) / longDiff) * ((optimalPageWidth.get() * pdfView.getZoom()) - marginx) + marginL;
+                    double currentLocationY = (((lat2 - latNow) / latDiff) * ((optimalPageHeight.get() * pdfView.getZoom()) - marginy)) + marginT;
 
-                    //Log.d("location","update");
+                    float x = (float)currentLocationX + pdfView.getCurrentXOffset();//-count;
+                    float y = (float)currentLocationY + pdfView.getCurrentYOffset();//-count;
+                    //count = count+5;
+                    //locIcon.setX(x - moveIconWidth / 2);
+                    //locIcon.setY(y - moveIconWidth / 2);
+                    //locIcon.invalidate((int)(x-moveIconWidth/2), (int)(y-moveIconWidth/2),(int)(x+moveIconWidth/2),(int)(y+moveIconWidth/2));
+                    //Log.d("location","update "+ Calendar.getInstance().getTime());
+
+                    // redraw the portion of the screen that contains the location icon
+                    //pdfView.invalidate((int)(x-moveIconWidth/2), (int)(y-moveIconWidth/2),(int)(x+moveIconWidth/2),(int)(y+moveIconWidth/2));
                     pdfView.invalidate();
                     //
                     // Load new map?
                     // check if need to load new map because current location went off map
                     //
                     //Double percent = 0.2; // Alert if close to edge 5% from edge
-                    Button menuBtn = findViewById(R.id.load_adjacent_maps);
                     if (onMap && (latNow < (lat1 + latDiff*percentX)  || latNow > (lat2 - latDiff*percentX)  || longNow < (long1 + longDiff*percentY) || longNow > (long2 - longDiff*percentY))){
                     //if (debug){
                     //    debug = false;
@@ -676,6 +697,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         moveIconWidth = Math.round(screenWidth * 0.1f);
         pdfView.addView(moveIcon,moveIconWidth,moveIconWidth);
         moveIcon.setVisibility(View.GONE);
+       /* locIcon = new ImageView(PDFActivity.this);
+        locIcon.setImageResource(R.drawable.loc_icon);
+        pdfView.addView(locIcon,40,40);
+        locIcon.setVisibility(View.VISIBLE);*/
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -690,73 +715,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             pdfView.fromFile(file).defaultPage(0).pages(0).onRender((onRenderListener) -> {
                 pdfView.fitToWidth(0); // optionally pass page number
             })
-                // long press allows moving waypoint
-                /*.onLongPress(new OnLongPressListener() {
-                    @Override
-                    public void onLongPress(MotionEvent event) {
-                        // Show Adjust Waypoint menu and move icon to move location, edit, or delete waypoint
-                        // if action menu is showing already, return
-                        if (mActionMode != null) {
-                            return;
-                        }
-                        float zoom = pdfView.getZoom();
-                        double toScreenCordX = (optimalPageWidth.get() * zoom) / mediaBoxWidth;
-                        double toScreenCordY = (optimalPageHeight.get() * zoom) / mediaBoxHeight;
-                        double marginL = toScreenCordX * marginLeft;
-                        double marginT = toScreenCordY * marginTop;
-                        double marginx = toScreenCordX * marginXworld;
-                        double marginy = toScreenCordY * marginYworld;
-                        float x = (event.getX() - pdfView.getCurrentXOffset());
-                        float y = (event.getY() - pdfView.getCurrentYOffset());
-                        double wayPtX;
-                        double wayPtY;
-                        adjustWP = -1;
-                        int i1;
-                        // Check if clicked on existing waypoint
-                        for (i1 = wayPts.size() - 1; i1 > -1; i1--) {
-                            // convert this waypoint lat, long to screen coordinates
-                            wayPtX = ((wayPts.get(i1).getX() - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
-                            wayPtY = (((lat2 - wayPts.get(i1).getY()) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
-                            if (x > (wayPtX - margX) && x < (wayPtX + margX) &&
-                                    y < (wayPtY + margBottom) && y >= (wayPtY - margTop)) {
-                                adjustWP = i1;
-                                //Log.d("onTap","Clicked on existing waypoint.");
-                                break;
-                            }
-                        }
-                        // return if not clicked on a waypoint
-                        if (adjustWP == -1)return;
-                        // show menu
-                        // Start the CAB using the ActionMode.Callback defined above
-                        mActionMode = PDFActivity.this.startActionMode(mActionModeCallback);
-                        Toast.makeText(PDFActivity.this,"Pan or zoom to move pin.",Toast.LENGTH_LONG).show();
-                        clickedWP = -1;
-                        double xLong = wayPts.get(i1).getX();
-                        double yLat = wayPts.get(i1).getY();
-                        // convert lat, long to screen coordinates for exact location of pin
-                        float x1 = (float) (((xLong - long1) / longDiff) * (((optimalPageWidth.get() * zoom) - marginx)) + marginL);
-                        float y1 = (float) (((lat2 - yLat) / latDiff) * (((optimalPageHeight.get() * zoom) - marginy)) + marginT);
-
-                        //Log.d("SELECT","longpress");
-
-                        moveIcon.setVisibility(View.VISIBLE);
-                        adjustX = x1 + pdfView.getCurrentXOffset();
-                        adjustY = y1 + pdfView.getCurrentYOffset();
-                        moveIcon.setX(adjustX - moveIconWidth/2);
-                        moveIcon.setY(adjustY - moveIconWidth/2);
-                        PointF point = new PointF(adjustX,adjustY);
-                        if (pdfView.getZoom() < 2)
-                            pdfView.zoomCenteredTo(4.5f,point);
-                    }
-                })*/
-
                 // SINGLE TAP
                 .onTap(e -> {
                     // current location went off screen, several maps were found that contained
                     // the current location, a button was displayed to prompt the user for which
                     // one they want to load, but they clicked elsewhere so hide the button.
                     if (adjacentMapsBtnShowing){
-                        Button menuBtn = findViewById(R.id.load_adjacent_maps);
                         menuBtn.setVisibility(View.GONE);
                         adjacentMapsBtnShowing = false;
                     }
@@ -966,7 +930,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //Log.d("onTap", "clickedWP="+clickedWP);
                     return false;
                 }).onDraw((canvas, pageWidth, pageHeight, displayedPage) -> {
-                    //Log.d("onDraw", "enter onDraw");
+                    Log.d("onDraw", "enter onDraw pageWidth="+pageWidth+" pageHeight="+pageHeight+" zoom="+pdfView.getZoom());
                     updatePageSize(); // get new pdf page width and height
                     // Display current lat/long position
                     TextView pTxt = findViewById(R.id.cur_pos);
@@ -1583,10 +1547,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private void startLocationUpdates() {
         LocationRequest mLocationRequest;
         if (Build.VERSION.SDK_INT >= 31){
-            mLocationRequest = new LocationRequest.Builder(500)
+            mLocationRequest = new LocationRequest.Builder(1000)
                     .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+                    .setIntervalMillis(1000)
                     .setWaitForAccurateLocation(false)
-                    .setMinUpdateIntervalMillis(500)
+                    .setMinUpdateIntervalMillis(1000)
                     .setMaxUpdateDelayMillis(1000)
                     .build();
         }
@@ -1595,7 +1560,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             mLocationRequest = new LocationRequest();
             if (mLocationRequest != null) {
                 mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-                mLocationRequest.setInterval(1000); //update location every 30 seconds
+                mLocationRequest.setInterval(1000); //update location every 1 seconds
             }
         }
 
@@ -1890,7 +1855,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             txtLatLong.setHint("lat, long");
 
             AlertDialog.Builder builderLatLong = new AlertDialog.Builder(PDFActivity.this)
-                .setTitle("Add Waypoint by lat/long")
+                .setTitle("Add Waypoint by Lat/Long")
                 .setMessage("Enter a latitude between "+String.format(Locale.US, "%.4f",lat1)+" and "+String.format(Locale.US, "%.4f",lat2)+" and longitude between "+String.format(Locale.US, "%.4f",long1)+" and "+String.format(Locale.US, "%.4f",long2)+".\n\nExample: "+String.format("%.4f",(lat2+lat1)/2.0)+","+String.format("%.4f",(long2+long1)/2.0)+"\n\n")
                 .setView(txtLatLong)
                 .setPositiveButton("Add", new DialogInterface.OnClickListener() {

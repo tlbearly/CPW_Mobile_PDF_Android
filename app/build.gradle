@@ -41,8 +41,9 @@ android {
     // File / Settings / under System Settings / Android SDK. Select SDK Tools tab. Check Show Package Details. Look at NDK version.
     // Use 'FULL' or if > 300mb use 'SYMBOL_TABLE'
     ndkVersion "23.1.7779620"
-    compileSdkVersion 34
+    compileSdkVersion 34 // when remove this it does not compile
     buildToolsVersion "30.0.3"
+
     // For new release change versionCode and versionName
     // versionCode must be an integer!
     // minSdkVersion 21 for update installs from Google Play
@@ -116,7 +117,7 @@ dependencies {
 
     // Google Play Location Services
     // compile is deprecated use api or implementation. Must have SDK version 28.0.0
-    implementation 'com.google.android.gms:play-services-location:21.0.1'
+    implementation 'com.google.android.gms:play-services-location:21.1.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'com.google.android.material:material:1.11.0'

@@ -739,10 +739,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         try {
             LocationRequest mLocationRequest;
             if (Build.VERSION.SDK_INT >= 31){
-                mLocationRequest = new LocationRequest.Builder(500)
+                mLocationRequest = new LocationRequest.Builder(1000)
                         .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
                         .setWaitForAccurateLocation(false)
-                        .setMinUpdateIntervalMillis(500)
+                        .setMinUpdateIntervalMillis(1000)
                         .setMaxUpdateDelayMillis(1000)
                         .build();
             }

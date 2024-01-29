@@ -171,6 +171,7 @@ public class PDFMap {
                 // Get Lat Long from /Measure dictionary /GPTS
                 //---------------------------------------------
                 PdfDictionary measure = vpDict.getAsDict(PdfName.MEASURE);
+                // Measure subtype=GEO
                 // get unit box correction for BBox if [0,1, 0,0, 1,0, 1,1] needs no correction
                 String unitBox = measure.get(PdfName.BOUNDS).toString();
                 unitBox = unitBox.trim();
