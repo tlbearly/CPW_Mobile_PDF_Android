@@ -50,6 +50,13 @@
       android:visible="true"
       app:showAsAction="ifRoom" /-->
   <item
+      android:id="@+id/action_loadAdjacentMaps"
+      android:title="@string/loadAdjacentMaps"
+      android:checkable="true"
+      android:checked="true"
+      android:visible="true"
+      app:showAsAction="never" />
+  <item
       android:id="@+id/action_add_way_pt"
       android:icon="@mipmap/ic_grey_pin_forgnd"
       android:title="@string/orientation"

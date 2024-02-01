@@ -11,6 +11,7 @@
     <string name="open_pdf">Open a new map</string>
     <string name="showWayPtLabels">Show all waypoint labels</string>
     <string name="showWayPts">Show waypoints</string>
+    <string name="loadAdjacentMaps">Load Adjacent Maps</string>
     <string name="deleteAllWayPts">Delete all waypoints</string>
     <string name="wayPtInstr">Tap map to add waypoint</string>
     <string name="portrait">Lock in Portrait</string>

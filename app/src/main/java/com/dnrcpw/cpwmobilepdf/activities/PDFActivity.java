@@ -181,6 +181,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private ProgressBar wait; // indeterminate progress bar
     private Boolean showAllWayPtLabels = false;
     private Boolean showAllWayPts = true;
+    private Boolean loadAdjacentMaps = true;
     AtomicReference<Double> optimalPageWidth = new AtomicReference<>((double) 0);
     AtomicReference<Double> optimalPageHeight = new AtomicReference<>((double) 0);
     MenuItem wayPtMenuItem;
@@ -353,17 +354,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     latNow = location.getLatitude();
                     longNow = location.getLongitude();
 
-                    double percentX = 0.13;
-                    double percentY = 0.10;
-                    //******************************
-                    // DEBUG force current location
-                    //******************************
-                    //latNow = lat2 - latDiff*percentY;
-                    //longNow = long2 - longDiff*percentX;
-                    //latNow = lat1 + latDiff*percentY;
-                    //longNow = long1 + longDiff*percentX;
-
-
                     //bearing = location.getBearing(); // 0-360 degrees 0 at North
                     accuracy = location.getAccuracy();
                     // Makes top of map (north) off
@@ -381,40 +371,33 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //TextView bTxt = (TextView)findViewById(R.id.debug);
                     //bTxt.setText(Float.toString(bearing)+"  adjust: "+Float.toString((geoField.getDeclination()))+ "  bear: "+Float.toString(location.getBearing()));
 
-                    // Redraw the current location point & waypoints ***** only redraws every 11 seconds if they have not zoomed ***** way to slow!!!!!!!
-                    double toScreenCordX = (optimalPageWidth.get() * pdfView.getZoom()) / mediaBoxWidth;
-                    double toScreenCordY = (optimalPageHeight.get() * pdfView.getZoom()) / mediaBoxHeight;
-                    double marginL = toScreenCordX * marginLeft;
-                    double marginT = toScreenCordY * marginTop;
-                    double marginx = toScreenCordX * marginXworld;
-                    double marginy = toScreenCordY * marginYworld;
-                    double currentLocationX = ((longNow - long1) / longDiff) * ((optimalPageWidth.get() * pdfView.getZoom()) - marginx) + marginL;
-                    double currentLocationY = (((lat2 - latNow) / latDiff) * ((optimalPageHeight.get() * pdfView.getZoom()) - marginy)) + marginT;
-
-                    float x = (float)currentLocationX + pdfView.getCurrentXOffset();//-count;
-                    float y = (float)currentLocationY + pdfView.getCurrentYOffset();//-count;
-                    //count = count+5;
-                    //locIcon.setX(x - moveIconWidth / 2);
-                    //locIcon.setY(y - moveIconWidth / 2);
-                    //locIcon.invalidate((int)(x-moveIconWidth/2), (int)(y-moveIconWidth/2),(int)(x+moveIconWidth/2),(int)(y+moveIconWidth/2));
-                    //Log.d("location","update "+ Calendar.getInstance().getTime());
-
-                    // redraw the portion of the screen that contains the location icon
-                    //pdfView.invalidate((int)(x-moveIconWidth/2), (int)(y-moveIconWidth/2),(int)(x+moveIconWidth/2),(int)(y+moveIconWidth/2));
                     pdfView.invalidate();
                     //
                     // Load new map?
                     // check if need to load new map because current location went off map
                     //
-                    //Double percent = 0.2; // Alert if close to edge 5% from edge
-                    if (onMap && (latNow < (lat1 + latDiff*percentX)  || latNow > (lat2 - latDiff*percentX)  || longNow < (long1 + longDiff*percentY) || longNow > (long2 - longDiff*percentY))){
-                    //if (debug){
-                    //    debug = false;
+                    double percentX = 0.13;
+                    double percentY = 0.10;
+                    //******************************
+                    // DEBUG force current location
+                    //******************************
+                    //latNow = lat2 - latDiff*percentY;
+                    //longNow = long2 - longDiff*percentX;
+                    //latNow = lat1 + latDiff*percentY;
+                    //longNow = long1 + longDiff*percentX;
+                    if (loadAdjacentMaps && onMap && (latNow < (lat1 + latDiff*percentX)  || latNow > (lat2 - latDiff*percentX)  || longNow < (long1 + longDiff*percentY) || longNow > (long2 - longDiff*percentY))){
                         // Get list of all available maps and see if the current location is on one or more of them
                         ArrayList<Integer> mapIds = new ArrayList<>();// pdf maps that the current location is on
-                        ArrayList<PDFMap> maps = new DBHandler(PDFActivity.this).getAllMaps(PDFActivity.this);
+                        ArrayList<PDFMap> maps;
+                        try{
+                            maps = new DBHandler(PDFActivity.this).getAllMaps(PDFActivity.this);
+                        } catch (Exception e){
+                            Toast.makeText(PDFActivity.this,"Cannot read maps database! Is disk full? Error: "+e.getMessage(),Toast.LENGTH_SHORT).show();
+                            return;
+                        }
                         for (int i = 0; i < maps.size(); i++) {
                             PDFMap map = maps.get(i);
+                            if (map.getName().equals(mapName)) continue; // don't list current map
                             String bounds = map.getBounds(); // lat1 long1 lat2 long1 lat2 long2 lat1 long2
                             if (bounds == null || bounds.length() == 0)
                                 return; // it will be 0 length if is importing
@@ -495,7 +478,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     }
                     else{
                         menuBtn.setVisibility(View.GONE);
-                        adjacentMapsBtnShowing = true;
+                        adjacentMapsBtnShowing = false;
                     }
                 }
             }
@@ -1677,6 +1660,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     MenuItem action_landscape;
     MenuItem action_showAll;
     MenuItem action_showWayPts;
+    MenuItem action_loadAdjacentMaps;
     /*DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
         @SuppressLint("SourceLockedOrientationActivity")
         @Override
@@ -1712,6 +1696,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         action_landscape = menu.findItem(R.id.action_landscape);
         action_showAll = menu.findItem(R.id.action_showAll);
         action_showWayPts = menu.findItem(R.id.action_showWayPts);
+        action_loadAdjacentMaps = menu.findItem(R.id.action_loadAdjacentMaps);
         wayPtMenuItem = menu.findItem(R.id.action_add_way_pt);
         return true;
     }
@@ -1778,6 +1763,17 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             else{
                 action_showWayPts.setChecked(true);
                 showAllWayPts = true;
+            }
+        }
+        // Show AdjacentMaps when current location is close to the map edge
+        else if (id == R.id.action_loadAdjacentMaps){
+            if (action_loadAdjacentMaps.isChecked()){
+                action_loadAdjacentMaps.setChecked(false);
+                loadAdjacentMaps = false;
+            }
+            else{
+                action_loadAdjacentMaps.setChecked(true);
+                loadAdjacentMaps = true;
             }
         }
         else if (id == R.id.action_portrait){
