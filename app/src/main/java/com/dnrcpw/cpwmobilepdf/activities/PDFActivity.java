@@ -693,7 +693,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         // add moveIcon for fine adjustment of location on longclick on waypoint pin
         moveIcon = new ImageView(PDFActivity.this);
         moveIcon.setImageResource(R.drawable.location_search);
-        moveIconWidth = Math.round(screenWidth * 0.1f);
+        moveIconWidth = Math.round(getResources().getDimension(R.dimen.btn_size));
         pdfView.addView(moveIcon,moveIconWidth,moveIconWidth);
         moveIcon.setVisibility(View.GONE);
        /* locIcon = new ImageView(PDFActivity.this);
@@ -1982,7 +1982,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     mode.finish(); //hide menu
                     return false;
                 }
+                wayPts = db.getWayPts(mapName); // update wayPt ids
                 WayPt wayPt = wayPts.get(adjustWP);
+                wayPt.setId(wayPts.get(adjustWP).getId());
                 wayPt.setX((float) longitude);
                 wayPt.setY((float) latitude);
                 String location = String.format(Locale.US,"%.5f, %.5f", latitude,longitude);
