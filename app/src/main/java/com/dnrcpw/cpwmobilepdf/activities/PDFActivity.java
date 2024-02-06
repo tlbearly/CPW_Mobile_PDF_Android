@@ -33,6 +33,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.WindowMetrics;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -896,9 +897,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 }
                             } while (!done);
                             WayPt wayPt = new WayPt(mapName, "Waypoint " + num, (float) longitude, (float) latitude, "blue", location);
-                            // WayPt wayPt = wayPts.add(mapName, "Waypoint " + num, (float) longitude, (float) latitude, "blue", location);
-                            //String desc = wayPt.getDesc();
-
                             try {
                                 db.addWayPt(wayPt);
                             } catch (SQLException exc) {
@@ -1869,6 +1867,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             txtLatLong = new EditText(this);
             txtLatLong.setPadding(40,0,0,40);
             txtLatLong.setHint("lat, long");
+            txtLatLong.setInputType(EditorInfo.TYPE_CLASS_TEXT);
 
             AlertDialog.Builder builderLatLong = new AlertDialog.Builder(PDFActivity.this)
                 .setTitle("Add Waypoint by Lat/Long")

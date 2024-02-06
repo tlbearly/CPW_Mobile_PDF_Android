@@ -32,15 +32,16 @@
       <EditText
           android:id="@+id/waypt"
           android:layout_width="wrap_content"
-          android:layout_height="48dp"
+          android:layout_height="wrap_content"
           android:layout_gravity="center_vertical|end"
           android:layout_marginStart="10dp"
+          android:autofillHints="@string/renameWayPt"
           android:ems="10"
           android:hint="@string/renameWayPt"
           android:inputType="text"
           android:textAppearance="?android:attr/textAppearanceMedium"
-          android:textStyle="bold"
-          android:autofillHints="@string/renameWayPt">
+          android:textStyle="bold">
+
         <requestFocus />
       </EditText>
 
