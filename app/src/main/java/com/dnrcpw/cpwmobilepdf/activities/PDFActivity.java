@@ -840,7 +840,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //bTxt.setText("X offset: "+pdfView.getCurrentXOffset()+" Tap at: " +x+", "+y+" Long: "+String.format("%.4f",longitude)+ " Lat: "+String.format("%.4f",latitude));
 
                     // If clicked on existing waypoint show balloon with name
-                    for (int i1 = wayPts.size() - 1; i1 > -1; i1--) {
+                    int i1;
+                    for (i1 = wayPts.size() - 1; i1 > -1; i1--) {
                         // convert this waypoint lat, long to screen coordinates
                         wayPtX = ((wayPts.get(i1).getX() - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
                         wayPtY = (((lat2 - wayPts.get(i1).getY()) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
@@ -876,22 +877,42 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             wait.setVisibility(View.VISIBLE);
                             newWP = true;
                             String location = String.format(Locale.US,"%.5f, %.5f", latitude,longitude);
-                            int num = wayPts.size() + 1;
-                            WayPt wayPt = wayPts.add(mapName, "Waypoint " + num, (float) longitude, (float) latitude, "blue", location);
+                            // find a unique name
+                            int num = 1;//wayPts.size() + 1;
+                            boolean unique = true;
+                            boolean done = false;
+                            do {
+                                for (i1 = 0; i1 < wayPts.size(); i1++) {
+                                    if (wayPts.get(i1).getDesc().equals("Waypoint " + num)) {
+                                        unique = false;
+                                        num++;
+                                        break;
+                                    }
+                                }
+                                if (unique) {
+                                    done = true;
+                                } else {
+                                    unique = true; // reset for next try
+                                }
+                            } while (!done);
+                            WayPt wayPt = new WayPt(mapName, "Waypoint " + num, (float) longitude, (float) latitude, "blue", location);
+                            // WayPt wayPt = wayPts.add(mapName, "Waypoint " + num, (float) longitude, (float) latitude, "blue", location);
                             //String desc = wayPt.getDesc();
-                            wayPts.SortPts();
+
                             try {
                                 db.addWayPt(wayPt);
                             } catch (SQLException exc) {
-                                wayPts.remove((float)longitude,(float)latitude);
+                               // wayPts.remove((float)longitude,(float)latitude);
                                 Toast.makeText(PDFActivity.this, "Failed to save waypoint. "+exc.getMessage(), Toast.LENGTH_LONG).show();
                                 clickedWP = -1;
                                 newWP = false;
                                 addWayPtFlag=false;
                                 return false;
                             }
+                            wayPts = db.getWayPts(mapName);
+                            wayPts.SortPts();
                             // get the index of the new waypoint
-                            for (int i1 = 0; i1 < wayPts.size(); i1++) {
+                            for (i1 = 0; i1 < wayPts.size(); i1++) {
                                 //if (wayPts.get(i1).getDesc().equals(desc)) {
                                 if (wayPts.get(i1).getX() == (float) longitude && wayPts.get(i1).getY() == (float) latitude) {
                                     lastClickedWP = clickedWP;
@@ -1330,10 +1351,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                 // SET LEVELS TO ZOOM TO WHEN DOUBLE CLICK, 34x44=3168, 22x34=2448
                 if (mediaBoxWidth > 1500) {
-                    pdfView.setMaxZoom(20f);// used to be 3.0f, 7, 20
+                    pdfView.setMaxZoom(25f);// used to be 3.0f, 7, 20
                     pdfView.setMidZoom(7f);// used to be 1.75f 3.5
                 } else {
-                    pdfView.setMaxZoom(10f);// used to be 3.0f, 7, 20
+                    pdfView.setMaxZoom(15f);// used to be 3.0f, 7, 20
                     pdfView.setMidZoom(3.5f);// used to be 1.75f 3.5
                 }
                 pdfView.setMinZoom(1f); // default is 1 (full document, no zoom)
@@ -1978,9 +1999,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     mode.finish(); //hide menu
                     return false;
                 }
-                wayPts = db.getWayPts(mapName); // update wayPt ids
                 WayPt wayPt = wayPts.get(adjustWP);
-                wayPt.setId(wayPts.get(adjustWP).getId());
                 wayPt.setX((float) longitude);
                 wayPt.setY((float) latitude);
                 String location = String.format(Locale.US,"%.5f, %.5f", latitude,longitude);
