@@ -52,8 +52,8 @@ android {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 23
         targetSdkVersion 34
-        versionCode 51
-        versionName "1.4.0"
+        versionCode 52
+        versionName "1.4.1"
         // History
         // v1.3.01 Removed asynctask
         // v1.3.02 Adjust waypoint on long click, added edit, move, delete buttons to top menu
@@ -76,6 +76,7 @@ android {
         // v1.4.0 Updated Actionbar title size to use sp instead of default dp in values/styles.xml
         //      - Adjust EditBox size and added scrolling in activity_edit_map_name.xml for accessibility.
         //      - Add Done button to keyboard popup when adding a waypoint by lat/long.
+        // v1.4.1 2-8-24 bug fix with waypoint popup width.
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
