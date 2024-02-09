@@ -146,15 +146,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     //private DBHandler db2;
     private Boolean markCurrent;
     private int clickedWP; // index of waypoint that was clicked on
-    private int adjustWP; // index of waypoint that was long clicked on to adjust location
+    private int adjustWP; // index of waypoint that was clicked on to adjust location (move button clicked)
     private float adjustX; // XY screen coordinate of the adjust location icon (fixed place on screen, map moves behind it)
     private float adjustY; // XY screen coordinate
     private int del_id; // the id of the selected wayPt to delete in the adjust waypoint menu
     ImageView moveIcon; // icon used to adjust the location of the waypoint
     int moveIconWidth;
-    //ImageView locIcon; // current location icon
     //int count = 0;//debug
-    int emoji_width;
     // Adjust Waypoint Menu
     ActionMode mActionMode;
     int lastClickedWP;
@@ -163,6 +161,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private int txtSize; // text size of waypoint balloon popup
     private int marg; // text margins in waypoint balloon popup
     private int boxHt; // height of waypoint balloon popup
+    private int triangle_ht; // height of the triangle on the balloon popup
     private int btn_size; // width and height of waypoint balloon popup buttons edit/move/delete
     private float pin_radius; // radius of waypoint pin
     private float pin_ht; // length of pin stem from point to center of pin head (circle)
@@ -183,6 +182,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private Boolean showAllWayPtLabels = false;
     private Boolean showAllWayPts = true;
     private Boolean loadAdjacentMaps = true;
+    private Boolean deleting = false;
     AtomicReference<Double> optimalPageWidth = new AtomicReference<>((double) 0);
     AtomicReference<Double> optimalPageHeight = new AtomicReference<>((double) 0);
     MenuItem wayPtMenuItem;
@@ -229,6 +229,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         marg = Math.round(getResources().getDimension(R.dimen.balloon_margin)); // text margins in waypoint balloon popup used to be 20pixels
         btn_size = Math.round(getResources().getDimension(R.dimen.btn_size)); // width and height of edit/move/delete buttons
         boxHt = txtSize + (marg * 2) + btn_size; // height of waypoint balloon popup (including edit/move/delete buttons)
+        triangle_ht = Math.round(getResources().getDimension(R.dimen.triangle_ht));
         pin_radius = getResources().getDimension(R.dimen.pin_radius);
         pin_ht = getResources().getDimension(R.dimen.pin_height); // length of pin stem from point to center of pin head (circle)
         startY = Math.round(pin_ht + pin_radius) + 12; // bottom of the waypoint balloon popup
@@ -670,7 +671,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         txtCol.setStyle(Paint.Style.FILL);
         txtCol.setColor(Color.BLACK);
         txtCol.setTextSize(txtSize);
-        emoji_width = Math.round(getResources().getDimension(R.dimen.emoji_width));
 
         // add moveIcon for fine adjustment of location on longclick on waypoint pin
         moveIcon = new ImageView(PDFActivity.this);
@@ -678,10 +678,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         moveIconWidth = Math.round(getResources().getDimension(R.dimen.btn_size));
         pdfView.addView(moveIcon,moveIconWidth,moveIconWidth);
         moveIcon.setVisibility(View.GONE);
-       /* locIcon = new ImageView(PDFActivity.this);
-        locIcon.setImageResource(R.drawable.loc_icon);
-        pdfView.addView(locIcon,40,40);
-        locIcon.setVisibility(View.VISIBLE);*/
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -700,6 +696,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             })
                 // SINGLE TAP
                 .onTap(e -> {
+                    // if tapped while moving or deleting a waypoint finish that
+                    if (adjustWP != -1 || deleting) return false;
+
                     // current location went off screen, several maps were found that contained
                     // the current location, a button was displayed to prompt the user for which
                     // one they want to load, but they clicked elsewhere so hide the button.
@@ -734,11 +733,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     if (clickedWP != -1 && clickedWP < wayPts.size()) {
                         wayPtX = (((wayPts.get(clickedWP).getX() - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx)) + marginL;
                         wayPtY = (((lat2 - wayPts.get(clickedWP).getY()) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
-                        String desc = wayPts.get(clickedWP).getDesc();
-                        if (desc.length() > 13) desc = desc.substring(0, 12);
-                        float textWidth = txtCol.measureText(desc);
-
-                        if (pdfView.getCurrentXOffset() + wayPtX <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
+                        Boolean continueProcessing;
+                        continueProcessing = checkForWaypointButtonClick(boxWidth, x, y, wayPtX, wayPtY, clickedWP);
+                        if (!continueProcessing) return false;
+                        /*if (pdfView.getCurrentXOffset() + wayPtX <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
                             // Test for balloon popup going off right side of screen
                             int offsetBox = getOffsetXBox((int) wayPtX, boxWidth);
 
@@ -746,8 +744,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             int offsetYBox = 0;
 
                             if ((wayPtY + pdfView.getCurrentYOffset()) < (pdfView.getHeight() / 2.0)) {
-                                offsetYBox = getOffsetYBox();//startY + boxHt;
+                                offsetYBox = getOffsetYBox();
                             }
+                            // Edit button click
                             if (x >= ((wayPtX - (boxWidth / 2) - marg) + offsetBox) && x < (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + marg + btn_size) &&
                                     y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)){
                                 try {
@@ -763,29 +762,31 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                     return false;
                                 }
                             }
+                            // Move button click
                             else if (x >= (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + marg + btn_size) && x < (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + 2*marg + 2*btn_size) &&
                                     y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)){
+                                adjustWP = clickedWP;
                                 moveWaypoint(wayPtX,wayPtY,clickedWP,moveIconWidth);
                             }
+                            // Delete button click
                             else if (x >= ((wayPtX - (boxWidth / 2) - marg) + offsetBox) +2*marg + 2*btn_size && x < (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + 3*marg + 3*btn_size) &&
                                     y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)){
+                                deleting = true;
                                 deleteWaypoint();
                             }
-                        }
+                        }*/
                     }
 
                     // check if clicked on any balloon when all waypoints are showing their labels
                     if (showAllWayPtLabels) {
                         //Log.d("PDFActivity","Show all waypoint labels.");
-                        for (int j = 0; j < wayPts.size(); j++) {
+                        for (int j = wayPts.size()-1; j > -1; j--) {
                             wayPtX = (((wayPts.get(j).getX() - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx)) + marginL;
                             wayPtY = (((lat2 - wayPts.get(j).getY()) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
-                            String desc;
-                            desc = wayPts.get(j).getDesc();
-                            if (desc.length() > 13) desc = desc.substring(0, 12);
-
-                            //int marg = Math.round(getResources().getDimension(R.dimen.ten_dp));//10
-                            if (pdfView.getCurrentXOffset() + wayPtX <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
+                            Boolean continueProcessing;
+                            continueProcessing = checkForWaypointButtonClick(boxWidth, x, y, wayPtX, wayPtY, j);
+                            if (!continueProcessing) return false;
+                            /*if (pdfView.getCurrentXOffset() + wayPtX <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
                                 // Test for balloon popup going off right or left side of screen
                                 int offsetBox = getOffsetXBox((int) wayPtX, boxWidth);
 
@@ -813,16 +814,18 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 }
                                 else if (x >= (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + marg + btn_size) && x < (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + 2*marg + 2*btn_size) &&
                                         y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)){
+                                    adjustWP = clickedWP;
                                     moveWaypoint(wayPtX,wayPtY,j,moveIconWidth);
                                     return false;
                                 }
                                 else if (x >= ((wayPtX - (boxWidth / 2) - marg) + offsetBox) +2*marg + 2*btn_size && x < (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + 3*marg + 3*btn_size) &&
                                         y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)){
                                     clickedWP=j;
+                                    deleting = true;
                                     deleteWaypoint();
                                     return false;
                                 }
-                            }
+                            }*/
                         }
                     }
 
@@ -836,7 +839,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                     //TextView bTxt = (TextView)findViewById(R.id.debug);
                     //bTxt.setTextColor(Color.WHITE);
-                    //bTxt.setText("X offset: "+pdfView.getCurrentXOffset()+" Tap at: " +x+", "+y+" Long: "+String.format("%.4f",longitude)+ " Lat: "+String.format("%.4f",latitude));
+                    //bTxt.setText("X offset: "+pdfView.getCurrentXOffset()+" Tap at: " +x+", "+y+" Long: "+String.format(Locale.US,"%.4f",longitude)+ " Lat: "+String.format(Locale.US,"%.4f",latitude));
 
                     // If clicked on existing waypoint show balloon with name
                     int i1;
@@ -909,7 +912,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             wayPts.SortPts();
                             // get the index of the new waypoint
                             for (i1 = 0; i1 < wayPts.size(); i1++) {
-                                //if (wayPts.get(i1).getDesc().equals(desc)) {
                                 if (wayPts.get(i1).getX() == (float) longitude && wayPts.get(i1).getY() == (float) latitude) {
                                     lastClickedWP = clickedWP;
                                     clickedWP = i1;
@@ -1126,75 +1128,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             if (showAllWayPtLabels && (adjustWP != i12)) {
                                 String desc = wayPts.get(i12).getDesc();
                                 drawPopup(canvas, x, y, boxWidth, desc);
-                                /*if (desc.length() > 13) desc = desc.substring(0, 12);
-
-                                float textWidth = txtCol.measureText(desc);
-                                if (pdfView.getCurrentXOffset() + x <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
-                                    // Test for balloon popup going off right or left side of screen
-                                    int offsetBox = getOffsetXBox(x, textWidth);
-                                    // Test for waypoint at top half of screen, display popup below
-                                    int offsetYBox = 0;
-                                    int offsetYTriangle = 0;
-                                    if ((y + pdfView.getCurrentYOffset()) < (pdfView.getHeight()/2.0)){
-                                        offsetYBox = getOffsetYBox();//startY + boxHt;
-                                        offsetYTriangle = getOffsetYTriangle();
-                                    }
-                                    // black border
-                                    Paint recCol = new Paint();
-                                    int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-                                    switch (currentNightMode) {
-                                        case Configuration.UI_MODE_NIGHT_NO:
-                                            // Night mode is not active, we're using the light theme
-                                            // black border
-                                            recCol.setColor(Color.BLACK);
-                                            recCol.setStrokeWidth(3);
-                                            canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y + offsetYBox - startY, recCol);
-                                            // white rectangle and triangle
-                                            recCol.setColor(Color.WHITE);
-                                            recCol.setStrokeWidth(0); // solid fill
-                                            canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
-                                            drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
-                                            // black text
-                                            txtCol.setColor(Color.BLACK);
-                                            canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt * 0.75f) - 5 + (txtSize / 2.0f), txtCol);
-                                            break;
-                                        case Configuration.UI_MODE_NIGHT_YES:
-                                            // Night mode is active, we're using dark theme
-                                            // White border
-                                            recCol.setColor(Color.BLACK);
-                                            recCol.setStrokeWidth(3);
-                                            canvas.drawRect((x - (textWidth / 2) - marg - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (textWidth / 2) + marg + emoji_width + 3) + offsetBox, y + offsetYBox - startY, recCol);
-                                            // gray rectangle and triangle
-                                            recCol.setColor(Color.GRAY);
-                                            recCol.setStrokeWidth(0); // solid fill
-                                            canvas.drawRect((x - (textWidth / 2) - marg) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (textWidth / 2) + marg + emoji_width) + offsetBox, y + offsetYBox - startY - 3, recCol);
-                                            drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
-                                            // white text
-                                            txtCol.setColor(Color.WHITE);
-                                            canvas.drawText(desc, (x - (textWidth / 2)) + offsetBox, y + offsetYBox - startY - (boxHt * 0.75f) - 5 + (txtSize / 2.0f), txtCol);
-                                            break;
-                                    }
-
-                                    canvas.save();
-                                    // add edit/move/delete buttons below label
-                                    canvas.translate(x - textWidth / 2.0f - marg / 2.0f + offsetBox, y + offsetYBox - startY - boxHt / 2.0f);
-                                    Drawable editImg = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_edit, getTheme());
-                                    assert editImg != null;
-                                    editImg.setBounds(0, 0, btn_size, btn_size);
-                                    editImg.draw(canvas);
-                                    canvas.translate(btn_size + marg, 0);
-                                    Drawable moveImg = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_my_location, getTheme());//getResources().getDrawable(R.drawable.ic_my_location, null);
-                                    assert moveImg != null;
-                                    moveImg.setBounds(0, 0, btn_size, btn_size);
-                                    moveImg.draw(canvas);
-                                    canvas.translate(btn_size + marg, 0);
-                                    Drawable deleteImg = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete, getTheme());//getResources().getDrawable(R.drawable.ic_delete, null);
-                                    assert deleteImg != null;
-                                    deleteImg.setBounds(0, 0, btn_size, btn_size);
-                                    deleteImg.draw(canvas);
-                                    canvas.translate((x + (textWidth / 2)) + offsetBox + 10, y + offsetYBox - startY - boxHt - 12);
-                                    canvas.restore();
-                                }*/
                             }
                         }
                     }
@@ -1213,76 +1146,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                             String desc = wayPts.get(i12).getDesc();
                             drawPopup(canvas, x, y, boxWidth, desc);
-                            /*if (desc.length() > boxWidth) desc = desc.substring(0, Math.round(boxWidth);
-
-                            // check if waypoint has scrolled off screen
-                            if (pdfView.getCurrentXOffset() + x <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
-                                // Test for balloon popup going off right or left side of screen
-                                int offsetBox = getOffsetXBox(x, boxWidth);
-                                // Test for waypoint at top half of screen, display popup below
-                                int offsetYBox = 0;
-                                int offsetYTriangle = 0;
-                                //Log.d("Draw Popup","y="+y+"+ pdfViewYoffset="+pdfView.getCurrentYOffset()+" "+(y + pdfView.getCurrentYOffset())+" < "+(pdfView.getHeight() / 2.0));
-                                if ((y + pdfView.getCurrentYOffset()) < (pdfView.getHeight() / 2.0)) {
-                                    offsetYBox = getOffsetYBox();//startY + boxHt;
-                                    offsetYTriangle = getOffsetYTriangle();//2 * startY - 3 - boxHt;
-                                }
-                                // black border
-                                Paint recCol = new Paint();
-                                int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-                                switch (currentNightMode) {
-                                    case Configuration.UI_MODE_NIGHT_NO:
-                                        // Night mode is not active, we're using the light theme
-                                        // black border
-                                        recCol.setColor(Color.BLACK);
-                                        recCol.setStrokeWidth(3);
-                                        canvas.drawRect((x - (boxWidth / 2) - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (boxWidth / 2) + 3) + offsetBox, y + offsetYBox - startY + 3, recCol);
-                                        // white rectangle
-                                        recCol.setColor(Color.WHITE);
-                                        recCol.setStrokeWidth(0); // solid fill
-                                        canvas.drawRect((x - (boxWidth / 2)) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (boxWidth / 2)) + offsetBox, y + offsetYBox - startY, recCol);
-                                        drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
-                                        // white triangle, reset text to black
-                                        txtCol.setColor(Color.BLACK);
-                                        canvas.drawText(desc, (x - (boxWidth / 2)) + marg + offsetBox, y + offsetYBox - startY - (boxHt * 0.75f) - 5 + (txtSize / 2.0f), txtCol);
-                                        break;
-                                    case Configuration.UI_MODE_NIGHT_YES:
-                                        // Night mode is active, we're using dark theme
-                                        // White border
-                                        recCol.setColor(Color.BLACK);
-                                        recCol.setStrokeWidth(3);
-                                        canvas.drawRect((x - (boxWidth / 2) - 3) + offsetBox, y + offsetYBox - startY - boxHt, (x + (boxWidth / 2) + 3) + offsetBox, y + offsetYBox - startY + 3, recCol);
-                                        // black rectangle
-                                        recCol.setColor(Color.GRAY);
-                                        recCol.setStrokeWidth(0); // solid fill
-                                        canvas.drawRect((x - (boxWidth / 2)) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (boxWidth / 2)) + offsetBox, y + offsetYBox - startY, recCol);
-                                        drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
-                                        // white text
-                                        txtCol.setColor(Color.WHITE);
-                                        canvas.drawText(desc, (x - (boxWidth / 2)) + marg + offsetBox, y + offsetYBox - startY - (boxHt * 0.75f) - 5 + (txtSize / 2.0f), txtCol);
-                                        break;
-                                }
-
-                                canvas.save();
-                                // add edit/move/delete buttons below label
-                                canvas.translate(x - boxWidth/2.0f + offsetBox,y + offsetYBox - startY - boxHt/2.0f);
-                                Drawable editImg = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_edit, getTheme());//getResources().getDrawable(R.drawable.ic_edit, null);
-                                assert editImg != null;
-                                editImg.setBounds(0, 0, btn_size, btn_size);
-                                editImg.draw(canvas);
-                                canvas.translate(btn_size + marg,0);
-                                Drawable moveImg = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_my_location, getTheme());//getResources().getDrawable(R.drawable.ic_my_location, null);
-                                assert moveImg != null;
-                                moveImg.setBounds(0, 0, btn_size, btn_size);
-                                moveImg.draw(canvas);
-                                canvas.translate(btn_size + marg,0);
-                                Drawable deleteImg = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete, getTheme());//getResources().getDrawable(R.drawable.ic_delete, null);
-                                assert deleteImg != null;
-                                deleteImg.setBounds(0, 0, btn_size, btn_size);
-                                deleteImg.draw(canvas);
-                                canvas.translate((x + (boxWidth / 2)) + offsetBox + 10, y + offsetYBox - startY - boxHt - 12);
-                                canvas.restore();
-                            }*/
                         }
                     }
 
@@ -1380,6 +1243,51 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, px, resource.getDisplayMetrics());
     }*/
 
+    private Boolean checkForWaypointButtonClick(float boxWidth, float x, float y, double wayPtX, double wayPtY, int wpIndex) {
+        // check for click on Edit, Move, or Delete button on waypoint popup
+        if (adjustWP != -1 || deleting) return false; // if overlapping buttons only handle one event
+        if (pdfView.getCurrentXOffset() + wayPtX <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
+            // Test for balloon popup going off right side of screen
+            int offsetBox = getOffsetXBox((int) wayPtX, boxWidth);
+
+            // Test for balloon popup going off top of screen
+            int offsetYBox = 0;
+
+            if ((wayPtY + pdfView.getCurrentYOffset()) < (pdfView.getHeight() / 2.0)) {
+                offsetYBox = getOffsetYBox();
+            }
+            // Edit button click
+            if (x >= ((wayPtX - (boxWidth / 2) - marg) + offsetBox) && x < (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + marg + btn_size) &&
+                    y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)){
+                try {
+                    openEditWayPointActivity(wpIndex);
+                    // hide wait icon
+                    wait.setVisibility(View.GONE);
+                    return false;
+                } catch (OutOfMemoryError memoryError) {
+                    Toast.makeText(PDFActivity.this, "Out of memory", Toast.LENGTH_SHORT).show();
+                    return false;
+                } catch (Exception error) {
+                    Toast.makeText(PDFActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            }
+            // Move button click
+            else if (x >= (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + marg + btn_size) && x < (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + 2*marg + 2*btn_size) &&
+                    y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)){
+                adjustWP = wpIndex;
+                moveWaypoint(wayPtX,wayPtY,wpIndex,moveIconWidth);
+            }
+            // Delete button click
+            else if (x >= ((wayPtX - (boxWidth / 2) - marg) + offsetBox) +2*marg + 2*btn_size && x < (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + 3*marg + 3*btn_size) &&
+                    y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)){
+                clickedWP = wpIndex;
+                deleting = true;
+                deleteWaypoint();
+            }
+        }
+        return true;
+    }
     private void openEditWayPointActivity(int id) {
         // waypoint popup edit button was clicked
         // Open EditWayPointActivity
@@ -1401,7 +1309,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         moveIcon.setX(adjustX - moveIconWidth / 2);
         moveIcon.setY(adjustY - moveIconWidth / 2);
         clickedWP = id;
-        adjustWP = clickedWP;
+        //adjustWP = clickedWP;
         // show menu
         // Start the CAB using the ActionMode.Callback defined above
         mActionMode = PDFActivity.this.startActionMode(mActionModeCallback);
@@ -1412,7 +1320,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         // waypoint popup delete button was clicked
         AlertDialog.Builder builder = new AlertDialog.Builder(PDFActivity.this);
         builder.setTitle("Delete:");
-        builder.setMessage("Delete this waypoint?").setPositiveButton("DELETE", dialogClickListener)
+        String str = "Delete waypoint labeled: "+wayPts.get(clickedWP).getDesc()+"?";
+        builder.setMessage(str).setPositiveButton("DELETE", dialogClickListener)
                 .setNegativeButton("CANCEL", dialogClickListener).show();
         del_id = clickedWP;
     }
@@ -1431,26 +1340,31 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         return offsetBox;
     }
     public int getOffsetYBox(){
-        return startY + boxHt;
+        return startY + boxHt + triangle_ht;
     }
     public int getOffsetYTriangle(){
-        return startY +6;//2 * startY - 3 - boxHt;
+        return startY + 6 + triangle_ht;
     }
 
     public void drawPopup(Canvas canvas, float x, float y, float boxWidth, String desc){
-        if (desc.length() > boxWidth) desc = desc.substring(0, Math.round(boxWidth));
-
         // check if waypoint has scrolled off screen
         if (pdfView.getCurrentXOffset() + x <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
+            // truncate the description if it is longer than the popup
+            float w = txtCol.measureText(desc);
+            if (w > boxWidth - 2*marg) {
+                int chIndex = (int) (desc.length() * (boxWidth - 2 * marg) / w);
+                desc = desc.substring(0, chIndex);
+            }
+
             // Test for balloon popup going off right or left side of screen
             int offsetBox = getOffsetXBox(x, boxWidth);
             // Test for waypoint at top half of screen, display popup below
-            int offsetYBox = 0;
-            int offsetYTriangle = 0;
+            int offsetYBox = -1 * triangle_ht;
+            int offsetYTriangle = -1 * triangle_ht; // edit in drawTriangle too
             //Log.d("Draw Popup","y="+y+"+ pdfViewYoffset="+pdfView.getCurrentYOffset()+" "+(y + pdfView.getCurrentYOffset())+" < "+(pdfView.getHeight() / 2.0));
             if ((y + pdfView.getCurrentYOffset()) < (pdfView.getHeight() / 2.0)) {
-                offsetYBox = getOffsetYBox();//startY + boxHt;
-                offsetYTriangle = getOffsetYTriangle();//2 * startY - 3 - boxHt;
+                offsetYBox = getOffsetYBox();
+                offsetYTriangle = getOffsetYTriangle();
             }
             // black border
             Paint recCol = new Paint();
@@ -1466,7 +1380,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     recCol.setColor(Color.WHITE);
                     recCol.setStrokeWidth(0); // solid fill
                     canvas.drawRect((x - (boxWidth / 2)) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (boxWidth / 2)) + offsetBox, y + offsetYBox - startY, recCol);
-                    drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
+                    drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
                     // white triangle, reset text to black
                     txtCol.setColor(Color.BLACK);
                     canvas.drawText(desc, (x - (boxWidth / 2)) + marg + offsetBox, y + offsetYBox - startY - (boxHt * 0.75f) - 5 + (txtSize / 2.0f), txtCol);
@@ -1481,7 +1395,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     recCol.setColor(Color.GRAY);
                     recCol.setStrokeWidth(0); // solid fill
                     canvas.drawRect((x - (boxWidth / 2)) + offsetBox, y + offsetYBox - startY - boxHt + 3, (x + (boxWidth / 2)) + offsetBox, y + offsetYBox - startY, recCol);
-                    drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), marg, offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
+                    drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
                     // white text
                     txtCol.setColor(Color.WHITE);
                     canvas.drawText(desc, (x - (boxWidth / 2)) + marg + offsetBox, y + offsetYBox - startY - (boxHt * 0.75f) - 5 + (txtSize / 2.0f), txtCol);
@@ -1509,21 +1423,22 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             canvas.restore();
         }
     }
-    public void drawTriangle(Canvas canvas, Paint paint, int x, int y, int width, int offsetYBox) {
+    public void drawTriangle(Canvas canvas, Paint paint, int x, int y, int offsetYBox) {
         // ----  White triangle with black v. For waypoint balloon.
         // \  /
         //  \/
         // if offsetYBox > 0 draw up arrow
+        int width = Math.round(getResources().getDimension(R.dimen.triangle_width));
         int halfWidth = width / 2;
         Path path = new Path();
-        if (offsetYBox == 0) {
+        if (offsetYBox == -1 * triangle_ht) {
             path.moveTo(x - halfWidth, y); // Top left
-            path.lineTo(x, y + halfWidth); //  Bottom
+            path.lineTo(x, y + triangle_ht); //  Bottom
             path.lineTo(x + halfWidth, y); // Top right
             path.lineTo(x - halfWidth, y); // Back to Top left
         }else{
             path.moveTo(x - halfWidth, y); // Bottom left
-            path.lineTo(x, y - halfWidth); // Top
+            path.lineTo(x, y - triangle_ht); // Top
             path.lineTo(x + halfWidth, y); // Bottom right
             path.lineTo(x - halfWidth, y); // Back to Bottom left
         }
@@ -1533,12 +1448,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         Paint outline = new Paint();
         outline.setColor(Color.BLACK);
         outline.setStrokeWidth(3);
-        if (offsetYBox == 0) {
-            canvas.drawLine(x - halfWidth, y + 3, x, y + halfWidth, outline);
-            canvas.drawLine(x + halfWidth, y + 3, x, y + halfWidth, outline);
+        if (offsetYBox == -1 * triangle_ht){
+            canvas.drawLine(x - halfWidth, y + 3, x, y + triangle_ht, outline);
+            canvas.drawLine(x + halfWidth, y + 3, x, y + triangle_ht, outline);
         }else{
-            canvas.drawLine(x - halfWidth, y - 3, x, y - halfWidth, outline);
-            canvas.drawLine(x + halfWidth, y - 3, x, y - halfWidth, outline);
+            canvas.drawLine(x - halfWidth, y - 3, x, y - triangle_ht, outline);
+            canvas.drawLine(x + halfWidth, y - 3, x, y - triangle_ht, outline);
         }
         // erase black line at base of triangle
         outline.setColor(paint.getColor());
@@ -1680,6 +1595,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     }
 
     /*public void zoomToCurrentLocation(float x,float y){
+        // not working???
         PointF pivot = new  PointF(x,y);
         pdfView.zoomCenteredTo(3,pivot);
     }*/
@@ -1811,6 +1727,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         }
         else if (id == R.id.action_deleteAll){
             try {
+                deleting = true; // don't register click events until done deleting
                 clickedWP = -1;
                 newWP = false;
                 // display alert dialog
@@ -1818,8 +1735,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 builder.setTitle("Delete");
                 builder.setMessage("Delete all waypoints?").setPositiveButton("DELETE", dialogAllClickListener)
                         .setNegativeButton("CANCEL", dialogAllClickListener).show();
-                //db.deleteWayPts(mapName);
-                //wayPts.removeAll();
             }catch (SQLException e){
                 Toast.makeText(PDFActivity.this,"Problem deleting "+mapName, Toast.LENGTH_LONG).show();
             }
@@ -1941,7 +1856,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
             AlertDialog.Builder builderLatLong = new AlertDialog.Builder(PDFActivity.this)
                 .setTitle("Add Waypoint by Lat/Long")
-                .setMessage("Enter a latitude between "+String.format(Locale.US, "%.4f",lat1)+" and "+String.format(Locale.US, "%.4f",lat2)+" and longitude between "+String.format(Locale.US, "%.4f",long1)+" and "+String.format(Locale.US, "%.4f",long2)+".\n\nExample: "+String.format("%.4f",(lat2+lat1)/2.0)+","+String.format("%.4f",(long2+long1)/2.0)+"\n\n")
+                .setMessage("Enter a latitude between "+String.format(Locale.US, "%.4f",lat1)+" and "+String.format(Locale.US, "%.4f",lat2)+" and longitude between "+String.format(Locale.US, "%.4f",long1)+" and "+String.format(Locale.US, "%.4f",long2)+".\n\nExample: "+String.format(Locale.US,"%.4f",(lat2+lat1)/2.0)+","+String.format(Locale.US,"%.4f",(long2+long1)/2.0)+"\n\n")
                 .setView(txtLatLong)
                 .setPositiveButton("Add", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
@@ -1983,13 +1898,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             String location = String.format(Locale.US, "%.5f, %.5f", latitude, longitude);
                             int num = wayPts.size() + 1;
                             WayPt wayPt = wayPts.add(mapName, "Waypoint " + num, (float) longitude, (float) latitude, "blue", location);
-                            //String desc = wayPt.getDesc();
                             wayPts.SortPts();
                             try {
                                 db.addWayPt(wayPt);
                                 // get the index of the new waypoint
                                 for (int i1 = 0; i1 < wayPts.size(); i1++) {
-                                    //if (wayPts.get(i1).getDesc().equals(desc)) {
                                     if (wayPts.get(i1).getX() == (float) longitude && wayPts.get(i1).getY() == (float) latitude) {
                                         lastClickedWP = clickedWP;
                                         clickedWP = i1;
@@ -2111,11 +2024,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     WayPt wayPt = wayPts.get(del_id);
                     db.deleteWayPt(wayPt);
                     wayPts.remove(wayPt.getX(),wayPt.getY());
+                    deleting = false;
                     pdfView.invalidate();
                     break;
 
                 case DialogInterface.BUTTON_NEGATIVE:
                     //'CANCEL' button clicked, do nothing
+                    deleting = false;
                     break;
             }
         }
@@ -2130,11 +2045,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //'DELETE' button clicked, remove map from imported maps
                     db.deleteWayPts(mapName);
                     wayPts.removeAll();
+                    deleting = false;
                     pdfView.invalidate();
                     break;
 
                 case DialogInterface.BUTTON_NEGATIVE:
                     //'CANCEL' button clicked, do nothing
+                    deleting = false;
                     break;
             }
         }
