@@ -77,6 +77,10 @@ android {
         //      - Adjust EditBox size and added scrolling in activity_edit_map_name.xml for accessibility.
         //      - Add Done button to keyboard popup when adding a waypoint by lat/long.
         // v1.4.1 2-8-24 bug fix with waypoint popup width.
+        //      - fixed bug with deleting waypoint when all popups were showing, was selecting multiples
+        //      - removed duplicate code
+        //      - add waypoint label to delete dialog box
+        //      - adjust triangle size on popup in dimens.xml
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
