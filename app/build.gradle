@@ -52,8 +52,8 @@ android {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 23
         targetSdkVersion 34
-        versionCode 52
-        versionName "1.4.1"
+        versionCode 54
+        versionName "1.4.3"
         // History
         // v1.3.01 Removed asynctask
         // v1.3.02 Adjust waypoint on long click, added edit, move, delete buttons to top menu
@@ -81,6 +81,9 @@ android {
         //      - removed duplicate code
         //      - add waypoint label to delete dialog box
         //      - adjust triangle size on popup in dimens.xml
+        // v1.4.2 2-19-24 Don't capitalize every word in maps more menu item: Load Adjacent Maps
+        // v1.4.3 2-22-22 Save preference to load adjacent maps in database
+        //      - Save preference of map orientation for each map
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */

@@ -387,10 +387,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         latBefore = latNow;
                         longBefore = longNow;
                     }
+                } catch (SQLException e){
+                    Toast.makeText(MainActivity.this, getResources().getString(R.string.problemReadingDatabase) + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
                 // try to keep app from crashing no gps 6-15-22
                 catch (Exception e) {
-                    //return;
+                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             }
         };
@@ -545,8 +547,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
             dbHandler.close();
         } catch(Exception tr) {
-        Log.e("Main",tr.getMessage());
-    }
+            Log.e("Main",tr.getMessage());
+        }
     }
 
     @Override
@@ -578,11 +580,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //--------------------
     private void fillList() {
         // GET THE LIST FROM THE DATABASE
-        dbHandler = new DBHandler(MainActivity.this);
         try {
-            myAdapter = new CustomAdapter(MainActivity.this, dbHandler.getAllMaps(MainActivity.this));
+            dbHandler = new DBHandler(MainActivity.this);
+            myAdapter = new CustomAdapter(MainActivity.this, dbHandler.getAllMaps());
         } catch (SQLException e) {
-            Toast.makeText(MainActivity.this, "Error reading database table: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+            return;
         }
         lv = findViewById(R.id.lv);
         lv.setAdapter(myAdapter);

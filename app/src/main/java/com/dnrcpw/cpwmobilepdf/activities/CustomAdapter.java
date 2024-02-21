@@ -30,8 +30,6 @@ import java.util.Locale;
  * This info is stored in a database. The list is displayed in MainActivity.
  * On click displays a selected Geo PDF Map in PDFActivity.
  * Uses itextpdf and pdfium to read the PDF.
- *
- *  TODO: Remove deprecated AsyncTask in ImportMapTask
  */
 
 public class CustomAdapter extends BaseAdapter {
@@ -126,6 +124,8 @@ public class CustomAdapter extends BaseAdapter {
             wpdb.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c,  c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
+        } catch (SQLException e){
+            Toast.makeText(c,  c.getResources().getString(R.string.problemReadingDatabase) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -222,6 +222,7 @@ public class CustomAdapter extends BaseAdapter {
                             Location.distanceBetween(latNow, longNow, lat1, long2, results);
                             break;
                     }
+
                     String str = "    ";
                     String distStr;
                     dist = results[0] * 0.00062137119;
@@ -284,9 +285,6 @@ public class CustomAdapter extends BaseAdapter {
                         boolean result = file.renameTo(newName);
                         if (!result)
                             Toast.makeText(c, "Can't rename file.", Toast.LENGTH_LONG).show();
-                        //Log.d("CustomAdapter", "Can't rename to: " + name);
-                        //else
-                        //Log.d("CustomAdapter", "Map renamed to: " + name);
                         map.setName(name);
                         map.setPath(sdcard + "/" + fileName);
                         db.updateMap(map);
@@ -301,6 +299,8 @@ public class CustomAdapter extends BaseAdapter {
             db.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, "Problem renaming map: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        } catch (SQLException e) {
+            Toast.makeText(c, c.getResources().getString(R.string.problemReadingDatabase) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -344,6 +344,8 @@ public class CustomAdapter extends BaseAdapter {
             wpdb.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, "Problem removing map: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        } catch (SQLException e){
+            Toast.makeText(c, c.getResources().getString(R.string.problemReadingDatabase) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -383,8 +385,10 @@ public class CustomAdapter extends BaseAdapter {
             }
             db.close();
             dbwaypt.close();
-        } catch (IndexOutOfBoundsException | SQLException e) {
+        } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
+        } catch (SQLException e){
+            Toast.makeText(c, c.getResources().getString(R.string.problemReadingDatabase) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 

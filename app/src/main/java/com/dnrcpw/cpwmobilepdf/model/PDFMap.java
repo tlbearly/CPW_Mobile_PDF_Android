@@ -1,6 +1,7 @@
 package com.dnrcpw.cpwmobilepdf.model;
 
 import android.content.Context;
+import android.database.SQLException;
 import android.graphics.Bitmap;
 import android.os.ParcelFileDescriptor;
 import android.widget.Toast;
@@ -30,6 +31,7 @@ import java.util.Locale;
 
 public class PDFMap {
     private String path, bounds, mediabox, viewport, name, fileSize, distToMap;
+    private String orientation;
     private int id;
     private Double miles;
     private String thumbnail; // image filename
@@ -37,7 +39,7 @@ public class PDFMap {
     public PDFMap(){
     }
 
-    public PDFMap(String path, String bounds, String mediabox, String viewport, String thumbnail, String name, String fileSize, String distToMap){
+    public PDFMap(String path, String bounds, String mediabox, String viewport, String thumbnail, String name, String fileSize, String distToMap, String orient){
         this.path = path;
         this.bounds = bounds;
         this.mediabox = mediabox;
@@ -46,6 +48,7 @@ public class PDFMap {
         this.name = name;
         this.fileSize = fileSize;
         this.distToMap = distToMap;
+        this.orientation = orient;
         if (distToMap.equals("onmap") || distToMap.equals(""))
             this.miles = 0.0;
         else
@@ -173,7 +176,7 @@ public class PDFMap {
                 PdfDictionary measure = vpDict.getAsDict(PdfName.MEASURE);
                 // Measure subtype=GEO
                 // get unit box correction for BBox if [0,1, 0,0, 1,0, 1,1] needs no correction
-                String unitBox = measure.get(PdfName.BOUNDS).toString();
+                /*String unitBox = measure.get(PdfName.BOUNDS).toString();
                 unitBox = unitBox.trim();
                 unitBox = unitBox.substring(1,unitBox.length() -1);
                 unitBox = unitBox.replaceAll(",", ""); // remove commas
@@ -182,7 +185,7 @@ public class PDFMap {
 
                 // adjust bbox by unitBox
                 // top-left
-               /* Double bboxX1 = Double.valueOf(bboxArr[0]) + (Double.valueOf(bboxArr[2]) - Double.valueOf(bboxArr[0])) * (Double.valueOf(units[6]) - 1);
+                Double bboxX1 = Double.valueOf(bboxArr[0]) + (Double.valueOf(bboxArr[2]) - Double.valueOf(bboxArr[0])) * (Double.valueOf(units[6]) - 1);
                 Double bboxY1 = Double.valueOf(bboxArr[1]) + (Double.valueOf(bboxArr[3]) - Double.valueOf(bboxArr[1])) * Double.valueOf(units[5]);
                 // bottom-left map boundary * unit square
                 Double bboxX2 = Double.valueOf(bboxArr[2]) + (Double.valueOf(bboxArr[2]) - Double.valueOf(bboxArr[0])) * Double.valueOf(units[2]);
@@ -426,6 +429,7 @@ public class PDFMap {
             pdfMap.setViewport(viewport);
             pdfMap.setMediabox(mediabox);
             pdfMap.setBounds(bounds);
+            pdfMap.setMapOrientation("none");
             DBHandler db = new DBHandler(c);
        //     db.updateMap(pdfMap);
             Integer index = db.addMap(pdfMap);
@@ -460,7 +464,7 @@ public class PDFMap {
             db.updateMap(pdfMap);
             db.close();
             fd.close(); // thumbnail file descriptor
-        } catch (IOException ex) {
+        } catch (IOException | SQLException ex) {
             ex.printStackTrace();
             pdfMap.setName("deleting...");
             return "Import Failed " + ex.getMessage();
@@ -572,6 +576,9 @@ public class PDFMap {
     public Double getMiles() { return miles; }
 
     public void setMiles(Double miles) { this.miles = miles; }
+
+    public void setMapOrientation(String orient) { this.orientation = orient; }
+    public String getMapOrientation() { return orientation; }
 
     // Sort arraylist of PDFMaps by pdf file name a-z
     public static Comparator<PDFMap> NameComparator = (m1, m2) -> {

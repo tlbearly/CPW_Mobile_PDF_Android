@@ -11,7 +11,7 @@
     <string name="open_pdf">Open a new map</string>
     <string name="showWayPtLabels">Show all waypoint labels</string>
     <string name="showWayPts">Show waypoints</string>
-    <string name="loadAdjacentMaps">Load Adjacent Maps</string>
+    <string name="loadAdjacentMaps">Load adjacent maps</string>
     <string name="deleteAllWayPts">Delete all waypoints</string>
     <string name="wayPtInstr">Tap map to add waypoint</string>
     <string name="portrait">Lock in Portrait</string>
@@ -144,4 +144,5 @@
     <string name="importing">Importing map…</string>
     <string name="file">File, </string>
     <string name="noLongerExists">, no longer exists. Updating database…</string>
+    <string name="problemReadingDatabase">Cannot read maps database! Is disk full? Error: </string>
 </resources>
