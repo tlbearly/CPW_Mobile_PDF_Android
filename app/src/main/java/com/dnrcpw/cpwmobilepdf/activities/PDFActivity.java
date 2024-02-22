@@ -203,13 +203,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         latNow = -1;
         addWayPtFlag=false;
         menuBtn = findViewById(R.id.load_adjacent_maps); // adjacent map button
-        // get all maps for load adjacent maps and lock map in portrait or landscape
-        try{
-            maps = new DBHandler(PDFActivity.this).getAllMaps();
-        } catch (Exception e){
-            Toast.makeText(PDFActivity.this,getResources().getString(R.string.problemReadingDatabase)+e.getMessage(),Toast.LENGTH_SHORT).show();
-            return;
-        }
 
         // current screen location adjusted by zoom level
         currentLocationX = 0; // start offscreen
@@ -227,12 +220,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         //mCurrentDegree = 0f;
         wayPts = null;
         mapName = "";
-        try {
-            db = new DBWayPtHandler(this);
-            db2 = new DBHandler(this);
-        }catch(SQLException e){
-            Toast.makeText(PDFActivity.this,getResources().getString(R.string.problemReadingDatabase)+e.getMessage(),Toast.LENGTH_LONG).show();
-        }
+
         markCurrent = false;
         clickedWP = -1; // index of waypoint that was clicked on
         lastClickedWP = -1;
@@ -265,12 +253,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         // keep app from timing out and going to screen saver
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        // read load adjacent maps user preference from DBHandler SETTINGS_TABLE
-        try {
-            loadAdjacentMaps = db2.getLoadAdjMaps() != 0;
-        }catch (Exception e){
-            Toast.makeText(PDFActivity.this,getResources().getString(R.string.problemReadingDatabase)+e.getMessage(),Toast.LENGTH_LONG).show();
-        }
         // UNPACK OUR DATA FROM INTENT
         path = null;
         bounds = null;
@@ -291,15 +273,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             // Display Map Name
             mapName = i.getExtras().getString("NAME");
             this.setTitle(mapName);
-
-            // set orientation for this map
-            try {
-                myMap = db2.getMap(mapName);
-                portraitLocked = myMap.getMapOrientation().equals("portrait");
-                landscapeLocked = myMap.getMapOrientation().equals("landscape");
-            } catch (SQLException e){
-                Toast.makeText(PDFActivity.this, getResources().getString(R.string.problemReadingDatabase)+e.getMessage(),Toast.LENGTH_LONG).show();
-            }
 
             // GET LAT/LONG
             try {
@@ -1493,8 +1466,37 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         super.onResume();
         startLocationUpdates();
 
-        // Update Waypoints
-        wayPts = db.getWayPts(mapName);
+        try {
+            db = new DBWayPtHandler(PDFActivity.this);
+            db2 = new DBHandler(PDFActivity.this);
+        }catch(SQLException e){
+            Toast.makeText(PDFActivity.this,getResources().getString(R.string.problemReadingDatabase)+e.getMessage(),Toast.LENGTH_LONG).show();
+            return;
+        }
+        // read load adjacent maps user preference from DBHandler SETTINGS_TABLE
+        try {
+            loadAdjacentMaps = db2.getLoadAdjMaps() != 0;
+        }catch (Exception e){
+            Toast.makeText(PDFActivity.this,getResources().getString(R.string.problemReadingDatabase)+e.getMessage(),Toast.LENGTH_LONG).show();
+        }
+        // set orientation for this map
+        try {
+            myMap = db2.getMap(mapName);
+            portraitLocked = myMap.getMapOrientation().equals("portrait");
+            landscapeLocked = myMap.getMapOrientation().equals("landscape");
+        } catch (SQLException e){
+            Toast.makeText(PDFActivity.this, getResources().getString(R.string.problemReadingDatabase)+e.getMessage(),Toast.LENGTH_LONG).show();
+        }
+        // get all maps for load adjacent maps and lock map in portrait or landscape
+        try{
+            maps = db2.getAllMaps();
+            // Update Waypoints
+            wayPts = db.getWayPts(mapName);
+        } catch (Exception e){
+            Toast.makeText(PDFActivity.this,getResources().getString(R.string.problemReadingDatabase)+e.getMessage(),Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         wayPts.SortPts();
         clickedWP = -1; // hide balloon
         lastClickedWP = -1;
@@ -1540,7 +1542,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     protected void onPause() {
         super.onPause();
         //Log.d("PDFActivity:onPause","close dbWayPtHandler, stop location updates");
-        // move db.close to onStop 9-8-23
+        db.close();
+        db2.close();
         stopLocationUpdates();
 
         // Stop Screen Sensor Listener
@@ -1551,7 +1554,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     @Override
     protected void onStop() {
         super.onStop();
-        db.close();
     }
 
     //  LOCATION UPDATES

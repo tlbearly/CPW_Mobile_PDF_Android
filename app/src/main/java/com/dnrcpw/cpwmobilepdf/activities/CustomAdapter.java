@@ -36,10 +36,14 @@ public class CustomAdapter extends BaseAdapter {
     private final Context c;
     ArrayList<PDFMap> pdfMaps;
     Double latNow, longNow;
+    private final DBHandler db;
+    private final DBWayPtHandler wpdb;
 
-    public CustomAdapter(Context c, ArrayList<PDFMap> pdfMaps) {
+    public CustomAdapter(Context c, ArrayList<PDFMap> pdfMaps, DBHandler db, DBWayPtHandler wpdb) {
         this.c = c;
         this.pdfMaps = pdfMaps;
+        this.db = db;
+        this.wpdb = wpdb;
     }
 
     public void SortByName(){
@@ -90,8 +94,8 @@ public class CustomAdapter extends BaseAdapter {
     public void checkIfExists() {
         // Check if the pdf exists in App directory. If not remove it from the database. Called by MainActivity.
         try {
-            DBHandler db = new DBHandler(c);
-            DBWayPtHandler wpdb = new DBWayPtHandler(c);
+            //DBHandler db = new DBHandler(c);
+            //DBWayPtHandler wpdb = new DBWayPtHandler(c);
             for (int i = 0; i < pdfMaps.size(); i++) {
                 PDFMap map = pdfMaps.get(i);
                 File file = new File(map.getPath());
@@ -120,7 +124,7 @@ public class CustomAdapter extends BaseAdapter {
                 }
             }
             notifyDataSetChanged();
-            db.close();
+            //db.close();
             wpdb.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c,  c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -267,7 +271,7 @@ public class CustomAdapter extends BaseAdapter {
     public void rename(int id, String name) {
         // Rename an imported map
         try {
-            DBHandler db = new DBHandler(c);
+            //DBHandler db = new DBHandler(c);
             PDFMap map;
             for (int i = 0; i < pdfMaps.size(); i++) {
                 if (pdfMaps.get(i).getId() == id) {
@@ -289,14 +293,14 @@ public class CustomAdapter extends BaseAdapter {
                         map.setPath(sdcard + "/" + fileName);
                         db.updateMap(map);
                     } catch (Exception e) {
-                        db.close();
+                        //db.close();
                         Toast.makeText(c, "Error renaming: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                     notifyDataSetChanged();
                     break;
                 }
             }
-            db.close();
+            //db.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, "Problem renaming map: " + e.getMessage(), Toast.LENGTH_LONG).show();
         } catch (SQLException e) {
@@ -312,8 +316,7 @@ public class CustomAdapter extends BaseAdapter {
     public void removeAll() {
         // remove all maps from the list and the database
         try {
-            //DBHandler db = DBHandler.getInstance(c);
-            DBHandler db = new DBHandler(c);
+            //DBHandler db = new DBHandler(c);
             DBWayPtHandler wpdb = new DBWayPtHandler(c);
             for (int i = pdfMaps.size()-1; i > -1;  i--) {
                 PDFMap map = pdfMaps.get(i);
@@ -340,7 +343,7 @@ public class CustomAdapter extends BaseAdapter {
                 }
             }
             notifyDataSetChanged();
-            db.close();
+            //db.close();
             wpdb.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, "Problem removing map: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -352,7 +355,7 @@ public class CustomAdapter extends BaseAdapter {
     public void removeItem(int id) {
         // remove item i from the list and the database
         try {
-            DBHandler db = new DBHandler(c);
+           // DBHandler db = new DBHandler(c);
             DBWayPtHandler dbwaypt = new DBWayPtHandler(c);
             for (int i = 0; i < this.pdfMaps.size(); i++) {
                 if (pdfMaps.get(i).getId() == id) {
@@ -383,7 +386,7 @@ public class CustomAdapter extends BaseAdapter {
                     break;
                 }
             }
-            db.close();
+            //db.close();
             dbwaypt.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();

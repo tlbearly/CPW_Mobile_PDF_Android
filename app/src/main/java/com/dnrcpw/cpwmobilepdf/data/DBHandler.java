@@ -43,27 +43,29 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String KEY_SETTINGS_ID = "id";
     private static final String KEY_MAP_SORT = "map_sort"; // Imported maps sort order. Valid values: name, date, or size
     private static final String KEY_LOAD_ADJ_MAPS ="load_adj_maps"; // turn on or off loading of adjacent maps. Valid values: true or false
+    private SQLiteDatabase db;
 
     public DBHandler(Context c) throws SQLException {
         super(c, DATABASE_NAME, null, DATABASE_VERSION);
         this.context = c;
+        this.db = this.getWritableDatabase();
     }
 
     @Override
-    public void onCreate(SQLiteDatabase db) throws SQLException {
+    public void onCreate(SQLiteDatabase db1) throws SQLException {
             // Create Imported Maps Table
-            createMapsTable(db);
+            createMapsTable(db1);
 
             // Create User Settings Table
-            createSettingsTable(db);
+            createSettingsTable(db1);
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) throws SQLException {
-        // For new version do new stuff here. Drop tables and call onCreate
+    public void onUpgrade(SQLiteDatabase db1, int oldVersion, int newVersion) throws SQLException {
+         // For new version do new stuff here. Drop tables and call onCreate
          if (oldVersion != newVersion) {
-             recreateSettingsTable(db);
-             recreateMapsTable(db);
+             recreateSettingsTable(db1);
+             recreateMapsTable(db1);
         }
     }
 
@@ -71,7 +73,7 @@ public class DBHandler extends SQLiteOpenHelper {
     * CRUD OPERATIONS: Create, Read, Update, and Delete
     */
     // MAPS TABLE (details for each map)
-    private void createMapsTable (SQLiteDatabase db) throws SQLException {
+    private void createMapsTable (SQLiteDatabase db1) throws SQLException {
         // Create Imported Maps Table
         String CREATE_MAPS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MAPS + "("
                 + KEY_ID + " INTEGER PRIMARY KEY," + KEY_PATH + " TEXT,"
@@ -79,27 +81,27 @@ public class DBHandler extends SQLiteOpenHelper {
                 + KEY_VIEWPORT + " TEXT, " + KEY_THUMBNAIL + " BLOB,"
                 + KEY_NAME + " TEXT," + KEY_FILESIZE + " TEXT,"
                 + KEY_DISTTOMAP + " TEXT," + KEY_MAP_ORIENTATION + " TEXT)";
-        db.execSQL(CREATE_MAPS_TABLE);
+        db1.execSQL(CREATE_MAPS_TABLE);
     }
 
-    public void deleteMapsTable(SQLiteDatabase db) throws SQLException {
+    public void deleteMapsTable(SQLiteDatabase db1) throws SQLException {
         // Delete and recreate Table_Maps
         //SQLiteDatabase db = this.getWritableDatabase();
         // delete maps table
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_MAPS);
+        db1.execSQL("DROP TABLE IF EXISTS " + TABLE_MAPS);
         // Create maps table again
-        createMapsTable(db);
+        createMapsTable(db1);
     }
 
     // Recreate database if they do not have all of the fields
-    private void recreateMapsTable(SQLiteDatabase db) throws SQLException {
+    private void recreateMapsTable(SQLiteDatabase db1) throws SQLException {
         // Read what is currently in the database into mapList.
         // Delete database and recreate it. Add maps that they had.
         // SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<PDFMap> mapList = new ArrayList<>();
         // Select All Query
         String selectQuery = "SELECT * FROM " + TABLE_MAPS;
-        Cursor cursor = db.rawQuery(selectQuery, null);
+        Cursor cursor = db1.rawQuery(selectQuery, null);
 
         // Save user maps in mapList
         if (cursor.moveToFirst()) {
@@ -142,11 +144,11 @@ public class DBHandler extends SQLiteOpenHelper {
         cursor.close();
 
         // remove database and add again
-        deleteMapsTable(db);
+        deleteMapsTable(db1);
 
         // fill database
         for (int i=0; i<mapList.size(); i++){
-            addMapToMapsTable(db, mapList.get(i));
+            addMapToMapsTable(db1, mapList.get(i));
         }
     }
 
@@ -155,20 +157,20 @@ public class DBHandler extends SQLiteOpenHelper {
     //  (user preferences application wide)
     //-------------------------------------
 
-    public void createSettingsTable(SQLiteDatabase db) throws SQLException{
+    public void createSettingsTable(SQLiteDatabase db1) throws SQLException{
         // SQLiteDatabase db = this.getWritableDatabase();
         String CREATE_SETTINGS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SETTINGS + "("
                 + KEY_SETTINGS_ID + " INTEGER PRIMARY KEY," + KEY_MAP_SORT + " TEXT," + KEY_LOAD_ADJ_MAPS + " TEXT)";
-        db.execSQL(CREATE_SETTINGS_TABLE);
+        db1.execSQL(CREATE_SETTINGS_TABLE);
         // Insert default user settings
         ContentValues values = new ContentValues();
         values.put(KEY_MAP_SORT, "date");
         values.put(KEY_LOAD_ADJ_MAPS, "1");
-        db.insert(TABLE_SETTINGS, null, values);
+        db1.insert(TABLE_SETTINGS, null, values);
     }
-    public void recreateSettingsTable(SQLiteDatabase db) throws SQLException{
+    public void recreateSettingsTable(SQLiteDatabase db1) throws SQLException{
         String selectQuery = "SELECT * FROM " + TABLE_SETTINGS;
-        Cursor cursor = db.rawQuery(selectQuery, null);
+        Cursor cursor = db1.rawQuery(selectQuery, null);
         // Set default values
         String map_sort = "date";
         String load_adj_maps = "1";
@@ -181,14 +183,14 @@ public class DBHandler extends SQLiteOpenHelper {
         }
         cursor.close();
         // delete maps table
-        db.execSQL("DROP TABLE IF EXISTS "+ TABLE_SETTINGS);
+        db1.execSQL("DROP TABLE IF EXISTS "+ TABLE_SETTINGS);
         // Create settings table again
-        createSettingsTable(db);
+        createSettingsTable(db1);
         ContentValues values = new ContentValues();
         values.put(KEY_LOAD_ADJ_MAPS, load_adj_maps);
         values.put(KEY_MAP_SORT, map_sort);
         String id = "1";
-        db.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
+        db1.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
     }
 
     //-----------------
@@ -197,13 +199,13 @@ public class DBHandler extends SQLiteOpenHelper {
 
     // Adding new PDF Map
     public Integer addMap(PDFMap map) throws SQLiteException {
-        SQLiteDatabase db = this.getWritableDatabase();
+       // SQLiteDatabase db = this.getWritableDatabase();
         int index = addMapToMapsTable(db, map);
-        db.close();
+       // db.close();
         return index;
     }
 
-    private Integer addMapToMapsTable(SQLiteDatabase db, PDFMap map) {
+    private Integer addMapToMapsTable(SQLiteDatabase db1, PDFMap map) {
         ContentValues values = new ContentValues();
         values.put(KEY_PATH, map.getPath()); // Path and file name of map
         values.put(KEY_BOUNDS, map.getBounds()); // Lat/Long Bounds of the map
@@ -215,12 +217,12 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(KEY_DISTTOMAP, map.getDistToMap()); // Current distance to map
         values.put(KEY_MAP_ORIENTATION, map.getMapOrientation()); // lock map in certain orientation? none, portrait, landscape
         // Inserting Row
-        long index = db.insert(TABLE_MAPS, null, values);
+        long index = db1.insert(TABLE_MAPS, null, values);
         return (int) index;
     }
 
     public PDFMap getMap(String mapName) throws  SQLException {
-        SQLiteDatabase db = this.getReadableDatabase();
+        //SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_MAPS, new String[]{KEY_ID,
                         KEY_PATH, KEY_BOUNDS, KEY_MEDIABOX, KEY_VIEWPORT, KEY_THUMBNAIL, KEY_NAME, KEY_FILESIZE, KEY_DISTTOMAP, KEY_MAP_ORIENTATION}, KEY_NAME + "=?",
                 new String[]{mapName}, null, null, null, null);
@@ -230,7 +232,7 @@ public class DBHandler extends SQLiteOpenHelper {
                     cursor.getString (7), cursor.getString(8),cursor.getString(9));
             map.setId(Integer.parseInt(cursor.getString(0)));
             cursor.close();
-            db.close();
+            //db.close();
             // return geo pdf map
             return map;
         }
@@ -238,7 +240,7 @@ public class DBHandler extends SQLiteOpenHelper {
     }
     // Getting one PDF Map
    /* public PDFMap getMap(int id) throws SQLException {
-        SQLiteDatabase db = this.getReadableDatabase();
+        //SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(TABLE_MAPS, new String[]{KEY_ID,
             KEY_PATH, KEY_BOUNDS, KEY_MEDIABOX, KEY_VIEWPORT, KEY_THUMBNAIL, KEY_NAME, KEY_FILESIZE, KEY_DISTTOMAP, KEY_MAP_ORIENTATION}, KEY_ID + "=?",
@@ -252,11 +254,11 @@ public class DBHandler extends SQLiteOpenHelper {
                     cursor.getString(5), cursor.getString(6), cursor.getString (7), cursor.getString(8),
                     cursor.getString(9));
             cursor.close();
-            db.close();
+            //db.close();
             // return geo pdf map
             return map;
         }catch(NullPointerException e) {
-            db.close();
+            //db.close();
             //Toast.makeText(c, "Error reading database.", Toast.LENGTH_LONG).show();
             throw e;
             //return null;
@@ -266,7 +268,7 @@ public class DBHandler extends SQLiteOpenHelper {
     // Getting All PDF Maps
     public ArrayList<PDFMap> getAllMaps() throws SQLiteException {
         // Called by CustomAdapter creation
-        SQLiteDatabase db = this.getWritableDatabase();
+        //SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<PDFMap> mapList = new ArrayList<>();
         // Select All Query
         String selectQuery = "SELECT * FROM " + TABLE_MAPS;
@@ -301,7 +303,7 @@ public class DBHandler extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
         cursor.close();
-        db.close();
+        //db.close();
         // return map list
         return mapList;
     }
@@ -309,7 +311,7 @@ public class DBHandler extends SQLiteOpenHelper {
     // Updating a PDF Map
     public void updateMap(PDFMap map) throws SQLiteException {
         // update a map in the database
-        SQLiteDatabase db = this.getWritableDatabase();
+        //SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_PATH, map.getPath());
         values.put(KEY_BOUNDS, map.getBounds());
@@ -324,15 +326,15 @@ public class DBHandler extends SQLiteOpenHelper {
         // updating row
         db.update(TABLE_MAPS, values, KEY_ID + " = ?",
                 new String[]{String.valueOf(map.getId())});
-        db.close(); // 5-21-21
+        //db.close(); // 5-21-21
     }
 
     // Deleting a PDF Map
     public void deleteMap(PDFMap map) throws SQLiteException{
-        SQLiteDatabase db = this.getWritableDatabase();
+        //SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_MAPS, KEY_ID + " = ?",
                 new String[]{String.valueOf(map.getId())});
-        db.close(); // 5-21-21
+        //db.close(); // 5-21-21
     }
 
     //---------------------
@@ -341,17 +343,17 @@ public class DBHandler extends SQLiteOpenHelper {
     public void setLoadAdjMaps(int load) throws SQLiteException{
         // Sets user preference, should load adjacent maps if current location goes off the map and onto another map?
         // Displays a drop down menu of maps to choose from. This is a checkbox on the maps more menu
-        SQLiteDatabase db = this.getWritableDatabase();
+        //SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_LOAD_ADJ_MAPS, Integer.toString(load));
         String id = "1";
         db.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
-        db.close();
+        //db.close();
     }
     public int getLoadAdjMaps() throws SQLiteException {
         // Sets user preference, should load adjacent maps if current location goes off the map and onto another map?
         // Displays a drop down menu of maps to choose from. This is a checkbox on the maps more menu
-        SQLiteDatabase db = this.getWritableDatabase();
+        //SQLiteDatabase db = this.getWritableDatabase();
         int load_adj_maps;
         String selectQuery = "SELECT " + KEY_LOAD_ADJ_MAPS + " FROM " + TABLE_SETTINGS;
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -359,13 +361,13 @@ public class DBHandler extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             load_adj_maps = Integer.parseInt(cursor.getString(0));
             cursor.close();
-            db.close();
+            //db.close();
             return load_adj_maps;
         }
         else {
             // Settings table does not exist. Create it.
             createSettingsTable(db);
-            db.close();
+            //db.close();
             return 1;
         }
     }
@@ -374,17 +376,17 @@ public class DBHandler extends SQLiteOpenHelper {
     //---------------
     public void setMapSort(String order) throws SQLiteException{
         // How to sort the MainActivity imported maps
-        SQLiteDatabase db = this.getWritableDatabase();
+        //SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_MAP_SORT, order);
         String id = "1";
         db.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
-        db.close(); //2-4-22 // 5-21-21
+        //db.close(); //2-4-22 // 5-21-21
     }
 
     public String getMapSort() throws SQLiteException {
         // How to sort the MainActivity imported maps
-        SQLiteDatabase db = this.getWritableDatabase();
+        //SQLiteDatabase db = this.getWritableDatabase();
         String order;
         String selectQuery = "SELECT " + KEY_MAP_SORT + " FROM " + TABLE_SETTINGS;
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -393,12 +395,12 @@ public class DBHandler extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             order = cursor.getString(0);
             cursor.close();
-            db.close(); // 2-4-22 got error that it was not closed   //5-21-21
+            //db.close(); // 2-4-22 got error that it was not closed   //5-21-21
             return order;
         }
         else {
             createSettingsTable(db);
-            db.close(); // 2-4-22
+            //db.close(); // 2-4-22
             return "date"; // default value
         }
     }

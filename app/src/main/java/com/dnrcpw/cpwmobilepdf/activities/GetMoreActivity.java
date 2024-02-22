@@ -148,9 +148,6 @@ public class GetMoreActivity extends AppCompatActivity {
                         Toast.makeText(GetMoreActivity.this, getResources().getString(R.string.createFile), Toast.LENGTH_LONG).show();
                     }
                     PDFMap map = new PDFMap(newPath, "", "", "", null, getResources().getString(R.string.loading), "", "", "none");
-                    //DBHandler db = new DBHandler(GetMoreActivity.this);
-                    //Integer index = db.addMap(map);
-                    //map.setId(index);
 
                     String result = map.importMap(GetMoreActivity.this);
                     if (!result.equals(getResources().getString(R.string.importdone))) {

@@ -37,6 +37,7 @@ import androidx.core.content.ContextCompat;
 
 import com.dnrcpw.cpwmobilepdf.R;
 import com.dnrcpw.cpwmobilepdf.data.DBHandler;
+import com.dnrcpw.cpwmobilepdf.data.DBWayPtHandler;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private ListView lv;
     private CustomAdapter myAdapter; // list of imported pdf maps
     private DBHandler dbHandler;
+    private DBWayPtHandler dbWayPtHandler;
     //private String TAG = "MainActivity";
     boolean sortFlag = true;
     Toolbar toolbar;
@@ -486,11 +488,17 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onResume() {
         super.onResume();
         try {
+            try {
+                dbHandler = new DBHandler(MainActivity.this);
+                dbWayPtHandler = new DBWayPtHandler(MainActivity.this);
+            } catch (SQLException e){
+                Toast.makeText(MainActivity.this,getResources().getString(R.string.problemReadingDatabase),Toast.LENGTH_LONG).show();
+            }
             // Importing a Map hides this button, show it again
             FloatingActionButton fab = findViewById(R.id.fab);
             fab.setVisibility(View.VISIBLE);
             latBefore = 0.0; //reset location so it updates
-            fillList(); // get maps list from database
+            fillList(); // get dbHandler and maps list from database
             // Start Location Services
             if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
                     (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
@@ -546,6 +554,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 stopLocationUpdates();
             }
             dbHandler.close();
+            dbWayPtHandler.close();
         } catch(Exception tr) {
             Log.e("Main",tr.getMessage());
         }
@@ -554,24 +563,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onDestroy() {
         super.onDestroy();
-        dbHandler.close();
-        if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+        //dbHandler.close();
+        //dbWayPtHandler.close();
+        /*if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
                 (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             stopLocationUpdates();
-        }
+        }*/
     }
 
     @Override
     protected void onStop(){
         super.onStop();
-        dbHandler.close();
-        if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+        /*if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
                 (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             stopLocationUpdates();
-        }
-        // try to free memory leaks. Did not seem to help!!!!!!
-        // Unregister mLocationCallback
-        // unregister  dialogClickListener !!!!!!!!!!!
+        }*/
     }
 
 
@@ -581,8 +587,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private void fillList() {
         // GET THE LIST FROM THE DATABASE
         try {
-            dbHandler = new DBHandler(MainActivity.this);
-            myAdapter = new CustomAdapter(MainActivity.this, dbHandler.getAllMaps());
+            myAdapter = new CustomAdapter(MainActivity.this, dbHandler.getAllMaps(), dbHandler, dbWayPtHandler);
         } catch (SQLException e) {
             Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
             return;
