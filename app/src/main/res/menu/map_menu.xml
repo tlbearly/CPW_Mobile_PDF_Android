@@ -4,80 +4,74 @@
     tools:context="com.dnrcpw.cpwmobilepdf.activities.PDFActivity">
   <item
       android:id="@+id/action_markCurrent"
-      android:icon="@android:drawable/ic_input_add"
       android:title="@string/markCurrent"
       android:visible="true"
       app:showAsAction="never" />
   <item
-      android:id="@+id/action_add_way_pt_menu"
-      android:icon="@android:drawable/ic_input_add"
+      android:id="@+id/action_add_way_pt"
       android:title="@string/add_way_pt"
       android:visible="true"
       app:showAsAction="never" />
   <item
       android:id="@+id/action_add_lat_long_menu"
-      android:icon="@android:drawable/ic_input_add"
       android:title="@string/add_lat_long"
       android:visible="true"
       app:showAsAction="never" />
   <item
-      android:id="@+id/action_showWayPts"
-      android:icon="@android:drawable/ic_dialog_info"
-      android:title="@string/showWayPts"
-      android:checkable="true"
-      android:checked="true"
-      android:visible="true"
-      app:showAsAction="never" />
-  <item
-      android:id="@+id/action_showAll"
-      android:icon="@android:drawable/ic_dialog_info"
-      android:title="@string/showWayPtLabels"
-      android:checkable="true"
-      android:checked="false"
-      android:visible="true"
-      app:showAsAction="never" />
-
-  <item
       android:id="@+id/action_deleteAll"
-      android:icon="@android:drawable/ic_input_delete"
       android:title="@string/deleteAllWayPts"
       android:visible="true"
       app:showAsAction="never" />
-  <!--item
-      android:id="@+id/action_lock_orient"
-      android:icon="@android:drawable/ic_menu_always_landscape_portrait"
-      android:title="@string/orientation"
-      android:visible="true"
-      app:showAsAction="ifRoom" /-->
-  <item
-      android:id="@+id/action_loadAdjacentMaps"
-      android:title="@string/loadAdjacentMaps"
-      android:checkable="true"
-      android:checked="true"
-      android:visible="true"
-      app:showAsAction="never" />
-  <item
-      android:id="@+id/action_add_way_pt"
-      android:icon="@mipmap/ic_grey_pin_forgnd"
-      android:title="@string/orientation"
-      android:visible="true"
-      app:showAsAction="ifRoom" />
-  <item
-      android:id="@+id/action_portrait"
-      android:checkable="true"
-      android:checked="false"
-      android:icon="@android:drawable/ic_menu_always_landscape_portrait"
-      android:title="@string/portrait"
-      android:visible="true"
-      app:showAsAction="never" />
-  <item
-      android:id="@+id/action_landscape"
-      android:checkable="true"
-      android:checked="false"
-      android:icon="@android:drawable/ic_menu_always_landscape_portrait"
-      android:title="@string/landscape"
-      android:visible="true"
-      app:showAsAction="never" />
+  <item android:title="App Settings">
+    <menu>
+          <item
+              android:id="@+id/action_showWayPts"
+              android:title="@string/showWayPts"
+              android:icon="@drawable/pin"
+              android:checkable="true"
+              android:checked="true"
+              android:visible="true"
+              app:showAsAction="never" />
+          <item
+              android:id="@+id/action_showAll"
+              android:title="@string/showWayPtLabels"
+              android:icon="@drawable/chat_bubble"
+              android:checkable="true"
+              android:checked="false"
+              android:visible="true"
+              app:showAsAction="never" />
+          <item
+              android:id="@+id/action_loadAdjacentMaps"
+              android:title="@string/loadAdjacentMaps"
+              android:icon="@drawable/map"
+              android:checkable="true"
+              android:checked="true"
+              android:visible="true"
+              app:showAsAction="never" />
+    </menu>
+  </item>
+
+  <item android:title="Map Settings">
+    <menu>
+        <item
+            android:id="@+id/action_portrait"
+            android:checkable="true"
+            android:checked="false"
+            android:icon="@drawable/screen_lock_portrait"
+            android:title="@string/portrait"
+            android:visible="true"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/action_landscape"
+            android:checkable="true"
+            android:checked="false"
+            android:icon="@drawable/screen_lock_landscape"
+            android:title="@string/landscape"
+            android:visible="true"
+            app:showAsAction="never" />
+    </menu>
+</item>
+
   <item
       android:id="@+id/action_help"
       android:icon="@android:drawable/ic_menu_help"

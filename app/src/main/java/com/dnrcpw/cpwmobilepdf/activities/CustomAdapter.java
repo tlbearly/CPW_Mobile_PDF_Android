@@ -125,7 +125,7 @@ public class CustomAdapter extends BaseAdapter {
             }
             notifyDataSetChanged();
             //db.close();
-            wpdb.close();
+            //wpdb.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c,  c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
         } catch (SQLException e){
@@ -317,7 +317,7 @@ public class CustomAdapter extends BaseAdapter {
         // remove all maps from the list and the database
         try {
             //DBHandler db = new DBHandler(c);
-            DBWayPtHandler wpdb = new DBWayPtHandler(c);
+            //DBWayPtHandler wpdb = new DBWayPtHandler(c);
             for (int i = pdfMaps.size()-1; i > -1;  i--) {
                 PDFMap map = pdfMaps.get(i);
                 Toast.makeText(c,"Deleting: "+map.getName(), Toast.LENGTH_LONG).show();
@@ -344,7 +344,7 @@ public class CustomAdapter extends BaseAdapter {
             }
             notifyDataSetChanged();
             //db.close();
-            wpdb.close();
+            //wpdb.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, "Problem removing map: " + e.getMessage(), Toast.LENGTH_LONG).show();
         } catch (SQLException e){
@@ -355,8 +355,8 @@ public class CustomAdapter extends BaseAdapter {
     public void removeItem(int id) {
         // remove item i from the list and the database
         try {
-           // DBHandler db = new DBHandler(c);
-            DBWayPtHandler dbwaypt = new DBWayPtHandler(c);
+            //DBHandler db = new DBHandler(c);
+            //DBWayPtHandler dbwaypt = new DBWayPtHandler(c);
             for (int i = 0; i < this.pdfMaps.size(); i++) {
                 if (pdfMaps.get(i).getId() == id) {
                     PDFMap map = pdfMaps.get(i);
@@ -369,7 +369,7 @@ public class CustomAdapter extends BaseAdapter {
                     }
                     //Toast.makeText(c,"Deleting: "+map.getName(), Toast.LENGTH_LONG).show();
                     db.deleteMap(map);
-                    dbwaypt.deleteWayPts(map.getName());
+                    wpdb.deleteWayPts(map.getName());
                     pdfMaps.remove(i);
                     // delete thumbnail image also
                     String imgPath = map.getThumbnail();
@@ -387,7 +387,7 @@ public class CustomAdapter extends BaseAdapter {
                 }
             }
             //db.close();
-            dbwaypt.close();
+            //dbwaypt.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
         } catch (SQLException e){

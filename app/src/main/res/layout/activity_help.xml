@@ -25,7 +25,6 @@
             card_view:cardElevation="5dp">
 
             <ImageView
-                android:id="@+id/imageView"
                 android:layout_width="110dp"
                 android:layout_height="110dp"
                 android:layout_gravity="center_vertical|center_horizontal"
@@ -36,7 +35,6 @@
 
         <!-- Title -->
         <TextView
-            android:id="@+id/textViewHelpTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
@@ -59,7 +57,6 @@
 
         <!-- Intro -->
         <TextView
-            android:id="@+id/textViewIntro"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -70,7 +67,6 @@
 
         <!-- Imported Maps -->
         <TextView
-            android:id="@+id/textViewImportedMaps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -80,7 +76,6 @@
             android:textStyle="bold"/>
 
         <TextView
-            android:id="@+id/textViewImportedMapsHelp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
@@ -89,7 +84,6 @@
 
         <!-- Current Location On The Map -->
         <TextView
-            android:id="@+id/onMap"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -105,7 +99,6 @@
             app:srcCompat="@drawable/ic_nearme" />
 
         <TextView
-            android:id="@+id/onMapText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
@@ -113,7 +106,6 @@
             android:textSize="18sp"/>
         <!-- Add Map -->
         <TextView
-            android:id="@+id/textViewAddMaps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -124,7 +116,6 @@
             android:textStyle="bold"/>
 
         <TextView
-            android:id="@+id/textViewAddMapHelp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
@@ -133,7 +124,6 @@
 
         <!-- Edit Map -->
         <TextView
-            android:id="@+id/textViewEditMaps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -143,7 +133,6 @@
             android:textStyle="bold"/>
 
         <TextView
-            android:id="@+id/textViewEditMapsHelp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
@@ -151,7 +140,6 @@
             android:textSize="18sp"/>
         <!-- View Map -->
         <TextView
-            android:id="@+id/textViewMaps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -161,7 +149,6 @@
             android:textStyle="bold"/>
 
         <TextView
-            android:id="@+id/textViewMapsHelp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"

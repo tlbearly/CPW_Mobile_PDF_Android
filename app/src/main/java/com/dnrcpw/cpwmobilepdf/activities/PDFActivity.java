@@ -497,6 +497,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         wayPts = db.getWayPts(mapName);
         wayPts.SortPts();
         clickedWP = -1; // hide balloon
+        // set orientation for this map
+        portraitLocked = maps.get(id).getMapOrientation().equals("portrait");
+        landscapeLocked = maps.get(id).getMapOrientation().equals("landscape");
+        action_landscape.setChecked(landscapeLocked);
+        action_portrait.setChecked(portraitLocked);
         setupPDFView();
     }
     private void getBoundsVariables(){
@@ -1466,35 +1471,23 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         super.onResume();
         startLocationUpdates();
 
+        // read load adjacent maps user preference from DBHandler SETTINGS_TABLE
         try {
             db = new DBWayPtHandler(PDFActivity.this);
             db2 = new DBHandler(PDFActivity.this);
-        }catch(SQLException e){
-            Toast.makeText(PDFActivity.this,getResources().getString(R.string.problemReadingDatabase)+e.getMessage(),Toast.LENGTH_LONG).show();
-            return;
-        }
-        // read load adjacent maps user preference from DBHandler SETTINGS_TABLE
-        try {
             loadAdjacentMaps = db2.getLoadAdjMaps() != 0;
-        }catch (Exception e){
-            Toast.makeText(PDFActivity.this,getResources().getString(R.string.problemReadingDatabase)+e.getMessage(),Toast.LENGTH_LONG).show();
-        }
-        // set orientation for this map
-        try {
+            showAllWayPts = db2.getShowWaypoints() != 0;
+            showAllWayPtLabels = db2.getShowAllWaypointLabels() != 0;
+            // set orientation for this map
             myMap = db2.getMap(mapName);
             portraitLocked = myMap.getMapOrientation().equals("portrait");
             landscapeLocked = myMap.getMapOrientation().equals("landscape");
-        } catch (SQLException e){
-            Toast.makeText(PDFActivity.this, getResources().getString(R.string.problemReadingDatabase)+e.getMessage(),Toast.LENGTH_LONG).show();
-        }
-        // get all maps for load adjacent maps and lock map in portrait or landscape
-        try{
+            // get all maps for load adjacent maps and lock map in portrait or landscape
             maps = db2.getAllMaps();
             // Update Waypoints
             wayPts = db.getWayPts(mapName);
-        } catch (Exception e){
-            Toast.makeText(PDFActivity.this,getResources().getString(R.string.problemReadingDatabase)+e.getMessage(),Toast.LENGTH_SHORT).show();
-            return;
+        }catch (Exception e){
+            Toast.makeText(PDFActivity.this,getResources().getString(R.string.problemReadingDatabase)+e.getMessage(),Toast.LENGTH_LONG).show();
         }
 
         wayPts.SortPts();
@@ -1733,6 +1726,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         action_loadAdjacentMaps.setChecked(loadAdjacentMaps);
         action_portrait.setChecked(portraitLocked);
         action_landscape.setChecked(landscapeLocked);
+        action_showAll.setChecked((showAllWayPtLabels));
+        action_showWayPts.setChecked(showAllWayPts);
         return true;
     }
 
@@ -1776,6 +1771,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             if (action_showAll.isChecked()){
                 action_showAll.setChecked(false);
                 showAllWayPtLabels = false;
+                db2.setShowAllWaypointLabels(0);
             }
             // check show all labels, also turn on show waypoints
             else{
@@ -1783,6 +1779,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 showAllWayPtLabels = true;
                 action_showWayPts.setChecked(true);
                 showAllWayPts = true;
+                db2.setShowAllWaypointLabels(1);
+                db2.setShowWaypoints(1);
             }
         }
         // Waypoints
@@ -1792,11 +1790,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             if (action_showWayPts.isChecked()){
                 action_showWayPts.setChecked(false);
                 showAllWayPts = false;
+                db2.setShowWaypoints(0);
             }
             // check waypoints
             else{
                 action_showWayPts.setChecked(true);
                 showAllWayPts = true;
+                db2.setShowWaypoints(1);
             }
         }
         // Show AdjacentMaps when current location is close to the map edge
@@ -1892,7 +1892,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 Toast.makeText(PDFActivity.this, getResources().getString(R.string.wayPtInstr), Toast.LENGTH_LONG).show();
             }
         }
-        else if (id == R.id.action_add_way_pt_menu) {
+        else if (id == R.id.action_add_way_pt) {
                 addWayPtFlag = true;
                 clickedWP = -1; // hide balloon popups
                 newWP = false;

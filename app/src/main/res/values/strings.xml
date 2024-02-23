@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">CPW Mobile PDF</string>
-    <string name="app_name_short">Mobile PDF</string>
     <string name="name">Name</string>
     <string name="onMap">On Map?</string>
     <string name="offMap">Off Map</string>
@@ -8,7 +7,6 @@
     <string name="markCurrent">Mark current location</string>
     <string name="add_way_pt">Add a waypoint</string>
     <string name="add_lat_long">Add a waypoint by lat/long</string>
-    <string name="open_pdf">Open a new map</string>
     <string name="showWayPtLabels">Show all waypoint labels</string>
     <string name="showWayPts">Show waypoints</string>
     <string name="loadAdjacentMaps">Load adjacent maps</string>
@@ -16,7 +14,6 @@
     <string name="wayPtInstr">Tap map to add waypoint</string>
     <string name="portrait">Lock in Portrait</string>
     <string name="landscape">Lock in Landscape</string>
-    <string name="orientation">Orientation</string>
     <string name="red">Red</string>
     <string name="blue">Blue</string>
     <string name="cyan">Cyan</string>
@@ -60,21 +57,14 @@
 
     <string name="deleteAllDBrecords">Delete All Maps</string>
     <!--string name="editMap">Edit Maps</string-->
-    <string name="edit">Edit</string>
-    <string name="editing">Editing</string>
     <string name="delete">Delete</string>
-    <string name="done">Done</string>
     <string name="move_here">Move Here</string>
     <string name="move_instructions">Zoom or pan map to move waypoint.</string>
     <string name="cancel">Cancel</string>
-    <string name="info">Info</string>
-    <string name="selected_icon">Item selected icon</string>
     <string name="load_adjacent_maps">Load Adjacent Maps?</string>
 
     <!--string name="rename">Rename</string-->
     <string name="ok">OK</string>
-    <string name="splash">Colorado Parks and Wildlife</string>
-    <string name="contBtn">Continue</string>
     <!--string name="mapName">Map Name:\u0020</string-->
     <string name="CurPos">Current location:\u0020</string>
     <string name="fileDetails">File Details:</string>
@@ -142,7 +132,5 @@
     <string name="writePermission">"Problem copying map to the App. No write permission."</string>
     <string name="createFile">Problem copying map to the App. Cannot create file.</string>
     <string name="importing">Importing map…</string>
-    <string name="file">File, </string>
-    <string name="noLongerExists">, no longer exists. Updating database…</string>
     <string name="problemReadingDatabase">Cannot read maps database! Is disk full? Error: </string>
 </resources>

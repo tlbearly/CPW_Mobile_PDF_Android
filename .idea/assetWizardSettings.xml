@@ -305,26 +305,11 @@
                   <entry key="vectorAssetStep">
                     <value>
                       <PersistentState>
-                        <option name="children">
-                          <map>
-                            <entry key="clipartAsset">
-                              <value>
-                                <PersistentState>
-                                  <option name="values">
-                                    <map>
-                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/my_location/baseline_my_location_24.xml" />
-                                    </map>
-                                  </option>
-                                </PersistentState>
-                              </value>
-                            </entry>
-                          </map>
-                        </option>
                         <option name="values">
                           <map>
                             <entry key="assetSourceType" value="FILE" />
-                            <entry key="outputName" value="ic_my_location" />
-                            <entry key="sourceFile" value="C:\Users\tammy\Downloads\my_location_FILL0_wght400_GRAD0_opsz24.svg" />
+                            <entry key="outputName" value="screen_lock_portrait" />
+                            <entry key="sourceFile" value="C:\Users\tammy\Downloads\screen_lock_portrait_FILL0_wght400_GRAD0_opsz24.svg" />
                           </map>
                         </option>
                       </PersistentState>

@@ -25,7 +25,6 @@
             card_view:cardElevation="5dp">
 
             <ImageView
-                android:id="@+id/imageView"
                 android:layout_width="110dp"
                 android:layout_height="110dp"
                 android:layout_gravity="center_vertical|center_horizontal"
@@ -36,7 +35,6 @@
 
         <!-- View Map -->
         <TextView
-            android:id="@+id/textViewMaps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -46,7 +44,6 @@
             android:textStyle="bold"/>
 
         <TextView
-            android:id="@+id/textViewMapsHelp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
