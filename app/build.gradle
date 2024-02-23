@@ -82,8 +82,12 @@ android {
         //      - add waypoint label to delete dialog box
         //      - adjust triangle size on popup in dimens.xml
         // v1.4.2 2-19-24 Don't capitalize every word in maps more menu item: Load Adjacent Maps
-        // v1.4.3 2-22-22 Save preference to load adjacent maps in database
+        // v1.4.3 2-22-24 Save preference to load adjacent maps in database
         //      - Save preference of map orientation for each map
+        // v1.4.4 2-23-24 optimize database open/close.
+        //      - Added dark mode icon colors.
+        //      - Save preferences for showing waypoints and all waypoint labels
+        //      - Added App wide settings and map settings.
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
