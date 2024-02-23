@@ -20,7 +20,7 @@ import java.util.Locale;
  */
 
 public class DBHandler extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "mapsInfo";
     private final Context context;
     // Maps table name
