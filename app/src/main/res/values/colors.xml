@@ -8,4 +8,5 @@
     <color name="black_overlay">#99000000</color>
     <color name="colorNearMe">#087891</color>
     <color name="colorAlertTextButtons">#087891</color>
+    <color name="iconColor">#FF000000</color>
 </resources>

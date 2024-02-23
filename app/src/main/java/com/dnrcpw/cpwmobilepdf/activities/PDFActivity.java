@@ -736,45 +736,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         Boolean continueProcessing;
                         continueProcessing = checkForWaypointButtonClick(boxWidth, x, y, wayPtX, wayPtY, clickedWP);
                         if (!continueProcessing) return false;
-                        /*if (pdfView.getCurrentXOffset() + wayPtX <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
-                            // Test for balloon popup going off right side of screen
-                            int offsetBox = getOffsetXBox((int) wayPtX, boxWidth);
-
-                            // Test for balloon popup going off top of screen
-                            int offsetYBox = 0;
-
-                            if ((wayPtY + pdfView.getCurrentYOffset()) < (pdfView.getHeight() / 2.0)) {
-                                offsetYBox = getOffsetYBox();
-                            }
-                            // Edit button click
-                            if (x >= ((wayPtX - (boxWidth / 2) - marg) + offsetBox) && x < (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + marg + btn_size) &&
-                                    y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)){
-                                try {
-                                    openEditWayPointActivity(clickedWP);
-                                    // hide wait icon
-                                    wait.setVisibility(View.GONE);
-                                    return false;
-                                } catch (OutOfMemoryError memoryError) {
-                                    Toast.makeText(PDFActivity.this, "Out of memory", Toast.LENGTH_SHORT).show();
-                                    return false;
-                                } catch (Exception error) {
-                                    Toast.makeText(PDFActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                                    return false;
-                                }
-                            }
-                            // Move button click
-                            else if (x >= (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + marg + btn_size) && x < (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + 2*marg + 2*btn_size) &&
-                                    y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)){
-                                adjustWP = clickedWP;
-                                moveWaypoint(wayPtX,wayPtY,clickedWP,moveIconWidth);
-                            }
-                            // Delete button click
-                            else if (x >= ((wayPtX - (boxWidth / 2) - marg) + offsetBox) +2*marg + 2*btn_size && x < (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + 3*marg + 3*btn_size) &&
-                                    y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)){
-                                deleting = true;
-                                deleteWaypoint();
-                            }
-                        }*/
                     }
 
                     // check if clicked on any balloon when all waypoints are showing their labels
@@ -786,46 +747,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             Boolean continueProcessing;
                             continueProcessing = checkForWaypointButtonClick(boxWidth, x, y, wayPtX, wayPtY, j);
                             if (!continueProcessing) return false;
-                            /*if (pdfView.getCurrentXOffset() + wayPtX <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
-                                // Test for balloon popup going off right or left side of screen
-                                int offsetBox = getOffsetXBox((int) wayPtX, boxWidth);
-
-                                // Test for balloon popup going off top or bottom of screen
-                                int offsetYBox = 0;
-                                if ((wayPtY + pdfView.getCurrentYOffset()) < (pdfView.getHeight()/2.0)){
-                                    offsetYBox = getOffsetYBox();//startY + boxHt;
-                                }
-                                // clicked on Edit button
-                                if (x >= ((wayPtX - (boxWidth / 2) - marg) + offsetBox) && x < (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + marg + btn_size) &&
-                                    y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)){
-                                    try {
-                                        // Open EditWayPointActivity
-                                        openEditWayPointActivity(j);
-                                        // hide wait icon
-                                        wait.setVisibility(View.GONE);
-                                        return false;
-                                    } catch (OutOfMemoryError memoryError) {
-                                        Toast.makeText(PDFActivity.this, "Out of memory", Toast.LENGTH_SHORT).show();
-                                        return false;
-                                    } catch (Exception error) {
-                                        Toast.makeText(PDFActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                                        return false;
-                                    }
-                                }
-                                else if (x >= (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + marg + btn_size) && x < (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + 2*marg + 2*btn_size) &&
-                                        y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)){
-                                    adjustWP = clickedWP;
-                                    moveWaypoint(wayPtX,wayPtY,j,moveIconWidth);
-                                    return false;
-                                }
-                                else if (x >= ((wayPtX - (boxWidth / 2) - marg) + offsetBox) +2*marg + 2*btn_size && x < (((wayPtX - (boxWidth / 2) - marg) + offsetBox) + 3*marg + 3*btn_size) &&
-                                        y < (wayPtY - startY + marg + offsetYBox) && y >= (wayPtY - startY - boxHt - marg + offsetYBox)){
-                                    clickedWP=j;
-                                    deleting = true;
-                                    deleteWaypoint();
-                                    return false;
-                                }
-                            }*/
                         }
                     }
 
@@ -1410,7 +1331,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             editImg.setBounds(0, 0, btn_size, btn_size);
             editImg.draw(canvas);
             canvas.translate(btn_size + marg,0);
-            Drawable moveImg = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_my_location, getTheme());//getResources().getDrawable(R.drawable.ic_my_location, null);
+            Drawable moveImg = ResourcesCompat.getDrawable(getResources(), R.drawable.move_pin, getTheme());//getResources().getDrawable(R.drawable.ic_my_location, null);
             assert moveImg != null;
             moveImg.setBounds(0, 0, btn_size, btn_size);
             moveImg.draw(canvas);
@@ -1892,7 +1813,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 Toast.makeText(PDFActivity.this, getResources().getString(R.string.wayPtInstr), Toast.LENGTH_LONG).show();
             }
         }
-        else if (id == R.id.action_add_way_pt) {
+        else if (id == R.id.action_add_way_pt_menu) {
                 addWayPtFlag = true;
                 clickedWP = -1; // hide balloon popups
                 newWP = false;

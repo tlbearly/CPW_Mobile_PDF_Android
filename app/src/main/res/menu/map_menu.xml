@@ -2,13 +2,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.dnrcpw.cpwmobilepdf.activities.PDFActivity">
-  <item
+    <item
+        android:id="@+id/action_add_way_pt"
+        android:icon="@mipmap/ic_grey_pin_forgnd"
+        android:title="@string/add_way_pt"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+    <item
       android:id="@+id/action_markCurrent"
       android:title="@string/markCurrent"
       android:visible="true"
       app:showAsAction="never" />
   <item
-      android:id="@+id/action_add_way_pt"
+      android:id="@+id/action_add_way_pt_menu"
       android:title="@string/add_way_pt"
       android:visible="true"
       app:showAsAction="never" />
@@ -22,7 +28,7 @@
       android:title="@string/deleteAllWayPts"
       android:visible="true"
       app:showAsAction="never" />
-  <item android:title="App Settings">
+  <item android:title="@string/app_settings">
     <menu>
           <item
               android:id="@+id/action_showWayPts"
@@ -51,7 +57,7 @@
     </menu>
   </item>
 
-  <item android:title="Map Settings">
+  <item android:title="@string/map_settings">
     <menu>
         <item
             android:id="@+id/action_portrait"
