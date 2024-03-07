@@ -52,8 +52,8 @@ android {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 23
         targetSdkVersion 34
-        versionCode 55
-        versionName "1.4.4"
+        versionCode 56
+        versionName "1.4.5"
         // History
         // v1.3.01 Removed asynctask
         // v1.3.02 Adjust waypoint on long click, added edit, move, delete buttons to top menu
@@ -84,10 +84,12 @@ android {
         // v1.4.2 2-19-24 Don't capitalize every word in maps more menu item: Load Adjacent Maps
         // v1.4.3 2-22-24 Save preference to load adjacent maps in database
         //      - Save preference of map orientation for each map
-        // v1.4.4 2-23-24 optimize database open/close.
-        //      - Added dark mode icon colors.
-        //      - Save preferences for showing waypoints and all waypoint labels
-        //      - Added App wide settings and map settings.
+        //      2-23-24 optimize database open/close.
+        //      - Added dark mode icon colors, new move pin icon from Google Material icons for move.
+        //      - Save app wide preferences for showing waypoints, all waypoint labels, adjacent maps
+        //      - Save map specific preferences for locking orientation.
+        //      - pushed to production
+        // v1.4.5 adjacent maps are shown current location is on on the map or up to 1/4 of a mile off the map
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
@@ -147,7 +149,7 @@ dependencies {
 
     // Google Play Location Services
     // compile is deprecated use api or implementation. Must have SDK version 28.0.0
-    implementation 'com.google.android.gms:play-services-location:21.1.0'
+    implementation 'com.google.android.gms:play-services-location:21.2.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'com.google.android.material:material:1.11.0'

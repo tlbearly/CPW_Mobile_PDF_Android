@@ -380,8 +380,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     // Load new map?
                     // check if need to load new map because current location went off map
                     //
-                    double percentX = 0.13;
-                    double percentY = 0.10;
+                    //double percentX = 0.13;
+                    //double percentY = 0.10;
                     //******************************
                     // DEBUG force current location
                     //******************************
@@ -389,7 +389,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //longNow = long2 - longDiff*percentX;
                     //latNow = lat1 + latDiff*percentY;
                     //longNow = long1 + longDiff*percentX;
-                    if (loadAdjacentMaps && onMap && (latNow < (lat1 + latDiff*percentX)  || latNow > (lat2 - latDiff*percentX)  || longNow < (long1 + longDiff*percentY) || longNow > (long2 - longDiff*percentY))){
+                    double quarterMileInDegrees = 0.00458; // 1 degree = 54.6 miles
+                    //if (loadAdjacentMaps && onMap && (latNow < (lat1 + latDiff*percentX)  || latNow > (lat2 - latDiff*percentX)  || longNow < (long1 + longDiff*percentY) || longNow > (long2 - longDiff*percentY))){
+                    if (loadAdjacentMaps &&
+                        latNow > (lat1 - quarterMileInDegrees) &&
+                        latNow < (lat2 + quarterMileInDegrees) &&
+                        longNow > (long1 - quarterMileInDegrees) &&
+                        longNow < (long2 + quarterMileInDegrees)){
                         // Get list of all available maps and see if the current location is on one or more of them
                         ArrayList<Integer> mapIds = new ArrayList<>();// pdf maps that the current location is on
                         for (int i = 0; i < maps.size(); i++) {
