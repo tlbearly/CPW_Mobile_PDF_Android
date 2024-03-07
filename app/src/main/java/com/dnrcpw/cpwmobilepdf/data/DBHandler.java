@@ -398,10 +398,14 @@ public class DBHandler extends SQLiteOpenHelper {
     public void setMapSort(String order) throws SQLiteException{
         // How to sort the MainActivity imported maps
         //SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(KEY_MAP_SORT, order);
-        String id = "1";
-        db.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
+        try {
+            ContentValues values = new ContentValues();
+            values.put(KEY_MAP_SORT, order);
+            String id = "1";
+            db.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
+        } catch (IllegalStateException e){
+            return;
+        }
         //db.close(); //2-4-22 // 5-21-21
     }
 

@@ -976,7 +976,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getMenuInflater().inflate(R.menu.menu_main, menu);
         // Disable "Delete all Imported Maps" if there aren't any maps
         MenuItem delMapsMenuItem = toolbar.getMenu().findItem(R.id.action_deleteAll);
-        delMapsMenuItem.setEnabled(myAdapter.pdfMaps.size() != 0);
+        if (delMapsMenuItem != null)
+            delMapsMenuItem.setEnabled(myAdapter.pdfMaps.size() != 0);
         return true;
     }
 
