@@ -90,7 +90,7 @@ android {
         //      - Save map specific preferences for locking orientation.
         //      - pushed to production
         // v1.4.5 adjacent maps are shown current location is on on the map or up to 1/4 of a mile off the map
-        // v1.4.6 3/6/24 fix 2 crashes
+        // v1.4.6 3/6/24 Fix 2 crashes. DBHandler.setMapSort IllegalStateException and MainActivity.onCreateOptionsMenu NullPointerException.
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
