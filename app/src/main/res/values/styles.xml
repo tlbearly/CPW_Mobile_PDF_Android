@@ -9,9 +9,15 @@
         <item name="cardViewStyle">@style/CardView</item>
         <!-- set dark text on action buttons in alert-->
         <item name="alertDialogTheme">@style/AlertDialogTheme</item>
+        <!-- Increase size of 3 dot menu to avoid error -->
+        <item name="android:actionOverflowButtonStyle">@style/MyActionButtonOverflowDark</item>
+    </style>
+    <!-- Increase size of actionbar overflow icon (3 dots) to avoid error -->
+    <style name="MyActionButtonOverflowDark" parent="Widget.AppCompat.ActionButton.Overflow">
+        <item name="android:minWidth">56dp</item>
     </style>
 
-    <!-- set title text size in sp instead of default dp -->
+    <!-- set title text size in sp instead of default dp. Still getting error on play store!!!! -->
     <style name="TextAppearance.AppCompat.Widget.ActionBar.Title" parent="@android:style/TextAppearance">
         <item name="android:textSize">20sp</item>
     </style>

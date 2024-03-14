@@ -658,14 +658,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         outline.setStyle(Paint.Style.FILL);
         white.setColor(Color.WHITE);
         white.setStyle(Paint.Style.FILL);
-        red.setColor(Color.RED);
-        red.setStyle(Paint.Style.FILL);
+        //red.setColor(Color.RED);
+        //red.setStyle(Paint.Style.FILL);
         grey.setColor(Color.GRAY);
         grey.setStyle(Paint.Style.FILL);
-        green.setColor(Color.GREEN); // debug
-        green.setStyle(Paint.Style.FILL); // debug
-        purple.setColor(Color.argb(100,255,0,255)); // debug
-        purple.setStyle(Paint.Style.FILL); // debug
+        //green.setColor(Color.GREEN); // debug
+        //green.setStyle(Paint.Style.FILL); // debug
+        //purple.setColor(Color.argb(100,255,0,255)); // debug
+        //purple.setStyle(Paint.Style.FILL); // debug
         black.setColor(Color.BLACK);
         black.setStyle(Paint.Style.FILL);
         cyanTrans.setColor(argb(40, 0, 255, 255));
@@ -678,7 +678,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         txtCol.setColor(Color.BLACK);
         txtCol.setTextSize(txtSize);
 
-        // add moveIcon for fine adjustment of location on longclick on waypoint pin
+        // add moveIcon for fine adjustment of location
         moveIcon = new ImageView(PDFActivity.this);
         moveIcon.setImageResource(R.drawable.location_search);
         moveIconWidth = Math.round(getResources().getDimension(R.dimen.btn_size));
@@ -806,24 +806,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             wait.setVisibility(View.VISIBLE);
                             newWP = true;
                             String location = String.format(Locale.US,"%.5f, %.5f", latitude,longitude);
-                            // find a unique name
-                            int num = 1;//wayPts.size() + 1;
-                            boolean unique = true;
-                            boolean done = false;
-                            do {
-                                for (i1 = 0; i1 < wayPts.size(); i1++) {
-                                    if (wayPts.get(i1).getDesc().equals("Waypoint " + num)) {
-                                        unique = false;
-                                        num++;
-                                        break;
-                                    }
-                                }
-                                if (unique) {
-                                    done = true;
-                                } else {
-                                    unique = true; // reset for next try
-                                }
-                            } while (!done);
+                            int num = findAUniqueName();
                             WayPt wayPt = new WayPt(mapName, "Waypoint " + num, (float) longitude, (float) latitude, "blue", location);
                             try {
                                 db.addWayPt(wayPt);
@@ -994,7 +977,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         float theLat = (float) latNow;
                         float theLong = (float) longNow;
                         String location = String.format(Locale.US,"%.5f", theLat) + ", " + String.format(Locale.US,"%.5f", theLong);
-                        int num = wayPts.size() + 1;
+                        int num = findAUniqueName();
                         WayPt wayPt = wayPts.add(mapName, "Waypoint " + num, theLong, theLat, "red", location);
                         wayPts.SortPts();
                         try {
@@ -1170,6 +1153,27 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, px, resource.getDisplayMetrics());
     }*/
 
+    private int findAUniqueName(){
+        // find a unique name for waypoint labels
+        int num = 1;
+        boolean unique = true;
+        boolean done = false;
+        do {
+            for (int i1 = 0; i1 < wayPts.size(); i1++) {
+                if (wayPts.get(i1).getDesc().equals("Waypoint " + num)) {
+                    unique = false;
+                    num++;
+                    break;
+                }
+            }
+            if (unique) {
+                done = true;
+            } else {
+                unique = true; // reset for next try
+            }
+        } while (!done);
+        return num;
+    }
     private Boolean checkForWaypointButtonClick(float boxWidth, float x, float y, double wayPtX, double wayPtY, int wpIndex) {
         // check for click on Edit, Move, or Delete button on waypoint popup
         if (adjustWP != -1 || deleting) return false; // if overlapping buttons only handle one event
@@ -1855,7 +1859,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 @Override
                 public void onClick(View v)
                 {
-                    String latlong[] = txtLatLong.getText().toString().split(",");
+                    String[] latlong = txtLatLong.getText().toString().split(",");
                     if (latlong.length != 2){
                         Toast.makeText(PDFActivity.this,"Missing comma. Enter: lat, long", Toast.LENGTH_LONG).show();
                     }
@@ -1876,7 +1880,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             wait.setVisibility(View.VISIBLE);
                             newWP = true;
                             String location = String.format(Locale.US, "%.5f, %.5f", latitude, longitude);
-                            int num = wayPts.size() + 1;
+                            int num = findAUniqueName();
                             WayPt wayPt = wayPts.add(mapName, "Waypoint " + num, (float) longitude, (float) latitude, "blue", location);
                             wayPts.SortPts();
                             try {
