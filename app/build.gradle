@@ -94,6 +94,8 @@ android {
         //       3/11/24 Move to production.
         // v1.4.7 3/11/24 try to fix 3 dot overflow icon width wider. Error: This item's width is 40dp. Consider making the width of this touch target 48dp or larger.
         //       3/13/24 Fix bug with adding unique waypoint names for current location or by lat/long
+        //       3/20/24 Fix bug with show all waypoints off, mark current location should show them.
+        //             add red paint color back in!
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */

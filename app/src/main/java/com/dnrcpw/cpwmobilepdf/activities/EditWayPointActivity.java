@@ -166,6 +166,12 @@ public class EditWayPointActivity extends AppCompatActivity {
             }
         }
     };
+    /*public void returnToPDFActivity(){
+        Intent output = new Intent();
+        output.putExtra(PDFActivity.showAllWayPts, num2);
+        setResult(RESULT_OK, output);
+        finish();
+    }*/
     // EDIT MENU
     // -------------
     //   ... Menu

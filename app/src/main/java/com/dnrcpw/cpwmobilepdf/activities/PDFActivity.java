@@ -658,8 +658,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         outline.setStyle(Paint.Style.FILL);
         white.setColor(Color.WHITE);
         white.setStyle(Paint.Style.FILL);
-        //red.setColor(Color.RED);
-        //red.setStyle(Paint.Style.FILL);
+        red.setColor(Color.RED);
+        red.setStyle(Paint.Style.FILL);
         grey.setColor(Color.GRAY);
         grey.setStyle(Paint.Style.FILL);
         //green.setColor(Color.GREEN); // debug
@@ -1402,7 +1402,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         super.onResume();
         startLocationUpdates();
 
-        // read load adjacent maps user preference from DBHandler SETTINGS_TABLE
+        // read user preferences from DBHandler SETTINGS_TABLE
         try {
             db = new DBWayPtHandler(PDFActivity.this);
             db2 = new DBHandler(PDFActivity.this);
@@ -1462,14 +1462,33 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         landscape = savedInstanceState.getBoolean("landscape");
     }*/
 
+    /*@Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+
+        // Save UI state changes to the savedInstanceState.
+        // This bundle will be passed to onCreate if the process is
+        // killed and restarted.
+        savedInstanceState.putBoolean("showAllWayPts", showAllWayPts);
+        super.onSaveInstanceState(savedInstanceState);
+    }
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        // Restore UI state from the savedInstanceState.
+        // This bundle has also been passed to onCreate.
+        boolean showAllWayPts = savedInstanceState.getBoolean("showAllWayPts");
+    }*/
+
     @Override
     protected void onPause() {
         super.onPause();
+
+        stopLocationUpdates();
         //Log.d("PDFActivity:onPause","close dbWayPtHandler, stop location updates");
         db.close();
         db2.close();
-        stopLocationUpdates();
-
+        db = null;
+        db2 = null;
         // Stop Screen Sensor Listener
         mSensorManager.unregisterListener(this, mAccelerometer);
         mSensorManager.unregisterListener(this, mMagnetometer);
@@ -1608,7 +1627,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         // required method
     }
 
-
     // -------------
     //   ... Menu
     // -------------
@@ -1674,8 +1692,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             TextView pTxt = findViewById(R.id.cur_pos);
             String str = getString(R.string.CurPos) + String.format(Locale.US,"%.05f", latNow) + ", " + String.format(Locale.US,"%.05f", longNow);
             // check if current location is on this map
-            if (pTxt.getText().equals(str))
+            if (pTxt.getText().equals(str)) {
                 markCurrent = true;
+                showAllWayPts = true;
+            }
             else {
                 markCurrent = false;
                 Toast.makeText(PDFActivity.this,"Current location not on map", Toast.LENGTH_LONG).show();

@@ -28,34 +28,31 @@
       android:title="@string/deleteAllWayPts"
       android:visible="true"
       app:showAsAction="never" />
-  <item android:title="@string/app_settings">
-    <menu>
-          <item
-              android:id="@+id/action_showWayPts"
-              android:title="@string/showWayPts"
-              android:icon="@drawable/pin"
-              android:checkable="true"
-              android:checked="true"
-              android:visible="true"
-              app:showAsAction="never" />
-          <item
-              android:id="@+id/action_showAll"
-              android:title="@string/showWayPtLabels"
-              android:icon="@drawable/chat_bubble"
-              android:checkable="true"
-              android:checked="false"
-              android:visible="true"
-              app:showAsAction="never" />
-          <item
-              android:id="@+id/action_loadAdjacentMaps"
-              android:title="@string/loadAdjacentMaps"
-              android:icon="@drawable/map"
-              android:checkable="true"
-              android:checked="true"
-              android:visible="true"
-              app:showAsAction="never" />
-    </menu>
-  </item>
+  <item android:title="@string/app_settings"/>
+      <item
+          android:id="@+id/action_showWayPts"
+          android:title="@string/showWayPts"
+          android:icon="@drawable/pin"
+          android:checkable="true"
+          android:checked="true"
+          android:visible="true"
+          app:showAsAction="never" />
+      <item
+          android:id="@+id/action_showAll"
+          android:title="@string/showWayPtLabels"
+          android:icon="@drawable/chat_bubble"
+          android:checkable="true"
+          android:checked="false"
+          android:visible="true"
+          app:showAsAction="never" />
+      <item
+          android:id="@+id/action_loadAdjacentMaps"
+          android:title="@string/loadAdjacentMaps"
+          android:icon="@drawable/map"
+          android:checkable="true"
+          android:checked="true"
+          android:visible="true"
+          app:showAsAction="never" />
 
   <item android:title="@string/map_settings">
     <menu>

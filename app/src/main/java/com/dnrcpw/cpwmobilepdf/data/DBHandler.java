@@ -45,12 +45,10 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String KEY_LOAD_ADJ_MAPS ="load_adj_maps"; // turn on or off loading of adjacent maps for all maps. Valid values: "1" or "0"
     private static final String KEY_SHOW_WAYPOINTS="show_waypoints"; // turn on or off showing waypoints for all maps. Valid values: "1" or "0"
     private static final String KEY_SHOW_ALL_WAYPOINT_LABELS="show_all_waypoints"; //  turn on or off showing all waypoint labels for all maps. Valid values: "1" or "0"
-    private SQLiteDatabase db;
 
     public DBHandler(Context c) throws SQLException {
         super(c, DATABASE_NAME, null, DATABASE_VERSION);
         this.context = c;
-        this.db = this.getWritableDatabase();
     }
 
     @Override
@@ -64,8 +62,31 @@ public class DBHandler extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db1, int oldVersion, int newVersion) throws SQLException {
          // For new version do new stuff here. Drop tables and call onCreate
          if (oldVersion != newVersion) {
-             recreateSettingsTable(db1);
-             recreateMapsTable(db1);
+             switch (oldVersion) {
+                 case 1:
+                     // Forgot to update the version number so handle it here.
+                     String selectQuery = "SELECT * FROM " + TABLE_MAPS;
+                     Cursor cursor = db1.rawQuery(selectQuery, null);
+                     if (cursor.getColumnCount() == 7){
+                         cursor.close();
+                         db1.execSQL("ALTER TABLE " + TABLE_MAPS + " ADD COLUMN " + KEY_FILESIZE + " TEXT");
+                         db1.execSQL("ALTER TABLE " + TABLE_MAPS + " ADD COLUMN " + KEY_DISTTOMAP + " TEXT");
+                         db1.execSQL("UPDATE " + TABLE_MAPS + " SET " + KEY_FILESIZE + " = ''");
+                         db1.execSQL("UPDATE " + TABLE_MAPS + " SET " + KEY_DISTTOMAP + " = ''");
+                     }
+                     // Version 2 new stuff
+                     db1.execSQL("ALTER TABLE " + TABLE_MAPS + " ADD COLUMN " + KEY_MAP_ORIENTATION + " TEXT");
+                     db1.execSQL("ALTER TABLE " + TABLE_SETTINGS + " ADD COLUMN " + KEY_LOAD_ADJ_MAPS + " TEXT");
+                     db1.execSQL("ALTER TABLE " + TABLE_SETTINGS + " ADD COLUMN " + KEY_SHOW_WAYPOINTS + " TEXT");
+                     db1.execSQL("ALTER TABLE " + TABLE_SETTINGS + " ADD COLUMN " + KEY_SHOW_ALL_WAYPOINT_LABELS + " TEXT");
+                     db1.execSQL("UPDATE " + TABLE_MAPS + " SET " + KEY_MAP_ORIENTATION + " = 'none'");
+                     db1.execSQL("UPDATE " + TABLE_SETTINGS + " SET " + KEY_LOAD_ADJ_MAPS + " = '1'");
+                     db1.execSQL("UPDATE " + TABLE_SETTINGS + " SET " + KEY_SHOW_WAYPOINTS + " = '1'");
+                     db1.execSQL("UPDATE " + TABLE_SETTINGS + " SET " + KEY_SHOW_ALL_WAYPOINT_LABELS + " = '0'");
+             }
+
+             //recreateSettingsTable(db1);
+             //recreateMapsTable(db1);
         }
     }
 
@@ -91,7 +112,7 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
     // Recreate database if they do not have all of the fields
-    private void recreateMapsTable(SQLiteDatabase db1) throws SQLException {
+    /*private void recreateMapsTable(SQLiteDatabase db1) throws SQLException {
         // Read what is currently in the database into mapList.
         // Delete database and recreate it. Restore data.
         ArrayList<PDFMap> mapList = new ArrayList<>();
@@ -146,7 +167,7 @@ public class DBHandler extends SQLiteOpenHelper {
         for (int i=0; i<mapList.size(); i++){
             addMapToMapsTable(db1, mapList.get(i));
         }
-    }
+    }*/
 
     //------------------------------------
     //  SETTINGS TABLE
@@ -167,7 +188,7 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(KEY_SHOW_ALL_WAYPOINT_LABELS, "0");
         db1.insert(TABLE_SETTINGS, null, values);
     }
-    public void recreateSettingsTable(SQLiteDatabase db1) throws SQLException{
+    /*public void recreateSettingsTable(SQLiteDatabase db1) throws SQLException{
         String selectQuery = "SELECT * FROM " + TABLE_SETTINGS;
         Cursor cursor = db1.rawQuery(selectQuery, null);
         // Set default values
@@ -196,7 +217,7 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(KEY_SHOW_ALL_WAYPOINT_LABELS, show_all_waypoint_labels);
         String id = "1";
         db1.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
-    }
+    }*/
 
     //-----------------
     // PUBLIC FUNCTIONS
@@ -204,6 +225,7 @@ public class DBHandler extends SQLiteOpenHelper {
 
     // Adding new PDF Map
     public Integer addMap(PDFMap map) throws SQLiteException {
+        SQLiteDatabase db = this.getWritableDatabase();
         int index = addMapToMapsTable(db, map);
         return index;
     }
@@ -225,8 +247,8 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
     public PDFMap getMap(String mapName) throws  SQLException {
-        Cursor cursor = db.query(TABLE_MAPS, new String[]{KEY_ID,
-                        KEY_PATH, KEY_BOUNDS, KEY_MEDIABOX, KEY_VIEWPORT, KEY_THUMBNAIL, KEY_NAME, KEY_FILESIZE, KEY_DISTTOMAP, KEY_MAP_ORIENTATION}, KEY_NAME + "=?",
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.query(TABLE_MAPS, new String[]{KEY_ID, KEY_PATH, KEY_BOUNDS, KEY_MEDIABOX, KEY_VIEWPORT, KEY_THUMBNAIL, KEY_NAME, KEY_FILESIZE, KEY_DISTTOMAP, KEY_MAP_ORIENTATION}, KEY_NAME + "=?",
                 new String[]{mapName}, null, null, null, null);
         if (cursor.moveToFirst()){
             PDFMap map = new PDFMap(cursor.getString(1), cursor.getString(2), cursor.getString(3),
@@ -242,6 +264,7 @@ public class DBHandler extends SQLiteOpenHelper {
     // Getting All PDF Maps
     public ArrayList<PDFMap> getAllMaps() throws SQLiteException {
         // Called by CustomAdapter creation
+        SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<PDFMap> mapList = new ArrayList<>();
         // Select All Query
         String selectQuery = "SELECT * FROM " + TABLE_MAPS;
@@ -259,6 +282,18 @@ public class DBHandler extends SQLiteOpenHelper {
                 map.setThumbnail(cursor.getString(5));
                 map.setName(cursor.getString(6));
                 map.setFileSize(cursor.getString(7));
+                if (map.getFileSize() == ""){
+                    File file = new File(map.getPath());
+                    String fileSize;
+                    long size = file.length() / 1024; // Get size and convert bytes into Kb.
+                    if (size >= 1024) {
+                        double sizeDbl = (double) size;
+                        fileSize = String.format(Locale.US, "%.1f%s", (sizeDbl / 1024), context.getResources().getString(R.string.Mb));
+                    } else {
+                        fileSize = size + context.getResources().getString(R.string.Kb);
+                    }
+                    map.setFileSize(fileSize);
+                }
                 map.setDistToMap(cursor.getString(8));
                 if (map.getDistToMap().equals("")) {
                     map.setMiles(0.0);
@@ -283,7 +318,7 @@ public class DBHandler extends SQLiteOpenHelper {
     // Updating a PDF Map
     public void updateMap(PDFMap map) throws SQLiteException {
         // update a map in the database
-        //SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_PATH, map.getPath());
         values.put(KEY_BOUNDS, map.getBounds());
@@ -298,15 +333,13 @@ public class DBHandler extends SQLiteOpenHelper {
         // updating row
         db.update(TABLE_MAPS, values, KEY_ID + " = ?",
                 new String[]{String.valueOf(map.getId())});
-        //db.close(); // 5-21-21
     }
 
     // Deleting a PDF Map
     public void deleteMap(PDFMap map) throws SQLiteException{
-        //SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_MAPS, KEY_ID + " = ?",
                 new String[]{String.valueOf(map.getId())});
-        //db.close(); // 5-21-21
     }
 
     //---------------------
@@ -315,6 +348,7 @@ public class DBHandler extends SQLiteOpenHelper {
     public void setLoadAdjMaps(int load) throws SQLiteException{
         // Sets user preference, should load adjacent maps if current location goes off the map and onto another map?
         // Displays a drop down menu of maps to choose from. This is a checkbox on the maps more menu
+        SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_LOAD_ADJ_MAPS, Integer.toString(load));
         String id = "1";
@@ -323,6 +357,7 @@ public class DBHandler extends SQLiteOpenHelper {
     public int getLoadAdjMaps() throws SQLiteException {
         // Sets user preference, should load adjacent maps if current location goes off the map and onto another map?
         // Displays a drop down menu of maps to choose from. This is a checkbox on the maps more menu
+        SQLiteDatabase db = this.getWritableDatabase();
         int load_adj_maps;
         String selectQuery = "SELECT " + KEY_LOAD_ADJ_MAPS + " FROM " + TABLE_SETTINGS;
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -343,6 +378,7 @@ public class DBHandler extends SQLiteOpenHelper {
     //---------------------
     public void setShowWaypoints(int show) throws SQLiteException{
         // Sets user preference, should show waypoints when map loads?
+        SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_SHOW_WAYPOINTS, Integer.toString(show));
         String id = "1";
@@ -350,6 +386,7 @@ public class DBHandler extends SQLiteOpenHelper {
     }
     public int getShowWaypoints() throws SQLiteException {
         // Sets user preference, should show all waypoints when map loads?
+        SQLiteDatabase db = this.getWritableDatabase();
         int show;
         String selectQuery = "SELECT " + KEY_SHOW_WAYPOINTS + " FROM " + TABLE_SETTINGS;
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -370,6 +407,7 @@ public class DBHandler extends SQLiteOpenHelper {
     //---------------------
     public void setShowAllWaypointLabels(int show) throws SQLiteException{
         // Sets user preference, should show waypoint labels when map loads?
+        SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_SHOW_ALL_WAYPOINT_LABELS, Integer.toString(show));
         String id = "1";
@@ -377,6 +415,7 @@ public class DBHandler extends SQLiteOpenHelper {
     }
     public int getShowAllWaypointLabels() throws SQLiteException {
         // Sets user preference, should show all waypoint labels when map loads?
+        SQLiteDatabase db = this.getWritableDatabase();
         int show;
         String selectQuery = "SELECT " + KEY_SHOW_ALL_WAYPOINT_LABELS + " FROM " + TABLE_SETTINGS;
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -397,21 +436,16 @@ public class DBHandler extends SQLiteOpenHelper {
     //---------------
     public void setMapSort(String order) throws SQLiteException{
         // How to sort the MainActivity imported maps
-        //SQLiteDatabase db = this.getWritableDatabase();
-        try {
-            ContentValues values = new ContentValues();
-            values.put(KEY_MAP_SORT, order);
-            String id = "1";
-            db.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
-        } catch (IllegalStateException e){
-            return;
-        }
-        //db.close(); //2-4-22 // 5-21-21
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_MAP_SORT, order);
+        String id = "1";
+        db.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
     }
 
     public String getMapSort() throws SQLiteException {
         // How to sort the MainActivity imported maps
-        //SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
         String order;
         String selectQuery = "SELECT " + KEY_MAP_SORT + " FROM " + TABLE_SETTINGS;
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -420,12 +454,10 @@ public class DBHandler extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             order = cursor.getString(0);
             cursor.close();
-            //db.close(); // 2-4-22 got error that it was not closed   //5-21-21
             return order;
         }
         else {
             createSettingsTable(db);
-            //db.close(); // 2-4-22
             return "date"; // default value
         }
     }
