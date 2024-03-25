@@ -96,6 +96,8 @@ android {
         //       3/13/24 Fix bug with adding unique waypoint names for current location or by lat/long
         //       3/20/24 Fix bug with show all waypoints off, mark current location should show them.
         //             add red paint color back in!
+        // v1.4.8 3/25/24 If show all waypoints is off and user adds a waypoint turn on showing waypoints for this session but not permantently.
+        //       Reset getting the writable database to how it used to be done.
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */

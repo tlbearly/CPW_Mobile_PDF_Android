@@ -25,11 +25,9 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
     private static final String KEY_COLOR = "color";
     private static final String KEY_TIME = "time";
     private static final String KEY_LOCATION = "location";
-    private SQLiteDatabase db;
 
     public DBWayPtHandler(Context context) throws SQLException {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        this.db = getWritableDatabase();
     }
 
     @Override
@@ -48,7 +46,7 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
     }
 
     /*public void deleteTable(Context c){
-       // SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
         // delete maps table
         db.execSQL("DROP TABLE IF EXISTS "+ TABLE_WAYPTS);
         // Create maps table again
@@ -58,7 +56,7 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
 
     // Adding waypoint
     public void addWayPt(WayPt wayPt) throws SQLException {
-            //SQLiteDatabase db = this.getWritableDatabase();
+            SQLiteDatabase db = this.getWritableDatabase();
             ContentValues values = new ContentValues();
             values.put(KEY_MAPNAME, wayPt.getName()); // Name of map
             values.put(KEY_DESC, wayPt.getDesc()); // Waypoint description
@@ -69,19 +67,17 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
             values.put(KEY_LOCATION, wayPt.getLocation()); // Lat, Long
             // Inserting Row
             db.insert(TABLE_WAYPTS, null, values);
-            //db.close(); // Closing database connection
     }
 
     // Delete all WayPts for a given PDF map
     public void deleteWayPts(String mapName) throws SQLException {
-        //SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = this.getReadableDatabase();
         db.delete(TABLE_WAYPTS, "mapName=?", new String[]{mapName});
-        //db.close();
     }
 
     // Getting one WayPt
     /*public WayPt getWayPt(int id) throws SQLException {
-        //SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(TABLE_WAYPTS, new String[]{KEY_ID,
                         KEY_MAPNAME, KEY_DESC, KEY_X, KEY_Y, KEY_COLOR, KEY_TIME, KEY_LOCATION}, KEY_ID + "=?",
@@ -96,17 +92,15 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         } catch (NullPointerException e) {
             Toast.makeText(c, "Error reading database.", Toast.LENGTH_LONG).show();
             cursor.close();
-            //db.close();
             return null;
         }
         cursor.close();
-        //db.close();
         return wayPt;
     }*/
 
     // Getting All Waypoints from one PDF map
     public WayPts getWayPts(String mapName) throws SQLException {
-        //SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
         WayPts wayPtsList = new WayPts(mapName);
         // Select All Query
         String selectQuery = "SELECT * FROM " + TABLE_WAYPTS;
@@ -122,14 +116,13 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
         cursor.close();
-        //db.close();
         // return waypoints list
         return wayPtsList;
     }
 
     // Updating a Waypoint
     public int updateWayPt(WayPt wayPt) throws SQLException {
-        //SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_MAPNAME, wayPt.getName());
         values.put(KEY_DESC, wayPt.getDesc());
@@ -146,17 +139,15 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
 
     // Deleting a Waypoint
     public void deleteWayPt(WayPt wayPt) throws SQLException {
-        //SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_WAYPTS, KEY_ID + " = ?",
                 new String[] { String.valueOf(wayPt.getId()) });
-        //db.close();
     }
 
     // Deleting a Waypoint
     public void deleteWayPt(String mapName) throws SQLException {
-        //SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_WAYPTS, KEY_MAPNAME + " = ?",
                 new String[]{mapName});
-        //db.close();
     }
 }

@@ -670,7 +670,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private void checkForActivityResult() {
         // GetMoreActivity gets map to import
-        // EditWayPointActivity renames or deletes a map
+        // EditMapNameActivity renames or deletes a map
         // They return extras to pass back the results, update adapter and database here
         final Intent i = MainActivity.this.getIntent();
         if (i.getExtras() != null && !i.getExtras().isEmpty()) {
@@ -700,7 +700,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 i.removeExtra("IMPORT_MAP");
             }*/
 
-            // RENAME MAP (EditWayPointActivity)
+            // RENAME MAP (EditMapNameActivity)
             if (i.getExtras().containsKey("RENAME") && i.getExtras().containsKey("NAME") && i.getExtras().containsKey("ID")) {
                 // Renamed map, update with new name
                 //myAdapter.setEditing(false);

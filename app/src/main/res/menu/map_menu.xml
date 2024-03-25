@@ -54,8 +54,7 @@
           android:visible="true"
           app:showAsAction="never" />
 
-  <item android:title="@string/map_settings">
-    <menu>
+  <item android:title="@string/map_settings"/>
         <item
             android:id="@+id/action_portrait"
             android:checkable="true"
@@ -72,8 +71,6 @@
             android:title="@string/landscape"
             android:visible="true"
             app:showAsAction="never" />
-    </menu>
-</item>
 
   <item
       android:id="@+id/action_help"

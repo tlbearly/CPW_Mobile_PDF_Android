@@ -39,6 +39,7 @@ public class EditWayPointActivity extends AppCompatActivity {
     WayPt wayPt;
     //boolean landscape;
     boolean changed=false;
+    Boolean showAllWayPts;
     String prevName;
 
     @Override
@@ -61,6 +62,7 @@ public class EditWayPointActivity extends AppCompatActivity {
         viewPort = i.getExtras().getString("VIEWPORT");
         //landscape = i.getExtras().getBoolean("LANDSCAPE");
 
+        showAllWayPts = i.getExtras().getBoolean("SHOWALLWAYPTS");
         // if the map was locked in landscape, show this also in landscape
         /*if (landscape){
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
@@ -166,12 +168,7 @@ public class EditWayPointActivity extends AppCompatActivity {
             }
         }
     };
-    /*public void returnToPDFActivity(){
-        Intent output = new Intent();
-        output.putExtra(PDFActivity.showAllWayPts, num2);
-        setResult(RESULT_OK, output);
-        finish();
-    }*/
+
     // EDIT MENU
     // -------------
     //   ... Menu

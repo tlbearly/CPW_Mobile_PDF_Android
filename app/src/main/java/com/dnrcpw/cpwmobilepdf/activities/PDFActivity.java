@@ -183,6 +183,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private ProgressBar wait; // indeterminate progress bar
     private Boolean showAllWayPtLabels = false;
     private Boolean showAllWayPts = true;
+    private Integer stateShowAllWayPts = -1;
     private Boolean loadAdjacentMaps = true;
     private Boolean deleting = false;
     AtomicReference<Double> optimalPageWidth = new AtomicReference<>((double) 0);
@@ -193,6 +194,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     Button menuBtn;
 
     //    @SuppressLint("SourceLockedOrientationActivity")
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // final RelativeLayout wait; // indeterminate progress bar
@@ -446,36 +448,33 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             //Toast.makeText(PDFActivity.this,"Several adjacent maps are available",Toast.LENGTH_SHORT).show();
                             menuBtn.setVisibility(View.VISIBLE);
                             adjacentMapsBtnShowing = true; // if they don't click on the button but click elsewhere, use this to hide the menuBtn in pdfView tap event.
-                            menuBtn.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    PopupMenu popup = new PopupMenu(PDFActivity.this, menuBtn);
-                                    popup.getMenuInflater().inflate(R.menu.adjacent_maps_menu, popup.getMenu());
-                                    for (int j = 0; j < mapIds.size(); j++) {
-                                        // add(groupId, itemId, order, title) Pass the index into maps array as the itemId
-                                        popup.getMenu().add(1, mapIds.get(j), j + 1, maps.get(mapIds.get(j)).getName());
-                                    }
-
-                                    popup.show();
-                                    popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                                        @Override
-                                        public boolean onMenuItemClick(MenuItem item) {
-                                            // load the user selected map
-                                            int i = item.getItemId();
-                                            loadNewMap(maps, i);
-                                            return true;
-                                        }
-                                    });
-                                    popup.setOnDismissListener(new PopupMenu.OnDismissListener() {
-                                        // hide the Load Adjacent Maps button
-                                        @Override
-                                        public void onDismiss(PopupMenu menu) {
-                                            Button menuBtn = findViewById(R.id.load_adjacent_maps);
-                                            menuBtn.setVisibility(View.GONE);
-                                            adjacentMapsBtnShowing = false;
-                                        }
-                                    });
+                            menuBtn.setOnClickListener(view -> {
+                                PopupMenu popup = new PopupMenu(PDFActivity.this, menuBtn);
+                                popup.getMenuInflater().inflate(R.menu.adjacent_maps_menu, popup.getMenu());
+                                for (int j = 0; j < mapIds.size(); j++) {
+                                    // add(groupId, itemId, order, title) Pass the index into maps array as the itemId
+                                    popup.getMenu().add(1, mapIds.get(j), j + 1, maps.get(mapIds.get(j)).getName());
                                 }
+
+                                popup.show();
+                                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                                    @Override
+                                    public boolean onMenuItemClick(MenuItem item) {
+                                        // load the user selected map
+                                        int i1 = item.getItemId();
+                                        loadNewMap(maps, i1);
+                                        return true;
+                                    }
+                                });
+                                popup.setOnDismissListener(new PopupMenu.OnDismissListener() {
+                                    // hide the Load Adjacent Maps button
+                                    @Override
+                                    public void onDismiss(PopupMenu menu) {
+                                        Button menuBtn = findViewById(R.id.load_adjacent_maps);
+                                        menuBtn.setVisibility(View.GONE);
+                                        adjacentMapsBtnShowing = false;
+                                    }
+                                });
                             });
                         }
                     }
@@ -1407,7 +1406,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             db = new DBWayPtHandler(PDFActivity.this);
             db2 = new DBHandler(PDFActivity.this);
             loadAdjacentMaps = db2.getLoadAdjMaps() != 0;
-            showAllWayPts = db2.getShowWaypoints() != 0;
+            if (stateShowAllWayPts == -1)
+                showAllWayPts = db2.getShowWaypoints() != 0;
             showAllWayPtLabels = db2.getShowAllWaypointLabels() != 0;
             // set orientation for this map
             myMap = db2.getMap(mapName);
@@ -1445,26 +1445,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         }
     }
 
-   /* @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        // Save UI state changes to the savedInstanceState.
-        // This bundle will be passed to onCreate if the process is
-        // killed and restarted.
-        savedInstanceState.putBoolean("landscape", landscape);
-    }
-
-    @Override
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        // Restore UI state from the savedInstanceState.
-        // This bundle has also been passed to onCreate.
-        landscape = savedInstanceState.getBoolean("landscape");
-    }*/
-
     /*@Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-
         // Save UI state changes to the savedInstanceState.
         // This bundle will be passed to onCreate if the process is
         // killed and restarted.
@@ -1482,7 +1464,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     @Override
     protected void onPause() {
         super.onPause();
-
+        // save state of show all waypoints (set for the session if off but added a waypoint
+        if (showAllWayPts)
+            stateShowAllWayPts = 1;
+        else
+            stateShowAllWayPts = 0;
         stopLocationUpdates();
         //Log.d("PDFActivity:onPause","close dbWayPtHandler, stop location updates");
         db.close();
@@ -1695,6 +1681,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             if (pTxt.getText().equals(str)) {
                 markCurrent = true;
                 showAllWayPts = true;
+                action_showWayPts.setChecked(true);
             }
             else {
                 markCurrent = false;
@@ -1839,6 +1826,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 clickedWP = -1; // hide balloon popups
                 newWP = false;
                 showAllWayPts = true;
+                action_showWayPts.setChecked(true);
                 wayPtMenuItem.setIcon(R.mipmap.ic_cyan_pin_forgnd);
                 Toast.makeText(PDFActivity.this, getResources().getString(R.string.wayPtInstr), Toast.LENGTH_LONG).show();
             }
@@ -1848,6 +1836,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 clickedWP = -1; // hide balloon popups
                 newWP = false;
                 showAllWayPts = true;
+                action_showWayPts.setChecked(true);
                 wayPtMenuItem.setIcon(R.mipmap.ic_cyan_pin_forgnd);
                 Toast.makeText(PDFActivity.this, getResources().getString(R.string.wayPtInstr), Toast.LENGTH_LONG).show();
         }
@@ -1897,6 +1886,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             addWayPtFlag = false;
                             clickedWP = -1; // hide balloon popups
                             showAllWayPts = true;
+                            action_showWayPts.setChecked(true);
                             wait.setVisibility(View.VISIBLE);
                             newWP = true;
                             String location = String.format(Locale.US, "%.5f, %.5f", latitude, longitude);
