@@ -139,7 +139,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private boolean mLastMagnetometerSet;
     private float[] mR;
     private float[] mOrientation;
-    boolean onMap = false; // used to calculate if went off map and need to load an adjacent map
+    //boolean onMap = false; // used to calculate if went off map and need to load an adjacent map
     boolean adjacentMapsBtnShowing = false; // if click on the map and not the button, hide the button to display a menu of adjacent maps
     //private float mCurrentDegree = 0f;
     private WayPts wayPts;
@@ -379,9 +379,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                     pdfView.invalidate();
                     //
-                    // Load new map?
-                    // check if need to load new map because current location went off map
+                    // Load Adjacent Maps?
+                    // check if need to display load adjacent maps button because current location is within 1/4 mile of other maps
                     //
+
+                    // OLD WAY when current location goes off edge. Problem USGS and FS maps have a margin CPW maps do not. Show when close to edge.
                     //double percentX = 0.13;
                     //double percentY = 0.10;
                     //******************************
@@ -391,14 +393,15 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //longNow = long2 - longDiff*percentX;
                     //latNow = lat1 + latDiff*percentY;
                     //longNow = long1 + longDiff*percentX;
-                    double quarterMileInDegrees = 0.00458; // 1 degree = 54.6 miles
                     //if (loadAdjacentMaps && onMap && (latNow < (lat1 + latDiff*percentX)  || latNow > (lat2 - latDiff*percentX)  || longNow < (long1 + longDiff*percentY) || longNow > (long2 - longDiff*percentY))){
+
+                    double quarterMileInDegrees = 0.00458; // 1 degree = 54.6 miles
                     if (loadAdjacentMaps &&
                         latNow > (lat1 - quarterMileInDegrees) &&
                         latNow < (lat2 + quarterMileInDegrees) &&
                         longNow > (long1 - quarterMileInDegrees) &&
                         longNow < (long2 + quarterMileInDegrees)){
-                        // Get list of all available maps and see if the current location is on one or more of them
+                        // Get list of all available maps and see if the current location is on or within a 1/4 mile of one or more of them
                         ArrayList<Integer> mapIds = new ArrayList<>();// pdf maps that the current location is on
                         for (int i = 0; i < maps.size(); i++) {
                             PDFMap map = maps.get(i);
@@ -851,7 +854,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     }
                     else if (latNow >= lat1 && latNow <= lat2 && longNow >= long1 && longNow <= long2) {
                         str = getString(R.string.CurPos) + String.format(Locale.US,"%.05f", latNow) + ", " + String.format(Locale.US,"%.05f", longNow);
-                        onMap = true;
+                        //onMap = true;
                     } else {
                         str = getString(R.string.CurPos) + "Not on Map";
                     }
@@ -1100,23 +1103,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                     //Toast.makeText(PDFActivity.this,"Re-Draw "+count, Toast.LENGTH_SHORT).show();
             }).onLoad(nbPages -> {
-                //Log.d("PDFActivity", "onLoad");
-                // Do not rotate pdf when they rotate the screen. It loses their location! pdfView cannot zoom to a point on the screen. ??? Seems to work 6/16/22
-                // Lock current screen rotation
-                /*if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-                    action_landscape.setChecked(false);
-                    action_portrait.setChecked(true);
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-                    landscape = false;
-                } else {
-                    action_landscape.setChecked(true);
-                    action_portrait.setChecked(false);
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-                    landscape = true;
-                }*/
-
                 // SET LEVELS TO ZOOM TO WHEN DOUBLE CLICK, 34x44=3168, 22x34=2448
                 if (mediaBoxWidth > 1500) {
                     pdfView.setMaxZoom(25f);// used to be 3.0f, 7, 20
@@ -1737,7 +1723,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 db2.setShowWaypoints(1);
             }
         }
-        // Show AdjacentMaps when current location is close to the map edge
+        // Show AdjacentMaps when current location is on or close to other maps
         else if (id == R.id.action_loadAdjacentMaps){
             if (action_loadAdjacentMaps.isChecked()){
                 action_loadAdjacentMaps.setChecked(false);

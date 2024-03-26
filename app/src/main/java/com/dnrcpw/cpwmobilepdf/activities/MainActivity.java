@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
 
             setContentView(R.layout.activity_main);
-            setTitle("Imported Maps");
+            setTitle(R.string.title_activity_main); // "Imported Maps"
 
             // DEBUG ***********
             //latBefore = 38.5;
