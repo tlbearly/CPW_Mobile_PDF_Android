@@ -52,8 +52,8 @@ android {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 23
         targetSdkVersion 34
-        versionCode 60
-        versionName "1.4.9"
+        versionCode 61
+        versionName "1.5.0"
         // History
         // v1.3.01 Removed asynctask
         // v1.3.02 Adjust waypoint on long click, added edit, move, delete buttons to top menu
@@ -99,6 +99,7 @@ android {
         // v1.4.8 3/25/24 If show all waypoints is off and user adds a waypoint turn on showing waypoints for this session but not permantently.
         //       Reset getting the writable database to how it used to be done.
         // v1.4.9 3/26/24 Edit map help. Edit comments for load adjacent maps. New NDK version.
+        // v1.5.0 3/28/24 Fix spelling error with push pin to pushpin. Add help documentation for user preferences.
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */

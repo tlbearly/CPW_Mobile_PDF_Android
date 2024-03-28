@@ -12,7 +12,7 @@
     <dimen name="balloon_margin">15dp</dimen><!-- margins around text and buttons inside balloon -->
     <dimen name="triangle_width">25dp</dimen><!-- width of triangle on popup balloon -->
     <dimen name="triangle_ht">20dp</dimen><!-- height of triangle on popup balloon, about 1/2 width -->
-    <dimen name="btn_size">40dp</dimen><!-- width and height of edit, move, delete buttons in push pin balloon -->
+    <dimen name="btn_size">40dp</dimen><!-- width and height of edit, move, delete buttons in pushpin balloon -->
     <dimen name="ten_dp">10dp</dimen><!-- margin for clicking on waypoint balloon -->
     <dimen name="wayPtXmarg">25dp</dimen><!-- margin for clicking on waypoint in X direction -->
     <dimen name="wayPtBmarg">15dp</dimen><!-- margin for clicking on below waypoint -->

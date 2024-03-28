@@ -62,7 +62,7 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
             values.put(KEY_DESC, wayPt.getDesc()); // Waypoint description
             values.put(KEY_X, wayPt.getX()); // x screen coordinate
             values.put(KEY_Y, wayPt.getY()); // y screen coordinate
-            values.put(KEY_COLOR, wayPt.getColorName()); // Color name of push pin image
+            values.put(KEY_COLOR, wayPt.getColorName()); // Color name of pushpin image
             values.put(KEY_TIME, wayPt.getTime()); // Date and time of creation of waypoint
             values.put(KEY_LOCATION, wayPt.getLocation()); // Lat, Long
             // Inserting Row
