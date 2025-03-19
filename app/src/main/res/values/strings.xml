@@ -38,8 +38,8 @@
 
     <!-- GetMoreActivity -->
     <string name="download_maps">STEP 1: Download Maps</string>
-    <string name="downloadInstr1">Show a list of map resources from the CPW website. The following resources will work with this app:</string>
-    <string name="downloadInstr2"> Maps Library (use GeoPDF file type)</string>
+    <string name="downloadInstr1">Show a list of map resources from the CPW website. Scroll down to the CPW Mobile PDF section. It has links to the following resources which will work with this app:</string>
+    <string name="downloadInstr2"> CPW online Maps Library (note: must set GISFileType to GeoPDF)</string>
     <string name="downloadInstr3"> Hunting Atlas or Fishing Atlas</string>
     <string name="downloadInstr4"> U.S. Forest Service</string>
     <string name="downloadInstr5"> U.S. Geological Survey</string>
@@ -103,10 +103,10 @@
     <!-- Add Map Help -->
     <string name="help_get_more_title">Adding Maps Help</string>
     <string name="help_download_title"><u>STEP 1: Download Maps</u></string>
-    <string name="help_download1">Click on the Open Browser button to download a map. Note that this requires an internet connection. It will notify you that it is starting up your browser app. Then it will load a page from the CPW website with resources to download georeferenced PDFs. Use one of the resources described below to download a map. If you have changed the default app that displays PDFs and that app does not allow saving the map, reset the default PDF viewer in Settings/Apps.</string>
+    <string name="help_download1">Click on the Open Browser button to download a map. Note that this requires an internet connection. It will notify you that it is starting up your browser app. Then it will load a page from the CPW website with resources to download georeferenced PDFs. Scroll down to the CPW Mobile PDF section to see these resources. Use one of the resources described below to download a map. If you have changed the default app that displays PDFs and that app does not allow saving the map, reset the default PDF viewer in Settings/Apps.</string>
     <string name="help_download2">Map Resources:</string>
-    <string name="help_cpw_mapslib_title">CPW Maps Library</string>
-    <string name="help_cpw_mapslib">Click on \'CPW online Map Library\'. Select file type, GeoPDF, and press \'Search\'. Click on a map name to download it.</string>
+    <string name="help_cpw_mapslib_title">CPW Online Map Library</string>
+    <string name="help_cpw_mapslib">Click on \'CPW online Map Library\'. Click on show 2 filters to display GISFileType filter. Set this to GeoPDF. Click the download icon for the desired map.</string>
     <string name="help_atlas_title">Hunting or Fishing Atlas</string>
     <string name="help_atlas">Click on \'Colorado Hunting Atlas\' or \'Fishing Atlas\'. Select your map layers by tapping on the menu icon in the top-left. Set your zoom level. Then press the down arrow icon. It will allow you to change: map scale, map size, and orientation. Smaller map scales will show more detail. Larger map sizes will show larger map areas. Enter a PDF file name and press the Create PDF button. Wait for it to be created and then press Download PDF.</string>
     <string name="help_FS_title">Forest Service</string>

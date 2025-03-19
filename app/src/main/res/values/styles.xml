@@ -11,6 +11,8 @@
         <item name="alertDialogTheme">@style/AlertDialogTheme</item>
         <!-- Increase size of 3 dot menu to avoid error -->
         <item name="android:actionOverflowButtonStyle">@style/MyActionButtonOverflowDark</item>
+        <!-- Adding fullscreen will just hide the status bar -->
+        <!-- <item name="android:windowFullscreen">true</item> -->
     </style>
     <!-- Increase size of actionbar overflow icon (3 dots) to avoid error -->
     <style name="MyActionButtonOverflowDark" parent="Widget.AppCompat.ActionButton.Overflow">
