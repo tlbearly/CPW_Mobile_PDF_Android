@@ -38,20 +38,76 @@ android {
 
     // Added ndkVersion 2-25-22 to add symbol table to android app bundle
     // UPDATE THE NDK VERSION before you build. You see the ndk version in the android studio sdk-manager
-    // File / Settings / under System Settings / Android SDK. Select SDK Tools tab. Check Show Package Details. Look at NDK version.
+    // File / Settings / under Languages & Frameworks / Android SDK.
+    // Select SDK Tools tab. Check Show Package Details. Install latest NDK version. Update NDK version below.
     // Use 'FULL' or if > 300mb use 'SYMBOL_TABLE'
-    ndkVersion "23.1.7779620"
-    compileSdkVersion 33
-    buildToolsVersion "30.0.3"
+    ndkVersion "26.2.11394342"
+    compileSdkVersion 34 // when remove this it does not compile
+    //buildToolsVersion "34.0.0" //"30.0.3"
+
     // For new release change versionCode and versionName
     // versionCode must be an integer!
     // minSdkVersion 21 for update installs from Google Play
     defaultConfig {
         applicationId 'com.dnrcpw.cpwmobilepdf'
-        minSdkVersion 21
-        targetSdkVersion 33
-        versionCode 30
-        versionName "1.2.18"
+        minSdkVersion 23
+        targetSdkVersion 34
+        versionCode 68
+        versionName "1.5.8"
+        // History
+        // v1.3.01 Removed asynctask
+        // v1.3.02 Adjust waypoint on long click, added edit, move, delete buttons to top menu
+        // v1.3.06-07 Check in app installs. Upload to Internal App Sharing
+        // v1.3.08 Update USGS, USFS help
+        // v1.3.09 & v1.3.1 On waypoint click, show edit, move, delete buttons in popup. Removed code for having them in top menu.
+        //      - load new map if current location goes off screen
+        //      - update location every .5 second instead of 30 seconds
+        //      - For the map, display "Current location: Acquiring..."
+        //      - Display button to load new map if current location is 10% from edge
+        // v1.3.3 1-29-24 Display waypoint at lat/long.
+        //      - Speed up location lookup by passing 1 second for all functions.
+        //      - Suppress warning for spongycastle in proguard
+        //      - Set min SDK version to 23
+        // v1.3.6 2-1-24 Fixed bug in move waypoint.
+        //      - Installed NDK version 26.1.1 and cmake for debug symbols
+        //      - Added menu checkbox option to load adjacent maps or not
+        // v1.3.7 2-1-24 Updated map help.
+        // v1.3.9 2-6-24 Updated map help. Fixed bug in waypoint move. Add unique waypoint names.
+        // v1.4.0 Updated Actionbar title size to use sp instead of default dp in values/styles.xml
+        //      - Adjust EditBox size and added scrolling in activity_edit_map_name.xml for accessibility.
+        //      - Add Done button to keyboard popup when adding a waypoint by lat/long.
+        // v1.4.1 2-8-24 bug fix with waypoint popup width.
+        //      - fixed bug with deleting waypoint when all popups were showing, was selecting multiples
+        //      - removed duplicate code
+        //      - add waypoint label to delete dialog box
+        //      - adjust triangle size on popup in dimens.xml
+        // v1.4.2 2-19-24 Don't capitalize every word in maps more menu item: Load Adjacent Maps
+        // v1.4.3 2-22-24 Save preference to load adjacent maps in database
+        //      - Save preference of map orientation for each map
+        //      2-23-24 optimize database open/close.
+        //      - Added dark mode icon colors, new move pin icon from Google Material icons for move.
+        //      - Save app wide preferences for showing waypoints, all waypoint labels, adjacent maps
+        //      - Save map specific preferences for locking orientation.
+        //      - pushed to production
+        // v1.4.5 3/6/24 adjacent maps are shown current location is on on the map or up to 1/4 of a mile off the map
+        // v1.4.6 3/6/24 Fix 2 crashes. DBHandler.setMapSort IllegalStateException and MainActivity.onCreateOptionsMenu NullPointerException.
+        //       3/11/24 Move to production.
+        // v1.4.7 3/11/24 try to fix 3 dot overflow icon width wider. Error: This item's width is 40dp. Consider making the width of this touch target 48dp or larger.
+        //       3/13/24 Fix bug with adding unique waypoint names for current location or by lat/long
+        //       3/20/24 Fix bug with show all waypoints off, mark current location should show them.
+        //             add red paint color back in!
+        // v1.4.8 3/25/24 If show all waypoints is off and user adds a waypoint turn on showing waypoints for this session but not permantently.
+        //       Reset getting the writable database to how it used to be done.
+        // v1.4.9 3/26/24 Edit map help. Edit comments for load adjacent maps. New NDK version.
+        // v1.5.0 3/28/24 Fix spelling error with push pin to pushpin. Add help documentation for user preferences.
+        // v1.5.2 3/28/24 removed ndk {debugSymbolLevel 'FULL'} and use the one at the bottom. Had 2.
+        // v1.5.3 3/28/24 update gradle 8.2.2
+        // v1.5.5 3/28/24 remove last line android.buildTypes.release.ndk.debugSymbolLevel = 'FULL' Use the one up above.
+        // v1.5.6 4/10/24 Add more error checking.
+        // v1.5.7 9/12/24 Upgrade 'com.google.android.gms:play-services-location:21.2.0' to 21.3.0
+        //     Upgrade androidx.appcompat:appcompat:1.6.1 to 1.7.0
+        //     Upgrade com.google.android.material:material:1.11.0 to 1.12.0
+        // v 1.5.8 3/18/25 Update add map help
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
@@ -65,6 +121,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
+            debuggable true
         }
         release {
             // Now uses R8 instead of proguard
@@ -78,13 +135,23 @@ android {
             // use next line for even more code shrinking
             //proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
-            // add symbol table
+            // Adds debug symbols or symbol table
+            // install ndk and cmake in file/Settings/Languages & Frameworks/Android SDK/Android Tools
+            // if this does not work try:
+            // cd app/build/intermediates/cmake/universal/release/obj  cmake does not exist
+            // zip -r symbols.zip .
+            // cd to CPWMobilePDF/app/build/intermediates/merged_native_libs/release/out/lib
+            // select all directories, right click send to compressed. Named file Symbol.zip
+            // upload this file
             ndk {
                 debugSymbolLevel 'FULL'
             }
         }
     }
     namespace 'com.dnrcpw.cpwmobilepdf'
+    buildFeatures {
+        buildConfig true
+    }
 }
 
 dependencies {
@@ -94,31 +161,32 @@ dependencies {
     //implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     // Google Play Services for Location
-    androidTestImplementation('androidx.test.espresso:espresso-core:3.4.0', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
+    //androidTestImplementation('androidx.test.espresso:espresso-core:3.4.0', {
+    //    exclude group: 'com.android.support', module: 'support-annotations'
+    //})
 
     // add pdfbox (NOT USED)
     //compile files('libs/pdfbox-2.0.7.jar')
 
     // Google Play Location Services
     // compile is deprecated use api or implementation. Must have SDK version 28.0.0
-    implementation 'com.google.android.gms:play-services-location:20.0.0'
-    implementation 'androidx.appcompat:appcompat:1.5.1' //1.4.2'
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'com.google.android.material:material:1.6.1'
+    implementation 'com.google.android.material:material:1.12.0'
 
     // Google Play In-App Update Library
     // This dependency is downloaded from the Google’s Maven repository.
     // So, make sure you also include that repository in your project's build.gradle file.
-    implementation 'com.google.android.play:app-update:2.0.0'
+    implementation 'com.google.android.play:app-update:2.1.0'
 
     // for displaying pdfs
     // Use lib from https://github.com/barteksc/AndroidPdfViewer
     // This is in jcentral which is going away in February 2022.
     //implementation 'com.github.barteksc:android-pdf-viewer:2.8.2'
     // this one has been migrated to androidx jitpack and includes pdfium-android
-    implementation 'com.github.TalbotGooday:AndroidPdfViewer:3.1.0-beta.3'
+    // https://github.com/TalbotGooday/AndroidPdfViewer
+    implementation 'com.github.TalbotGooday:AndroidPdfViewer:3.1.0-beta.3'  // causes errors 3.2.0-beta.1'
 
     // for thumbnails, this is now in TalbotGooday:AndroidPdfViewer above
     //implementation 'com.github.barteksc:pdfium-android:1.9.0'
@@ -128,11 +196,11 @@ dependencies {
     // iText cannot be directly used on Android in most cases. We've made a port with Android and App Engine specific changes.
     // One of these changes is the use of SpongyCastle instead of BouncyCastle.
     //You can download a trial version here: http://demo.itextsupport.com/newslicense/
-    //compile group: 'com.itextpdf', name: 'itextg', version: '5.5.13' fails with API < 24, targeting 19
+    //compile group: 'com.itextpdf', name: 'itextg', version: '5.5.13' fails with API < 24, targeting 23
     implementation group: 'com.itextpdf', name: 'itextg', version: '5.5.10'
     //implementation group: 'com.itextpdf', name: 'itextg', version: '5.5.12' //'5.5.13.2'
     // https://mvnrepository.com/artifact/com.madgag.spongycastle/core
-    //implementation group: 'com.madgag.spongycastle', name: 'core', version: '1.58.0.0'
+    implementation group: 'com.madgag.spongycastle', name: 'core', version: '1.58.0.0'
 
     // for file list
     implementation 'androidx.cardview:cardview:1.0.0'
@@ -143,5 +211,5 @@ dependencies {
     android.defaultConfig.vectorDrawables.useSupportLibrary = true
 
     // to include symbols for debugging live app. use SYMBOL_TABLE to get function names, FULL to get function names, files, and line numbers
-    android.buildTypes.release.ndk.debugSymbolLevel = 'FULL'
+    //android.buildTypes.release.ndk.debugSymbolLevel = 'FULL'
 }

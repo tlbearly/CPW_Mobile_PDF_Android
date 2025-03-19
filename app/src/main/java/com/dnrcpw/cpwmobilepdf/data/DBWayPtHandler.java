@@ -11,10 +11,6 @@ import com.dnrcpw.cpwmobilepdf.model.WayPt;
 import com.dnrcpw.cpwmobilepdf.model.WayPts;
 
 public class DBWayPtHandler extends SQLiteOpenHelper {
-    //private static DBWayPtHandler mInstance = null;
-    //private static DBWayPtHandler mInstance = null;
-    //private final Context c;
-
     private static final int DATABASE_VERSION = 1;
     // Database Name
     private static final String DATABASE_NAME = "wayPtsInfo";
@@ -30,32 +26,22 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
     private static final String KEY_TIME = "time";
     private static final String KEY_LOCATION = "location";
 
-    /*public static synchronized DBWayPtHandler getInstance(Context context) {
-        // Use the application context, which will ensure that you
-        // don't accidentally leak an Activity's context.
-        // See this article for more information: http://bit.ly/6LRzfx
-        if (mInstance == null) {
-            mInstance = new DBWayPtHandler(context); // throws null pointer context.getApplicationContext()
-        }
-        return mInstance;
-    }*/
-    public DBWayPtHandler(Context context) {
+    public DBWayPtHandler(Context context) throws SQLException {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        //this.c = context;
     }
 
     @Override
-    public void onCreate(SQLiteDatabase db) {
+    public void onCreate(SQLiteDatabase db1) throws SQLException {
         String CREATE_WAYPTS_TABLE = "CREATE TABLE " + TABLE_WAYPTS + "("
                 + KEY_ID + " INTEGER PRIMARY KEY, " + KEY_MAPNAME + " TEXT, "
                 + KEY_DESC + " TEXT, " + KEY_X + " FLOAT, "
                 + KEY_Y + " FLOAT, " +KEY_COLOR + " TEXT, " + KEY_TIME + " TEXT, "
                 + KEY_LOCATION + " TEXT"+")";
-        db.execSQL(CREATE_WAYPTS_TABLE);
+        db1.execSQL(CREATE_WAYPTS_TABLE);
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    public void onUpgrade(SQLiteDatabase db1, int oldVersion, int newVersion) throws SQLException {
         // For new version do new stuff here
     }
 
@@ -76,19 +62,17 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
             values.put(KEY_DESC, wayPt.getDesc()); // Waypoint description
             values.put(KEY_X, wayPt.getX()); // x screen coordinate
             values.put(KEY_Y, wayPt.getY()); // y screen coordinate
-            values.put(KEY_COLOR, wayPt.getColorName()); // Color name of push pin image
+            values.put(KEY_COLOR, wayPt.getColorName()); // Color name of pushpin image
             values.put(KEY_TIME, wayPt.getTime()); // Date and time of creation of waypoint
             values.put(KEY_LOCATION, wayPt.getLocation()); // Lat, Long
             // Inserting Row
             db.insert(TABLE_WAYPTS, null, values);
-            //db.close(); // Closing database connection
     }
 
     // Delete all WayPts for a given PDF map
     public void deleteWayPts(String mapName) throws SQLException {
         SQLiteDatabase db = this.getReadableDatabase();
         db.delete(TABLE_WAYPTS, "mapName=?", new String[]{mapName});
-        //db.close();
     }
 
     // Getting one WayPt
@@ -108,11 +92,9 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         } catch (NullPointerException e) {
             Toast.makeText(c, "Error reading database.", Toast.LENGTH_LONG).show();
             cursor.close();
-            //db.close();
             return null;
         }
         cursor.close();
-        //db.close();
         return wayPt;
     }*/
 
@@ -134,7 +116,6 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
         cursor.close();
-        //db.close();
         // return waypoints list
         return wayPtsList;
     }
@@ -142,7 +123,6 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
     // Updating a Waypoint
     public int updateWayPt(WayPt wayPt) throws SQLException {
         SQLiteDatabase db = this.getWritableDatabase();
-
         ContentValues values = new ContentValues();
         values.put(KEY_MAPNAME, wayPt.getName());
         values.put(KEY_DESC, wayPt.getDesc());
@@ -162,7 +142,6 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_WAYPTS, KEY_ID + " = ?",
                 new String[] { String.valueOf(wayPt.getId()) });
-        //db.close();
     }
 
     // Deleting a Waypoint
@@ -170,6 +149,5 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_WAYPTS, KEY_MAPNAME + " = ?",
                 new String[]{mapName});
-        //db.close();
     }
 }

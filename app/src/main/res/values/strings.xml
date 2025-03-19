@@ -1,19 +1,21 @@
 <resources>
     <string name="app_name">CPW Mobile PDF</string>
-    <string name="app_name_short">Mobile PDF</string>
     <string name="name">Name</string>
     <string name="onMap">On Map?</string>
-    <string name="pdfimg">Image of PDF</string>
+    <string name="offMap">Off Map</string>
+    <string name="pdfimg">Image of the PDF</string>
     <string name="markCurrent">Mark current location</string>
     <string name="add_way_pt">Add a waypoint</string>
-    <string name="open_pdf">Open a new map</string>
+    <string name="map_settings">MAP SETTINGS:</string>
+    <string name="app_settings">APP SETTINGS:</string>
+    <string name="add_lat_long">Add a waypoint by lat/long</string>
     <string name="showWayPtLabels">Show all waypoint labels</string>
     <string name="showWayPts">Show waypoints</string>
+    <string name="loadAdjacentMaps">Load adjacent maps</string>
     <string name="deleteAllWayPts">Delete all waypoints</string>
     <string name="wayPtInstr">Tap map to add waypoint</string>
     <string name="portrait">Lock in Portrait</string>
     <string name="landscape">Lock in Landscape</string>
-    <string name="orientation">Orientation</string>
     <string name="red">Red</string>
     <string name="blue">Blue</string>
     <string name="cyan">Cyan</string>
@@ -36,11 +38,11 @@
 
     <!-- GetMoreActivity -->
     <string name="download_maps">STEP 1: Download Maps</string>
-    <string name="downloadInstr1">Show a list of map resources from the CPW website. The following resources will work with this app:</string>
-    <string name="downloadInstr2"> Maps Library (use GeoPDF file type)</string>
+    <string name="downloadInstr1">Show a list of map resources from the CPW website. Scroll down to the CPW Mobile PDF section. It has links to the following resources which will work with this app:</string>
+    <string name="downloadInstr2"> CPW online Maps Library (note: must set GISFileType to GeoPDF)</string>
     <string name="downloadInstr3"> Hunting Atlas or Fishing Atlas</string>
-    <string name="downloadInstr4"> Forest Service topographical maps</string>
-    <string name="downloadInstr5"> U.S. Geological Survey Store</string>
+    <string name="downloadInstr4"> U.S. Forest Service</string>
+    <string name="downloadInstr5"> U.S. Geological Survey</string>
     <string name="downloadInstr6">See Help for more detailed instructions.</string>
     <string name="start_browser">Leaving this app and starting your browser. Once your map has downloaded, please return to this app to import it.</string>
     <string name="open_browser">Open Browser</string>
@@ -48,32 +50,33 @@
     <string name="load_maps_help">Open File Picker to select PDF maps that you downloaded. They will be copied into this app.</string>
     <string name="file_picker">File Picker</string>
     <string name="importdone">Import Done</string>
+    <string name="importdonemsg">Done. Map copied to app.</string>
 
     <string name="notice">NOTICE</string>
     <string name="Mb"> Mb</string>
     <string name="Kb"> Kb</string>
     <string name="miles"> mi</string>
 
-
-    <!--string name="title_activity_web">Import Map</string-->
     <string name="deleteAllDBrecords">Delete All Maps</string>
     <!--string name="editMap">Edit Maps</string-->
-    <!--string name="edit">Edit</string-->
     <string name="delete">Delete</string>
+    <string name="move_here">Move Here</string>
+    <string name="move_instructions">Zoom or pan map to move waypoint.</string>
+    <string name="cancel">Cancel</string>
+    <string name="load_adjacent_maps">Load Adjacent Maps?</string>
+
     <!--string name="rename">Rename</string-->
     <string name="ok">OK</string>
-    <string name="splash">Colorado Parks and Wildlife</string>
-    <string name="contBtn">Continue</string>
     <!--string name="mapName">Map Name:\u0020</string-->
     <string name="CurPos">Current location:\u0020</string>
     <string name="fileDetails">File Details:</string>
     <string name="fileLocation">File Location:\u0020</string>
     <string name="fileSize">File Size:\u0020</string>
-    <string name="push_pin_img">Push Pin Image</string>
+    <string name="push_pin_img">Pushpin Image</string>
     <string name="latLongBounds">Lat/Long Bounds:\u0020</string>
     <string name="wayLocation">Lat, Long:\u0020</string>
     <string name="wayTime">Date Added:\u0020</string>
-    <string name="wayColor">Push Pin Color:\u0020</string>
+    <string name="wayColor">Pushpin Color:\u0020</string>
     <string name="clear">Clear Name</string>
     <string name="title_activity_edit_map_name">Edit Map Name</string>
     <string name="title_activity_edit_way_pt">Edit Waypoint</string>
@@ -100,25 +103,25 @@
     <!-- Add Map Help -->
     <string name="help_get_more_title">Adding Maps Help</string>
     <string name="help_download_title"><u>STEP 1: Download Maps</u></string>
-    <string name="help_download1">Click on the Open Browser button to download a map. Note that this requires an internet connection. It will notify you that it is starting up your browser app. Then it will load a page from the CPW website with resources to download georeferenced PDFs. Use one of the resources described below to download a map.</string>
+    <string name="help_download1">Click on the Open Browser button to download a map. Note that this requires an internet connection. It will notify you that it is starting up your browser app. Then it will load a page from the CPW website with resources to download georeferenced PDFs. Scroll down to the CPW Mobile PDF section to see these resources. Use one of the resources described below to download a map. If you have changed the default app that displays PDFs and that app does not allow saving the map, reset the default PDF viewer in Settings/Apps.</string>
     <string name="help_download2">Map Resources:</string>
-    <string name="help_cpw_mapslib_title">CPW Maps Library</string>
-    <string name="help_cpw_mapslib">Click on \'Maps Library page\'. Select file type, GeoPDF, and press \'Search\'. Click on a map name to download it.</string>
+    <string name="help_cpw_mapslib_title">CPW Online Map Library</string>
+    <string name="help_cpw_mapslib">Click on \'CPW online Map Library\'. Click on show 2 filters to display GISFileType filter. Set this to GeoPDF. Click the download icon for the desired map.</string>
     <string name="help_atlas_title">Hunting or Fishing Atlas</string>
-    <string name="help_atlas">Click on the \'Colorado Hunting Atlas\' or the \'Colorado Fishing Atlas\'. Select your map layers by clicking on the menu icon in the top-left. Set your zoom level. Then press the down arrow icon. It will allow you to change: map scale, map size, and orientation. Smaller map scales will show more detail. Larger map sizes will show larger map areas. Enter a PDF file name and press the Create PDF button. Wait for it to be created and then press Download PDF.</string>
+    <string name="help_atlas">Click on \'Colorado Hunting Atlas\' or \'Fishing Atlas\'. Select your map layers by tapping on the menu icon in the top-left. Set your zoom level. Then press the down arrow icon. It will allow you to change: map scale, map size, and orientation. Smaller map scales will show more detail. Larger map sizes will show larger map areas. Enter a PDF file name and press the Create PDF button. Wait for it to be created and then press Download PDF.</string>
     <string name="help_FS_title">Forest Service</string>
-    <string name="help_FS">Click on \'Forest Service topographical maps for free\' under Hunting. Below the map that loads, click on \'here\' to open the map viewer as full screen. Search by name or use the +/- buttons to zoom in or out. When the forest service individual map boundaries are showing click on one of the rectangles. Then in the popup box, click the \'>\' icon. Lastly, click on \'Download PDF\'.</string>
+    <string name="help_FS">Click on \'USFS\'. Search for a location. When the forest service individual map boundaries are showing, click on one of the rectangles. Then in the popup box, click the \'>\' icon. Lastly, click on \'Download PDF\'.</string>
     <string name="help_FS_img">Forest service web app image</string>
     <string name="help_USGS_title">USGS</string>
-    <string name="help_USGS">Click on \'U.S. Geological Survey Store\' under Hunting. Then click on \'Map Locator Tool\'. Search for a location name with the \'Map Locator\' or use the +/- buttons to zoom in or out and double tap the map at the desired location. In the popup, click \'View Products\'. Click on the \'View PDF\' button on the most recent map. Click \'OK\' on the popup that says \'you are navigating away&#8230;\' It may download immediately. If it does not download, wait for it to display, click on the menu icon, and then click on \'download\'.</string>
+    <string name="help_USGS">Click on \'USGS\'. Search for a location and tap on it. Scroll down to the most recent map and tap on it. Scroll down and select GeoPDF. It may download immediately. If it does not, wait for it to display, click on the menu icon, and then click on \'download\' or \'save\'.</string>
     <string name="help_USGS_img">USGS web app image</string>
     <string name="help_import_title"><u>STEP 2: Import Maps</u></string>
-    <string name="help_importmaps1">After you have downloaded PDF maps *go back to this app and import them by clicking on the File Picker button. Use the menu in the top-left to select from Recent, Documents, or Downloads folders. Or select the Google Drive icon if the file is located there. Click on the PDF file and it will import it and display the map. The map file is copied to the app directory so deleting the original will not affect the imported maps.</string>
-    <string name="help_importmaps2">* Hint to get back to this app: click the back icon next to the home icon at the bottom of your phone.</string>
+    <string name="help_importmaps1">After you have downloaded PDF maps *go back to this app and import them by tapping on the File Picker button. Use the menu in the top-left to select from Recent, Documents, or Downloads folders. Or select the Google Drive icon if the file is located there. Tap on the PDF file and it will import it and display the map. The map file is copied to the app directory so deleting the original will not affect the imported maps.</string>
+    <string name="help_importmaps2">* Hint to get back to this app: tap the back icon next to the home icon at the bottom of your phone.</string>
 
     <!-- View Map Help -->
     <string name="help_view_map_title">View Map Help</string>
-    <string name="help_view_map">Your current latitude and longitude will be displayed at the top of the map, and it will be displayed on the map as a cyan circle outlined in white. Double tap or pinch to zoom. To add waypoints, click on the push pin icon at the top-right, then click the map at the desired location. To cancel adding a waypoint, click again on the push pin icon at the top-right. If the waypoint label is showing, clicking on the map will hide it. Clicking on a waypoint will display it\'s label. Clicking on a waypoint label will let you edit the label and pushpin color.</string>
+    <string name="help_view_map">Location:\nYour current latitude and longitude will be displayed at the top of the map, and it will be displayed on the map as a cyan circle outlined in white.\n\nViewing the Map:\nDouble tap or pinch to zoom in or out. Drag to pan the map.\n\nWaypoints:\nTo add waypoints, tap on the pushpin icon at the top-right, then tap the map at the desired location. To cancel adding a waypoint, tap again on the pushpin icon. If the waypoint label is showing, tapping elsewhere on the map will hide it. Tapping on a waypoint will display it\'s label and edit, move, and delete buttons. Edit will let you edit the label and pushpin color. It will display the date added and the latitude, longitude. Move will turn the pin gray and display a bullseye icon. Zoom or pan the bullseye icon to the desired location. Then tap MOVE HERE, located at the top of the screen, to move the waypoint. The delete button will delete the waypoint.\n\nLoading Adjacent Maps:\nShows a list of nearby maps. This is useful to quickly switch to a new map if you are going off the edge of the current map. Tapping the Load Adjacent Maps button will let you pick a map to switch to. This feature can be turned on or off in the App Settings user preferences.\n\nUser Preferences:\nSettings that remain the same for all maps are found under App Settings. Note that when showing waypoints is turned off, adding a waypoint will temporarily show all waypoints. Settings that are specific to each map are found under Map Settings. The setting for locking the map in landscape or portrait is useful if you are driving on a 4-wheel-drive road and the map switches orientation with each bump!</string>
 
     <!-- Error Messages -->
     <string name="deleteFile">Problem removing map file from App.</string>
@@ -131,6 +134,5 @@
     <string name="writePermission">"Problem copying map to the App. No write permission."</string>
     <string name="createFile">Problem copying map to the App. Cannot create file.</string>
     <string name="importing">Importing map…</string>
-    <string name="file">File, </string>
-    <string name="noLongerExists">, no longer exists. Updating database…</string>
+    <string name="problemReadingDatabase">Cannot read maps database! Is disk full? Error: </string>
 </resources>
