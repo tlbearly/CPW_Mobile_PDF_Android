@@ -42,7 +42,7 @@ android {
     // Select SDK Tools tab. Check Show Package Details. Install latest NDK version. Update NDK version below.
     // Use 'FULL' or if > 300mb use 'SYMBOL_TABLE'
     ndkVersion "26.2.11394342"
-    compileSdkVersion 34 // when remove this it does not compile
+    compileSdkVersion 35 // when remove this it does not compile
     //buildToolsVersion "34.0.0" //"30.0.3"
 
     // For new release change versionCode and versionName
@@ -51,9 +51,9 @@ android {
     defaultConfig {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 23
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode 68
-        versionName "1.5.8"
+        versionName "1.5.9"
         // History
         // v1.3.01 Removed asynctask
         // v1.3.02 Adjust waypoint on long click, added edit, move, delete buttons to top menu

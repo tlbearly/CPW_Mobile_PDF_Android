@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/CPWMobilePDF.iml" filepath="$PROJECT_DIR$/.idea/modules/CPWMobilePDF.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/CPWMobilePDF.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/CPWMobilePDF.app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/CPWMobilePDF.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/CPWMobilePDF.app.androidTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/CPWMobilePDF.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/CPWMobilePDF.app.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/CPWMobilePDF.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/CPWMobilePDF.app.unitTest.iml" />
     </modules>
