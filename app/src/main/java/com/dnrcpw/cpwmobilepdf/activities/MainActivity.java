@@ -588,6 +588,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private void fillList() {
         // GET THE LIST FROM THE DATABASE
         try {
+            /* force this file to push to master */
             myAdapter = new CustomAdapter(MainActivity.this, dbHandler.getAllMaps(), dbHandler, dbWayPtHandler);
         } catch (SQLException | NullPointerException e) {
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
