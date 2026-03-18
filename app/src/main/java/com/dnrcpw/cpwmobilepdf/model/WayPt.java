@@ -15,7 +15,7 @@ public class WayPt {
     private float y = 0; // y screen coordinate
     private String time; // date and time waypoint was created
     private String location; // lat, long
-    private String colorName; //  color of push pin image
+    private String colorName; //  color of pushpin image
 
     public WayPt(){}
 

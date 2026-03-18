@@ -8,36 +8,29 @@
   <com.github.barteksc.pdfviewer.PDFView
       android:id="@+id/pdfView"
       android:layout_width="match_parent"
-      android:layout_height="match_parent" />
+      android:layout_height="match_parent"></com.github.barteksc.pdfviewer.PDFView>
 
-  <RelativeLayout
+  <!-- wait icon -->
+  <!--RelativeLayout
       android:id="@+id/loadingPanel"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      android:gravity="center" >
-
-    <ProgressBar
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:indeterminate="true" />
-  </RelativeLayout>
-
-  <!-- Debug Window -->
-  <!-- Must have width and height set to wrap_content or it will not show up on top -->
-  <TextView
-      android:id="@+id/debug"
+      android:gravity="center" -->
+  <ProgressBar
+      android:id="@+id/loadingPanel"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:background="@color/black_overlay"
-      android:layout_alignParentBottom="true"
-      android:layout_marginBottom="5dp"
-      android:text="" />
+      android:layout_centerInParent="true"
+      android:indeterminate="true"
+      android:gravity="center"/>
+  <!--/RelativeLayout-->
+
+  <!-- Must have width and height set to wrap_content or it will not show up on top -->
   <!-- Current Position -->
   <TextView
       android:id="@+id/cur_pos"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_alignParentTop="true"
       android:background="@color/black_overlay"
       android:paddingStart="10dp"
       android:paddingTop="5dp"
@@ -46,4 +39,28 @@
       android:text="@string/CurPos"
       android:textColor="@color/white"
       android:textStyle="bold" />
+  <!-- Move Waypoint Instructions -->
+  <TextView
+      android:id="@+id/move_instr"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:background="#FFEB3B"
+      android:paddingStart="10dp"
+      android:paddingTop="5dp"
+      android:paddingEnd="10dp"
+      android:paddingBottom="5dp"
+      android:text="@string/move_instructions"
+      android:textColor="#33691E"
+      android:visibility="gone" />
+
+  <!-- Load adjacent maps menu button -->
+  <Button
+      android:id="@+id/load_adjacent_maps"
+      android:layout_width="match_parent"
+      android:layout_height="48dp"
+      android:layout_below="@+id/cur_pos"
+      android:background="#BF9E9C9C"
+      android:text="@string/load_adjacent_maps"
+      android:textColor="#212121"
+      android:visibility="gone" />
 </RelativeLayout>

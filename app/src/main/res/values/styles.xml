@@ -9,6 +9,19 @@
         <item name="cardViewStyle">@style/CardView</item>
         <!-- set dark text on action buttons in alert-->
         <item name="alertDialogTheme">@style/AlertDialogTheme</item>
+        <!-- Increase size of 3 dot menu to avoid error -->
+        <item name="android:actionOverflowButtonStyle">@style/MyActionButtonOverflowDark</item>
+        <!-- Adding fullscreen will just hide the status bar -->
+        <!-- <item name="android:windowFullscreen">true</item> -->
+    </style>
+    <!-- Increase size of actionbar overflow icon (3 dots) to avoid error -->
+    <style name="MyActionButtonOverflowDark" parent="Widget.AppCompat.ActionButton.Overflow">
+        <item name="android:minWidth">56dp</item>
+    </style>
+
+    <!-- set title text size in sp instead of default dp. Still getting error on play store!!!! -->
+    <style name="TextAppearance.AppCompat.Widget.ActionBar.Title" parent="@android:style/TextAppearance">
+        <item name="android:textSize">20sp</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -53,22 +66,4 @@
         <item name="android:shadowDy">1</item>
         <item name="android:shadowRadius">2</item>
     </style>
-
-
-    <!-- Progress Bar -->
-    <style name="CustomProgressBar" parent="android:Widget.ProgressBar.Horizontal">
-        <item name="android:indeterminateOnly">false</item>
-        <item name="android:progressDrawable">@drawable/custom_progress_bar_horizontal</item>
-        <item name="android:minHeight">10dip</item>
-        <item name="android:maxHeight">20dip</item>
-    </style>
-
-    <!--style name="MyProgressBar" parent="@style/Widget.AppCompat.ProgressBar.Horizontal">
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:background">#cccccc</item>
-        <item name="android:maxHeight">10dp</item>
-        <item name="android:minHeight">10dp</item>
-        <item name="android:layout_margin">10dp</item>
-    </style-->
-
 </resources>

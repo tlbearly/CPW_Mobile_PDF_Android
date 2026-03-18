@@ -6,14 +6,11 @@ import android.database.SQLException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.os.AsyncTask;
-import android.os.ParcelFileDescriptor;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,19 +18,8 @@ import com.dnrcpw.cpwmobilepdf.R;
 import com.dnrcpw.cpwmobilepdf.data.DBHandler;
 import com.dnrcpw.cpwmobilepdf.data.DBWayPtHandler;
 import com.dnrcpw.cpwmobilepdf.model.PDFMap;
-import com.itextpdf.text.pdf.PdfArray;
-import com.itextpdf.text.pdf.PdfDictionary;
-import com.itextpdf.text.pdf.PdfName;
-import com.itextpdf.text.pdf.PdfNumber;
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfString;
-import com.shockwave.pdfium.PdfDocument;
-import com.shockwave.pdfium.PdfiumCore;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Locale;
@@ -44,34 +30,22 @@ import java.util.Locale;
  * This info is stored in a database. The list is displayed in MainActivity.
  * On click displays a selected Geo PDF Map in PDFActivity.
  * Uses itextpdf and pdfium to read the PDF.
- *
- *  TODO: Remove deprecated AsyncTask in ImportMapTask
  */
 
 public class CustomAdapter extends BaseAdapter {
     private final Context c;
     ArrayList<PDFMap> pdfMaps;
-    TextView nameTxt;
-    //EditText renameTxt;
-    //ImageView deleteBtn;
-    TextView fileSizeTxt;
-    TextView distToMapTxt;
-    ImageView locIcon;
     Double latNow, longNow;
-    static String viewport, mediabox, bounds;
-    private Boolean loading = false;
-    ProgressBar progressBar;
-    int progress = 0;
-    //boolean editing = false;
+    private final DBHandler db;
+    private final DBWayPtHandler wpdb;
 
-    public CustomAdapter(Context c, ArrayList<PDFMap> pdfMaps) {
+    public CustomAdapter(Context c, ArrayList<PDFMap> pdfMaps, DBHandler db, DBWayPtHandler wpdb) {
         this.c = c;
         this.pdfMaps = pdfMaps;
+        this.db = db;
+        this.wpdb = wpdb;
     }
 
-    /*public void setEditing(Boolean value){
-        this.editing = value;
-    }*/
     public void SortByName(){
         // Sort array list pdfMaps of objects of type pdfMap alphabetically by name.
         Collections.sort((this.pdfMaps), PDFMap.NameComparator);
@@ -117,589 +91,11 @@ public class CustomAdapter extends BaseAdapter {
         longNow = location.getLongitude();
     }
 
-    private void showProgressBar() {
-        progressBar.setVisibility(View.VISIBLE);
-    }
-
-    /*private void dismissProgressBar() {
-        progressBar.setVisibility(View.GONE);
-    }*/
-
-    /*private void updateProgressBar(int progress){
-        progressBar.setVisibility(View.VISIBLE);
-        progressBar.setProgress(progress);
-    }*/
-
-    private static class ImportMapTask extends AsyncTask<Integer, Integer, String> {
-        //private final WeakReference<CustomAdapter> customAdapterRef;
-        //ProgressBar progressBar;
-        String filePath;
-        PDFMap pdfMap;
-        CustomAdapter ca;
-
-        ImportMapTask(CustomAdapter customadapter, PDFMap pdfMap) {
-            // calls onPreExecute
-            // only retain a weak reference to the CustomAdapter class
-            //customAdapterRef = new WeakReference<>(context);
-            this.pdfMap = pdfMap;
-            this.filePath = pdfMap.getPath();
-            this.ca = customadapter;
-        }
-
-        //protected ImportMapTask(Context c, PDFMap pdfMap, ProgressBar pb) {
-        //this.c = c;
-        //this.pdfMap = pdfMap;
-        //this.progressBar = pb;
-        //this.filePath = pdfMap.getPath();
-        // calls onPreExecute
-        //}
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            ca.showProgressBar();
-
-            // get a reference to the CustomAdapter if it is still there
-            /*CustomAdapter caRef = customAdapterRef.get();
-            if (caRef == null) return;
-            Activity activity = (Activity) caRef.c;
-            if (activity.isFinishing()) return;
-
-            caRef.loading = true;
-            // calls doInBackground
-            // show progress bar
-            this.progressBar.setVisibility(View.VISIBLE);
-             */
-        }
-
-        @Override
-        protected String doInBackground(Integer... params) {
-            // preform background computation to read lat long, page size, boundaries from pdf
-            File file;
-            try {
-                //ca.updateProgressBar(10); // calls onProgressUpdate
-                publishProgress(10);
-                // Get PDF
-                file = new File(filePath);
-
-                // Use iText 5 to read margins, page size, and lat long. iText 7 works with Android 26 and above. iText 5 works with older versions.
-                // PDF ISO standard.
-
-                // iText does this for us:
-                // Go to the end of the pdf file, back up 1mb and search for startxref. Read the offset to the first xref table.
-                // startxref
-                // offset number to first xref table
-                //%%EOF
-                // Read xref table containing offsets to each object in the file. This is the format:
-                // xref
-                // 0 104
-                // 0000000000 65535 f
-                // 0000000010 00000 n
-                // 0000973188 00000 n
-                // ...
-                // trailer
-                // <<
-                // /Size 104
-                // /Info 103 0 R
-                // /Root 102 0 R         Pointer to object 102. Points to /Pages --> /Kids --> /Contents /BBox /MediaBox
-                // /Prev 2874274         May contain /Prev if there is another xref table.
-                // >>
-                // Read the trailer. /Root points to an object number, "5 0 R"  is the object ID, 0 is the generation number, R = Reference to object.
-                // /Root 5 0 R --> .../Pages 1 0 R --> /Kids[15 0 R  16 0 R] --> /Contents.../MediaBox[...].../BBox[...].../Measure 79 0 R --> /Bounds[ ].../GPTS[lat long]/GCS 80 0 R --> GPS projection, ,UNIT["Degree",0.01745]
-                // trailer
-                //<</Size 82/Root 5 0 R/Info 3 0 R/ID[<481274B989C1D7419BA9E71CBA227123><D6AEE54D32AC354E980F653350D6C962>]/Prev 2874274>>
-
-                PdfReader reader = new PdfReader(filePath);
-
-                //int numPages = reader.getNumberOfPages();
-
-                PdfDictionary page = reader.getPageN(1);
-                if (page == null) {
-                    reader.close();
-                    return ("Import Failed");
-                }
-                PdfArray vp = page.getAsArray(PdfName.VP);
-                // If this is PDF ISO standard file and not a GeoPDF check the version number
-                if (vp != null){
-                    if (Character.getNumericValue(reader.getPdfVersion()) < 6) {
-                        // Version less than PDF 1.6
-                        reader.close();
-                        return("Not Georeferenced");
-                    }
-                }
-
-                //--------------------------
-                // Get MediaBox page size
-                //--------------------------
-                mediabox = page.getAsArray(PdfName.MEDIABOX).toString(); // works [ 0 0 792 1224]
-                if (mediabox.equals("")) {
-                    reader.close();
-                    return ("Import Failed");
-                }
-                mediabox = mediabox.substring(1,mediabox.length()-1).trim();
-                mediabox = mediabox.replaceAll(",","");
-                publishProgress(20);
-
-                // ---------------------------------------------------------------------------
-                // Get viewport, margins for ISO Standard if vp does not exist it is a GeoPDF
-                //----------------------------------------------------------------------------
-                if (vp != null) {
-                    // Find largest image it should be the map
-                    String[] units;
-                    int id = 0;
-                    double max = 0.0;
-                    for (int i = 0; i < vp.size(); i++) {
-                        PdfArray b = vp.getAsDict(i).getAsArray(PdfName.BBOX);
-                        String parse = b.toString().trim();
-                        parse = parse.substring(1, parse.length() - 1);
-                        parse = parse.replaceAll(",", "");
-                        int pos = parse.indexOf(" ");
-                        // double bBoxX1 = Double.parseDouble(parse.substring(0, pos));
-                        // FIND bBoxY1
-                        parse = parse.substring(pos + 1); // strip off 'bBoxX1 '
-                        pos = parse.indexOf(" ");
-                        double bBoxY1 = Double.parseDouble(parse.substring(0, pos));
-                        // FIND bBoxX2
-                        parse = parse.substring(pos + 1); // strip off 'bBoxY1 '
-                        pos = parse.indexOf(" ");
-                        //double bBoxX2 = Double.parseDouble(parse.substring(0, pos));
-                        // FIND bBoxY2
-                        parse = parse.substring(pos + 1); // strip off 'bBoxX2 '
-                        pos = parse.indexOf(" ");
-                        double bBoxY2 = Double.parseDouble(parse.substring(pos + 1));
-                        double h;
-                        if (bBoxY1 > bBoxY2) h = bBoxY1 - bBoxY2;
-                        else h = bBoxY2 - bBoxY1;
-                        if (max < h) {
-                            max = h;
-                            id = i;
-                        }
-                    }
-                    PdfDictionary vpDict = vp.getAsDict(id);
-                    if (vpDict == null) {
-                        reader.close();
-                        return ("Import Failed");
-                    }
-                    PdfArray bbox = vpDict.getAsArray(PdfName.BBOX);
-                    if (bbox == null) {
-                        reader.close();
-                        return ("Import Failed");
-                    }
-                    viewport = bbox.toString().trim();
-                    viewport = viewport.substring(1, viewport.length() - 1);
-                    viewport = viewport.replaceAll(",", "");
-                    publishProgress(30);
-
-                    String[] bboxArr = viewport.split(" ");
-                    //---------------------------------------------
-                    // Get Lat Long from /Measure dictionary /GPTS
-                    //---------------------------------------------
-                    PdfDictionary measure = vpDict.getAsDict(PdfName.MEASURE);
-                    // get unit box correction for BBox if [0,1, 0,0, 1,0, 1,1] needs no correction
-                    /*String unitBox = measure.get(PdfName.BOUNDS).toString();
-                    unitBox = unitBox.trim();
-                    unitBox = unitBox.substring(1,unitBox.length() -1);
-                    unitBox = unitBox.replaceAll(",", ""); // remove commas
-                    units = unitBox.split(" ");
-                    */
-
-                    // adjust bbox by unitBox
-                    // top-left
-                   /* Double bboxX1 = Double.valueOf(bboxArr[0]) + (Double.valueOf(bboxArr[2]) - Double.valueOf(bboxArr[0])) * (Double.valueOf(units[6]) - 1);
-                    Double bboxY1 = Double.valueOf(bboxArr[1]) + (Double.valueOf(bboxArr[3]) - Double.valueOf(bboxArr[1])) * Double.valueOf(units[5]);
-                    // bottom-left map boundary * unit square
-                    Double bboxX2 = Double.valueOf(bboxArr[2]) + (Double.valueOf(bboxArr[2]) - Double.valueOf(bboxArr[0])) * Double.valueOf(units[2]);
-                    Double bboxY2 = Double.valueOf(bboxArr[3]) + (Double.valueOf(bboxArr[3]) - Double.valueOf(bboxArr[1])) * (Double.valueOf(units[1]) - 1);*/
-
-                    // using this one
-                    /*
-                    double bboxX1 = Double.parseDouble(bboxArr[0]) + ((Double.parseDouble(units[0]) - 0) * Double.parseDouble(bboxArr[0]));
-                    double bboxY1 = Double.parseDouble(bboxArr[1]) + ((Double.parseDouble(units[1]) - 1) * Double.parseDouble(bboxArr[1]));
-                    // bottom-right map boundary * unit square
-                    double bboxX2 = Double.parseDouble(bboxArr[2]) + ((Double.parseDouble(units[4]) - 1) * Double.parseDouble(bboxArr[2]));
-                    double bboxY2 = Double.parseDouble(bboxArr[3]) + ((Double.parseDouble(units[5]) - 0) * Double.parseDouble(bboxArr[3]));
-                    */
-
-                    // No adjustment with unit box
-
-                    double bboxX1 = Double.parseDouble(bboxArr[0]);
-                    double bboxY1 = Double.parseDouble(bboxArr[1]);
-                    // bottom-right map boundary * unit square
-                    double bboxX2 = Double.parseDouble(bboxArr[2]);
-                    double bboxY2 = Double.parseDouble(bboxArr[3]);
-
-
-
-                    //Log.d("viewport", viewport);
-
-                    // Adjust view port by unit box???????
-                    viewport = bboxX1+" "+bboxY1+" "+bboxX2+" "+bboxY2;
-                    //Log.d("adjusted viewport", viewport);
-
-                    bounds = measure.get(PdfName.GPTS).toString();
-                    if (bounds.equals("")) {
-                        reader.close();
-                        return ("Import Failed");
-                    }
-                    bounds = bounds.trim();
-                    bounds = bounds.substring(1, bounds.length() - 1);
-                    bounds = bounds.replaceAll(",", "");
-                    //String[] latlong;
-                    //latlong = bounds.split(" ");
-                    // Test - not working! adjusted with the unit square - gives the correct lat long for BBox
-                    // bottom-left lat/long (given long + (height or width in decimal degrees) * unit square value
-                   /* double lat1 = Double.parseDouble(latlong[0]) + (Double.parseDouble(latlong[2]) - Double.parseDouble(latlong[0])) * Double.parseDouble(units[0]);
-                    double long1 = Double.parseDouble(latlong[1]) + (Double.parseDouble(latlong[7]) - Double.parseDouble(latlong[1])) * (Double.parseDouble(units[1]) - 1);
-                    // top-left lat/long (given lat + (height or width in decimal degrees) * unit square value
-                    double lat2 = Double.parseDouble(latlong[2]) + (Double.parseDouble(latlong[2]) - Double.parseDouble(latlong[0])) * Double.parseDouble(units[2]);
-                    double long2 = Double.parseDouble(latlong[3]) + (Double.parseDouble(latlong[5]) - Double.parseDouble(latlong[3])) * Double.parseDouble(units[3]);
-
-                    // top-right lat/long (given lat + (height or width in decimal degrees) * unit square value
-                    double lat3 = Double.parseDouble(latlong[4]) + (Double.parseDouble(latlong[4]) - Double.parseDouble(latlong[6])) * Double.parseDouble(units[4]);
-                    double long3 = Double.parseDouble(latlong[5]) + (Double.parseDouble(latlong[5]) - Double.parseDouble(latlong[3])) * Double.parseDouble(units[5]);
-                    // bottom-right lat/long (given lat + (height or width in decimal degrees) * unit square value
-                    double lat4 = Double.parseDouble(latlong[6]) + (Double.parseDouble(latlong[4]) - Double.parseDouble(latlong[4])) * (Double.parseDouble(units[6]) - 1);
-                    double long4 = Double.parseDouble(latlong[7]) + (Double.parseDouble(latlong[1]) - Double.parseDouble(latlong[5])) * Double.parseDouble(units[7]);
-                    Log.d("adjusted lat/long", lat1+", "+long1+ "  "+lat2+", "+long2+"  "+lat3+", "+long3+"  "+lat4+", "+long4);
-
-                    */
-                }
-                // View port not found geoPDF
-                else{
-                    // /MediaBox [0,0,1638,2088]
-                    // /LGIDict array of dictionaries
-                    //      /CTM [a (scale), b, c, d (scale), H (horizontal map distance in meters), V (vertical map distance in meters)]
-                    //      /Neatline  array of page margins in points 1/72 of an inch [h2, v1, h1, v1, h1, v2, h2, v2, h2, v1]
-                    //      /Display dictionary of /Projection (optional but will have /Projection instead)
-                    //          /Projection dictionary
-                    //              /ProjectionType "UT" UTM works need zone
-                    //              /Zone "12" or "13"
-                    //              /Units "m"
-                    //      /Projection dictionary of /Projection (optional but will have /Display instead)
-                    //          /Projection dictionary
-                    //              /ProjectionType "UT" UTM works need zone
-                    //              /Zone "12" or "13"
-                    //              /Units "m"
-                    PdfName lgiDict = new PdfName("LGIDict");
-                    PdfName ctm = new PdfName("CTM");
-                    //PdfName desc = new PdfName("Description");
-                    PdfName display = new PdfName("Display");
-                    PdfName projection = new PdfName("Projection");
-                    PdfName projectionType = new PdfName("ProjectionType");
-                    PdfName PdfNameZone = new PdfName("Zone");
-                    PdfName PdfNameUnits = new PdfName("Units");
-                    //PdfName lgitinfo = new PdfName("LGIT:Info");
-                    PdfName neatline = new PdfName("Neatline");
-                    PdfArray lgiDictArray = page.getAsArray(lgiDict);
-                    if (lgiDictArray == null) {
-                        reader.close();
-                        return "Import Failed - not georeferenced? No LGIDict dictionary";
-                    }
-                    int max=0;
-                    int id=0;
-                    PdfDictionary lgiDictionary;
-                    // Select LGIDict dictionary with largest vertical area
-                    for (int i=0; i<lgiDictArray.size(); i++) {
-                        lgiDictionary = lgiDictArray.getAsDict(i);
-                        PdfArray neatArray = lgiDictionary.getAsArray(neatline);
-                        int v1 = Math.round(Float.parseFloat(neatArray.getAsString(1).toString()));
-                        int v2 = Math.round(Float.parseFloat(neatArray.getAsString(3).toString()));
-                        if (v1 == v2) v2 = Math.round(Float.parseFloat(neatArray.getAsString(5).toString()));
-                        if (v1 < v2){
-                            int tmp;
-                            tmp = v1;
-                            v1 = v2;
-                            v2 = tmp;
-                        }
-                        int thisMax = v1 - v2;
-                        if (thisMax > max){
-                            max = thisMax;
-                            id = i;
-                        }
-                    }
-                    lgiDictionary = lgiDictArray.getAsDict(id);
-
-                    PdfDictionary displayDict = lgiDictionary.getAsDict(display);
-                    PdfString projType;
-                    PdfDictionary projDict;
-                    int zone=13;
-                    PdfString units;
-                    // Working for projection type UTM, units meters
-                    if (displayDict == null){
-                        projDict = lgiDictionary.getAsDict(projection);
-                        projType = projDict.getAsString(projectionType);
-                        if (!projType.toString().toLowerCase(Locale.US).equals("ut")){
-                            reader.close();
-                            return "Import Failed - unknown projection: "+projType.toString();
-                        }
-                        units = projDict.getAsString(PdfNameUnits);
-                        if (!units.toString().toLowerCase(Locale.US).equals("m")) {
-                            reader.close();
-                            return "Import Failed - unknown unit: "+units.toString();
-                        }
-                        PdfNumber z = projDict.getAsNumber(PdfNameZone);
-                        if (z != null)
-                            zone = Integer.parseInt(z.toString());
-                    }
-                    else{
-                        projType = displayDict.getAsString(projectionType);
-                        if (!projType.toString().toLowerCase(Locale.US).equals("ut")) {
-                            reader.close();
-                            return "Import Failed - unknown projection: "+projType.toString();
-                        }
-                        units = displayDict.getAsString(PdfNameUnits);
-                        if (!units.toString().toLowerCase(Locale.US).equals("m")) {
-                            reader.close();
-                            return "Import Failed - unknown unit: "+units.toString();
-                        }
-                        PdfNumber z = displayDict.getAsNumber(PdfNameZone);
-                        if (z != null)
-                            zone = Integer.parseInt(z.toString());
-                    }
-
-                    // Get View Port
-                    // This works for projType == UT (for UTM) units == m
-                    PdfArray neatArray = lgiDictionary.getAsArray(neatline);
-                    int h1 = Math.round(Float.parseFloat(neatArray.getAsString(0).toString()));
-                    int v1 = Math.round(Float.parseFloat(neatArray.getAsString(1).toString()));
-                    int h2 = Math.round(Float.parseFloat(neatArray.getAsString(2).toString()));
-                    int v2 = Math.round(Float.parseFloat(neatArray.getAsString(3).toString()));
-                    if (h1 == h2) h2 = Math.round(Float.parseFloat(neatArray.getAsString(4).toString()));
-                    if (v1 == v2) v2 = Math.round(Float.parseFloat(neatArray.getAsString(5).toString()));
-                    if (h2 < h1){
-                        int tmp;
-                        tmp = h1;
-                        h1 = h2;
-                        h2 = tmp;
-                    }
-                    if (v1 < v2){
-                        int tmp;
-                        tmp = v1;
-                        v1 = v2;
-                        v2 = tmp;
-                    }
-                    viewport = h1 + " " + v1 + " " + h2 + " " + v2;
-                    publishProgress(20);
-
-                    // Get Latitude/Longitude Bounds = lat1 long1 lat2 long1 lat2 long2 lat1 long2
-                    PdfArray ctmArray = lgiDictionary.getAsArray(ctm);
-                    double a = Double.parseDouble(ctmArray.getAsString(0).toString()); // scale (x2 - x1) / (h2 - h1)
-                    double H = Double.parseDouble(ctmArray.getAsString(4).toString()); // H = x1 - a * h1
-                    double V = Double.parseDouble(ctmArray.getAsString(5).toString()); // V = y1 - a * v1
-                    double x1 = H + a * h1; // meters
-                    double y1 = V + a * v1; // meters
-                    double x2 = H + a * h2; // meters
-                    double y2 = V + a * v2; // meters
-                    double [] latlong1 = UTMtoLL(y1,x1,zone);
-                    double [] latlong2 = UTMtoLL(y2,x2,zone);
-                    bounds = String.format("%s %s %s %s %s %s", latlong2[1], latlong1[0], latlong1[1], latlong1[0], latlong1[1], latlong2[0]);
-                    // this one does not work!!! Can't add waypoints
-                    //bounds = String.valueOf(latlong1[1]) +" "+ String.valueOf(latlong1[0]) +" "+ String.valueOf(latlong2[1]) +" "+ String.valueOf(latlong1[0]) +" "+ String.valueOf(latlong2[1]) +" "+ String.valueOf(latlong2[0]);
-
-                    //String description = lgiDictionary.getAsString(desc).toString();
-                }
-                publishProgress(40);
-                reader.close();
-
-            }catch(Exception ex){
-                //Toast.makeText(c, "Trouble reading PDF. " + ex.getMessage(), Toast.LENGTH_LONG).show();
-                return ("Import Failed");
-            }
-
-            // ---------------------
-            //  get thumbnail image
-            // --------------------
-            byte[] thumbnail;
-            int pageNum = 0;
-            PdfiumCore pdfiumCore = new PdfiumCore(ca.c);
-            try {
-                ParcelFileDescriptor fd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
-                PdfDocument pdfDocument = pdfiumCore.newDocument(fd);
-                publishProgress(50);
-                pdfiumCore.openPage(pdfDocument, pageNum);
-
-                int width = pdfiumCore.getPageWidthPoint(pdfDocument, pageNum);
-                int height = pdfiumCore.getPageHeightPoint(pdfDocument, pageNum);
-
-                // ARGB_8888 - best quality, high memory usage, higher possibility of OutOfMemoryError
-                // RGB_565 - little worse quality, twice less memory usage
-                Bitmap bitmap = Bitmap.createBitmap(width, height,
-                        Bitmap.Config.RGB_565);
-                pdfiumCore.renderPageBitmap(pdfDocument, bitmap, pageNum, 0, 0,
-                        width, height);
-                publishProgress(70);
-
-                // scale it down
-                Bitmap scaled = Bitmap.createScaledBitmap(bitmap,100, (int) Math.round(100.0 * (double)height/(double)width),false);
-                //if you need to render annotations and form fields, you can use
-                //the same method above adding 'true' as last param
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                scaled.compress(Bitmap.CompressFormat.PNG, 0, stream);
-                publishProgress(80);
-                thumbnail = stream.toByteArray();
-                bitmap.recycle(); // free memory
-                scaled.recycle();
-                pdfiumCore.closeDocument(pdfDocument); // 12-17-21 added close document
-
-                // Save thumbnail to a file in app directory (/data/data/com/dnrcpw/cpwmobilepdf/files), save the path to it.
-                File img;
-                try {
-                    publishProgress(85);
-                    // Save thumbnail image in local storage where this App is.
-                    String path = ca.c.getFilesDir().getAbsolutePath();
-                    img = new File(path + "/CPWthumbnail" + pdfMap.getId() + ".png");
-                    if (!img.exists()) {
-                        boolean fileDoesNotExist = img.createNewFile();
-                        if (!fileDoesNotExist)
-                            Toast.makeText(ca.c, ca.c.getResources().getString(R.string.problemThumbnailSavingFile), Toast.LENGTH_LONG).show();
-                    }
-                    FileOutputStream fos = new FileOutputStream(img);
-                    fos.write(thumbnail);
-                    fos.close();
-                    pdfMap.setThumbnail(path + "/CPWthumbnail" + pdfMap.getId() + ".png");
-                } catch (IOException e){
-                    Toast.makeText(ca.c, ca.c.getResources().getString(R.string.problemThumbnailDiskFull) + e.getMessage(), Toast.LENGTH_LONG).show();
-                    pdfMap.setThumbnail(null);
-                } catch (SecurityException e){
-                    Toast.makeText(ca.c, ca.c.getResources().getString(R.string.problemThumbnailSecurity) + e.getMessage(), Toast.LENGTH_LONG).show();
-                    pdfMap.setThumbnail(null);
-                } catch (Exception e) {
-                    Toast.makeText(ca.c, ca.c.getResources().getString(R.string.problemThumbnailSaving) + e.getMessage(), Toast.LENGTH_LONG).show();
-                    pdfMap.setThumbnail(null);
-                }
-
-                publishProgress(90);
-
-                // Get Map Name
-                String name = file.getName();
-                publishProgress(80);
-
-                // Get File Size
-                String fileSize;
-                double size = file.length() / 1024.0; // Get size and convert bytes into Kb.
-                if (size >= 1024) {
-                    fileSize = String.format(Locale.US,"%.1f %s", (size / 1024.0), ca.c.getResources().getString(R.string.Mb));
-                } else {
-                    fileSize = String.format(Locale.US,"%.0f %s", size, ca.c.getResources().getString(R.string.Kb));
-                }
-
-                // IMPORT INTO the DATABASE
-                pdfMap.setName(name);
-                pdfMap.setFileSize(fileSize);
-                //pdfMap.setThumbnail(thumbnail);
-                pdfMap.setViewport(viewport);
-                pdfMap.setMediabox(mediabox);
-                pdfMap.setBounds(bounds);
-                publishProgress(95);
-                //DBHandler db = DBHandler.getInstance(c);
-                DBHandler db = new DBHandler(ca.c);
-                db.updateMap(pdfMap);
-                db.close();
-                publishProgress(100);
-                fd.close(); // thumbnail file descriptor
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                pdfMap.setName("deleting...");
-                return "Import Failed " + ex.getMessage();
-            }
-            return ca.c.getResources().getString(R.string.importdone); //"Import Done";
-        }
-
-        // 10-10-18 Test getting thumbnail from iText
-       /* private List<BufferedImage> FindImages(PdfReader reader, PdfDictionary pdfPage) throws IOException
-        {
-            List<BufferedImage> result = new ArrayList<>();
-            Iterable<PdfObject> imgPdfObject = FindImageInPDFDictionary(pdfPage);
-            for (PdfObject image : imgPdfObject)
-            {
-                int xrefIndex = ((PRIndirectReference)image).getNumber();
-                PdfObject stream = reader.getPdfObject(xrefIndex);
-                // Exception occurs here :
-                PdfImageObject pdfImage = new PdfImageObject((PRStream)stream);
-                BufferedImage img = pdfImage.getBufferedImage();
-
-                // Do something with the image
-                result.add(img);
-            }
-            return result;
-        }*/
-
-        private double[] UTMtoLL(double f, double f1, int j) {
-            // Convert UTM to Lat Long return [lat, long]
-            // UTM=f,f1 Zone=j Colorado is mostly 13 and a little 12
-            double d = 0.99960000000000004;
-            double d1 = 6378137;
-            double d2 = 0.0066943799999999998;
-
-            double d4 = (1 - Math.sqrt(1-d2))/(1 + Math.sqrt(1 - d2));
-            double d15 = f1 - 500000;
-            //double d16 = f;
-            double d11 = ((j - 1) * 6 - 180) + 3;
-
-            double d3 = d2/(1 - d2);
-            double d10 = f / d;
-            double d12 = d10 / (d1 * (1 - d2/4 - (3 * d2 *d2)/64 - (5 * Math.pow(d2,3))/256));
-            double d14 = d12 + ((3*d4)/2 - (27*Math.pow(d4,3))/32) * Math.sin(2*d12) + ((21*d4*d4)/16 - (55 * Math.pow(d4,4))/32) * Math.sin(4*d12) + ((151 * Math.pow(d4,3))/96) * Math.sin(6*d12);
-            //double d13 = d14 * 180 / Math.PI;
-            double d13a = 1 - d2 * Math.sin(d14) * Math.sin(d14); // tlb store since it is used twice
-            double d5 = d1 / Math.sqrt(d13a);
-            double d6 = Math.tan(d14)*Math.tan(d14);
-            double d7 = d3 * Math.cos(d14) * Math.cos(d14);
-            double d8 = (d1 * (1 - d2))/Math.pow(d13a,1.5);
-
-            double d9 = d15/(d5 * d);
-            double d17 = d14 - ((d5 * Math.tan(d14))/d8)*(((d9*d9)/2-(((5 + 3*d6 + 10*d7) - 4*d7*d7-9*d3)*Math.pow(d9,4))/24) + (((61 +90*d6 + 298*d7 + 45*d6*d6) - 252*d3 -3 * d7 *d7) * Math.pow(d9,6))/720);
-            d17 = d17 * 180 / Math.PI;
-            double d18 = ((d9 - ((1 + 2 * d6 + d7) * Math.pow(d9,3))/6) + (((((5 - 2 * d7) + 28*d6) - 3 * d7 * d7) + 8 * d3 + 24 * d6 * d6) * Math.pow(d9,5))/120)/Math.cos(d14);
-            d18 = d11 + d18 * 180 / Math.PI;
-            return new double[]{d18,d17};
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... progress) {
-            // update the progress bar. The value you pass in publishProgress
-            // is passed in the values parameter of this method
-            super.onProgressUpdate(progress);
-            ca.progress = progress[0];
-            ca.notifyDataSetChanged();
-            //ca.updateProgressBar(progress[0]);
-            //Log.d("CustomAdapter","onProgressUpdate, "+progress[0]+"%");
-            //this.progressBar.setProgress(progress[0]);
-        }
-
-        protected void onPostExecute(String result) {
-            // result of background computation is sent here
-            // get a reference to the CustomAdapter if it is still there
-            //CustomAdapter caRef = customAdapterRef.get();
-            //Activity activity = (Activity) caRef.c;
-            //if (activity.isFinishing()) return;
-
-            //ca.dismissProgressBar();//this.progressBar.setVisibility(View.GONE);
-            //caRef.loading = false;
-            // Map Import Failed
-            if (!result.equals(ca.c.getResources().getString(R.string.importdone))) {
-                Toast.makeText(ca.c, result, Toast.LENGTH_LONG).show();
-                ca.removeItem(pdfMap.getId());
-                ca.openMainView(); // Return to main activity
-            }
-            // Map Import Success
-            else {
-                // Display message and load map
-                //Toast.makeText(c, "Map copied to App folder.", Toast.LENGTH_LONG).show();
-                //notifyDataSetChanged(); // Refresh list of pdf maps
-                ca.openPDFView(pdfMap.getPath(), pdfMap.getName(), pdfMap.getBounds(), pdfMap.getMediabox(), pdfMap.getViewport());
-            }
-            ca.loading = false;
-        }
-    }
-
     public void checkIfExists() {
         // Check if the pdf exists in App directory. If not remove it from the database. Called by MainActivity.
         try {
-            //DBHandler db = DBHandler.getInstance(c);
-            DBHandler db = new DBHandler(c);
-            //DBWayPtHandler wpdb = DBWayPtHandler.getInstance(c);
-            DBWayPtHandler wpdb = new DBWayPtHandler(c);
+            //DBHandler db = new DBHandler(c);
+            //DBWayPtHandler wpdb = new DBWayPtHandler(c);
             for (int i = 0; i < pdfMaps.size(); i++) {
                 PDFMap map = pdfMaps.get(i);
                 File file = new File(map.getPath());
@@ -728,10 +124,12 @@ public class CustomAdapter extends BaseAdapter {
                 }
             }
             notifyDataSetChanged();
-            db.close();
-            wpdb.close();
+            //db.close();
+            //wpdb.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c,  c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
+        } catch (SQLException e){
+            Toast.makeText(c,  c.getResources().getString(R.string.problemReadingDatabase) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -763,7 +161,7 @@ public class CustomAdapter extends BaseAdapter {
             pos = bounds.lastIndexOf(" ");
             double long2 = Double.parseDouble(bounds.substring(pos + 1));*/
 
-                String strBounds = bounds;
+                //String strBounds = bounds;
                 // Get Latitude, Longitude bounds.
                 // lat1 and long1 are the smallest values SW corner
                 // lat2 and long2 are the largest NE corner
@@ -794,11 +192,10 @@ public class CustomAdapter extends BaseAdapter {
                 }
                 // Off map, calculate distance away
                 else {
-                    String direction;
+                    String direction = "";
                     double dist;
                     if (latNow < lat1) direction = "N";
                     else if (latNow > lat2) direction = "S";
-                    else direction = "";
                     if (longNow < long1) direction += "E";
                     else if (longNow > long2) direction += "W";
 
@@ -829,23 +226,26 @@ public class CustomAdapter extends BaseAdapter {
                             Location.distanceBetween(latNow, longNow, lat1, long2, results);
                             break;
                     }
-                    dist = results[0] * 0.00062137119;
-                    if (dist < 0.09){
-                        map.setMiles(0.0);
-                        map.setDistToMap("onmap");
-                        return;
-                    }
-                    map.setMiles(dist);
+
                     String str = "    ";
-
-                    String distStr = String.format(Locale.US, "%s %.1f %s %s", str, dist, c.getResources().getString(R.string.miles), direction);
-                    map.setDistToMap(distStr);
-
-                    // Log.d(TAG, "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
+                    String distStr;
+                    dist = results[0] * 0.00062137119;
+                    // use 2 decimal points
+                    if (dist < 0.1){
+                        map.setMiles(dist);
+                        distStr = String.format(Locale.US, "%s %.2f %s %s", str, dist, c.getResources().getString(R.string.miles), direction);
+                        map.setDistToMap(distStr);
+                    }else {
+                        // use 1 decimal point
+                        map.setMiles(dist);
+                        distStr = String.format(Locale.US, "%s %.1f %s %s", str, dist, c.getResources().getString(R.string.miles), direction);
+                        map.setDistToMap(distStr);
+                    }
+                    //Log.d("CustomAdapter", "updateDistToMap: " + map.getName() + " " + map.getDistToMap());
                 }
             }
         } catch (Exception e){
-            return;
+            Toast.makeText(c,  "Problem getting distance to map. " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -871,8 +271,7 @@ public class CustomAdapter extends BaseAdapter {
     public void rename(int id, String name) {
         // Rename an imported map
         try {
-            //DBHandler db = DBHandler.getInstance(c);
-            DBHandler db = new DBHandler(c);
+            //DBHandler db = new DBHandler(c);
             PDFMap map;
             for (int i = 0; i < pdfMaps.size(); i++) {
                 if (pdfMaps.get(i).getId() == id) {
@@ -890,25 +289,24 @@ public class CustomAdapter extends BaseAdapter {
                         boolean result = file.renameTo(newName);
                         if (!result)
                             Toast.makeText(c, "Can't rename file.", Toast.LENGTH_LONG).show();
-                        //Log.d("CustomAdapter", "Can't rename to: " + name);
-                        //else
-                        //Log.d("CustomAdapter", "Map renamed to: " + name);
                         map.setName(name);
                         map.setPath(sdcard + "/" + fileName);
                         db.updateMap(map);
                     } catch (Exception e) {
+                        //db.close();
                         Toast.makeText(c, "Error renaming: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                     notifyDataSetChanged();
                     break;
                 }
             }
-            db.close();
+            //db.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, "Problem renaming map: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        } catch (SQLException e) {
+            Toast.makeText(c, c.getResources().getString(R.string.problemReadingDatabase) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
-
 
     @Override
     public long getItemId(int i) {
@@ -918,9 +316,8 @@ public class CustomAdapter extends BaseAdapter {
     public void removeAll() {
         // remove all maps from the list and the database
         try {
-            //DBHandler db = DBHandler.getInstance(c);
-            DBHandler db = new DBHandler(c);
-            DBWayPtHandler wpdb = new DBWayPtHandler(c);
+            //DBHandler db = new DBHandler(c);
+            //DBWayPtHandler wpdb = new DBWayPtHandler(c);
             for (int i = pdfMaps.size()-1; i > -1;  i--) {
                 PDFMap map = pdfMaps.get(i);
                 Toast.makeText(c,"Deleting: "+map.getName(), Toast.LENGTH_LONG).show();
@@ -935,27 +332,31 @@ public class CustomAdapter extends BaseAdapter {
                 wpdb.deleteWayPt(map.getName());// delete waypoints
                 pdfMaps.remove(i);
                 // delete thumbnail image also
-                File img = new File(map.getThumbnail());
-                if (img.exists()) {
-                    boolean deleted = img.delete();
-                    if (!deleted) {
-                        Toast.makeText(c, c.getResources().getString(R.string.deleteThumbnail), Toast.LENGTH_LONG).show();
+                if (map.getThumbnail() != null) {
+                    File img = new File(map.getThumbnail());
+                    if (img.exists()) {
+                        boolean deleted = img.delete();
+                        if (!deleted) {
+                            Toast.makeText(c, c.getResources().getString(R.string.deleteThumbnail), Toast.LENGTH_LONG).show();
+                        }
                     }
                 }
             }
             notifyDataSetChanged();
-            db.close();
-            wpdb.close();
+            //db.close();
+            //wpdb.close();
         } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, "Problem removing map: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        } catch (SQLException e){
+            Toast.makeText(c, c.getResources().getString(R.string.problemReadingDatabase) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
     public void removeItem(int id) {
         // remove item i from the list and the database
         try {
-            DBHandler db = new DBHandler(c);
-            DBWayPtHandler dbwaypt = new DBWayPtHandler(c);
+            //DBHandler db = new DBHandler(c);
+            //DBWayPtHandler dbwaypt = new DBWayPtHandler(c);
             for (int i = 0; i < this.pdfMaps.size(); i++) {
                 if (pdfMaps.get(i).getId() == id) {
                     PDFMap map = pdfMaps.get(i);
@@ -968,7 +369,7 @@ public class CustomAdapter extends BaseAdapter {
                     }
                     //Toast.makeText(c,"Deleting: "+map.getName(), Toast.LENGTH_LONG).show();
                     db.deleteMap(map);
-                    dbwaypt.deleteWayPts(map.getName());
+                    wpdb.deleteWayPts(map.getName());
                     pdfMaps.remove(i);
                     // delete thumbnail image also
                     String imgPath = map.getThumbnail();
@@ -985,111 +386,86 @@ public class CustomAdapter extends BaseAdapter {
                     break;
                 }
             }
-            db.close();
-            dbwaypt.close();
-        } catch (IndexOutOfBoundsException | SQLException e) {
+            //db.close();
+            //dbwaypt.close();
+        } catch (IndexOutOfBoundsException e) {
             Toast.makeText(c, c.getResources().getString(R.string.problemRemovingMap) + e.getMessage(), Toast.LENGTH_LONG).show();
+        } catch (SQLException e){
+            Toast.makeText(c, c.getResources().getString(R.string.problemReadingDatabase) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
+    static class ViewHolder{
+        TextView nameTxt;
+        TextView fileSizeTxt;
+        TextView distToMapTxt;
+        ImageView locIcon;
+        ImageView img;
+    }
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
+        ViewHolder holder;
         if (view == null) {
+            holder = new ViewHolder();
             // INFLATE CUSTOM LAYOUT
             view = LayoutInflater.from(c).inflate(R.layout.model, viewGroup, false);
+            holder.nameTxt = view.findViewById(R.id.nameTxt);
+            holder.fileSizeTxt = view.findViewById(R.id.fileSizeTxt);
+            holder.distToMapTxt = view.findViewById(R.id.distToMapTxt);
+            holder.locIcon = view.findViewById(R.id.locationIcon);
+            holder.locIcon.setVisibility(View.GONE);
+            holder.img = view.findViewById(R.id.pdfImage);
+            view.setBackgroundResource(android.R.color.transparent);
+            view.setTag(holder);
+        } else {
+            holder = (ViewHolder) view.getTag();
         }
-        view.setBackgroundResource(android.R.color.transparent);
+
         view.setClickable(true);
         view.setLongClickable(true);
         final PDFMap pdfMap = (PDFMap) this.getItem(i);
 
-        //vis = View.VISIBLE;
-        //hide = View.GONE;
-        nameTxt = view.findViewById(R.id.nameTxt);
-        //renameTxt = view.findViewById(R.id.renameTxt);
-        //deleteBtn = view.findViewById(R.id.ic_delete); // hidden at start
-        fileSizeTxt = view.findViewById(R.id.fileSizeTxt);
-        distToMapTxt = view.findViewById(R.id.distToMapTxt);
-        locIcon = view.findViewById(R.id.locationIcon);
-        locIcon.setVisibility(View.GONE);
-        ImageView img = view.findViewById(R.id.pdfImage);
-        progressBar = view.findViewById(R.id.loadProgress);
-        progressBar.setVisibility(View.GONE);
-
         //  load thumbnail from file
         String path = pdfMap.getThumbnail();
-        if (path == null) img.setImageResource(R.drawable.pdf_icon);
+        if (path == null) holder.img.setImageResource(R.drawable.pdf_icon);
         else {
             try {
                 File imgFile = new File(pdfMap.getThumbnail());
                 Bitmap myBitmap;
                 myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
                 if (myBitmap != null)
-                    img.setImageBitmap(myBitmap);
+                    holder.img.setImageBitmap(myBitmap);
                 else
-                    img.setImageResource(R.drawable.pdf_icon);
+                    holder.img.setImageResource(R.drawable.pdf_icon);
             }catch (Exception ex){
                 Toast.makeText(c, "Problem reading thumbnail.", Toast.LENGTH_LONG).show();
-                img.setImageResource(R.drawable.pdf_icon);
+                holder.img.setImageResource(R.drawable.pdf_icon);
             }
-
         }
-        // BIND DATA
-        // Read lat/long bounds, margins, thumbnail and write to database
 
+        // Failed to Load - remove it. GetMoreActivity calls PDFMap.importMap
         if (pdfMap.getName().equals(c.getResources().getString(R.string.loading))) {
-            nameTxt.setText(c.getResources().getString(R.string.loading));
-            // call AsyncTask to read pdf binary and update progress bar and import into database
-            fileSizeTxt.setText("");
-            distToMapTxt.setText("");
-
-            if (!loading) {
-                loading = true;
-                progressBar.setVisibility(View.VISIBLE);
-                progressBar.setProgress(10);
-                ImportMapTask importMap = new ImportMapTask(this, pdfMap);
-                importMap.execute();
-            }
-            else {
-                progressBar.setVisibility(View.VISIBLE);
-                progressBar.setProgress(progress);
-            }
+            removeItem(pdfMap.getId());
         } else {
-            nameTxt.setText(pdfMap.getName());
-            /*renameTxt.setText(pdfMap.getName());
-            // 2-4-2022 editing state
-            if (editing) {
-                deleteBtn.setVisibility(View.VISIBLE);
-                renameTxt.setVisibility(view.VISIBLE);
-                nameTxt.setVisibility(View.GONE);
-
-            }
-            // 2-4-2022 normal state
-            else {
-                deleteBtn.setVisibility(View.GONE);
-                renameTxt.setVisibility(view.GONE);
-                nameTxt.setVisibility(View.VISIBLE);
-            }*/
-            fileSizeTxt.setText(pdfMap.getFileSize());
+            holder.nameTxt.setText(pdfMap.getName());
+            holder.fileSizeTxt.setText(pdfMap.getFileSize());
             // getDistToMap sets miles also
             String dist = pdfMap.getDistToMap();
             if (latNow != null) {
                 if (!dist.equals("onmap")) {
-                    locIcon.setVisibility(View.GONE);
-                    distToMapTxt.setText(dist);
+                    holder.locIcon.setVisibility(View.GONE);
+                    holder.distToMapTxt.setText(dist);
                 }
                 else {
-                    locIcon.setVisibility(View.VISIBLE);
-                    distToMapTxt.setText("");
+                    holder.locIcon.setVisibility(View.VISIBLE);
+                    holder.distToMapTxt.setText("");
                 }
             } else
-                locIcon.setVisibility(View.GONE);
+                holder.locIcon.setVisibility(View.GONE);
         }
 
         // VIEW ITEM CLICK
         view.setOnClickListener(view1 -> {
-            // if editing do not open the map
-            //if (editing) return;
             // Display the map
             String bounds = pdfMap.getBounds();
             if (bounds == null) {
@@ -1110,10 +486,8 @@ public class CustomAdapter extends BaseAdapter {
         });
 
 
-        // ITEM LONG CLICK - show menu delete item, rename item
+        // ITEM LONG CLICK - show activity to delete or rename item
         view.setOnLongClickListener(view12 -> {
-            //editing = true;
-
             // Open edit activity
             Intent i1 = new Intent(c, EditMapNameActivity.class);
             i1.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -1123,124 +497,13 @@ public class CustomAdapter extends BaseAdapter {
             i1.putExtra("ID", pdfMap.getId());
             i1.putExtra("IMG", pdfMap.getThumbnail());
             c.startActivity(i1);
-            return true;
+            return false;
         });
-
-        // RENAME MAP
-        /*renameTxt.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                /*
-                 * When focus is lost save the entered value for
-                 * later use
-                 */
-                /*if (!hasFocus) {
-                    Log.d("getView","Focus has changed");
-                    String newMapName = ((EditText) v).getText()
-                            .toString();
-                    rename(pdfMap.getId(), newMapName);
-                }
-            }
-        });*/
-
-        // DELETE MAP
-        /*deleteBtn.setOnClickListener(view2 -> {
-            removeItem(pdfMap.getId());
-            Toast.makeText(c, "Map removed", Toast.LENGTH_LONG).show();
-        });*/
-
         return view;
     }
 
-    // EDIT MENU
- /*   private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
-        // Called when the action mode is created; startActionMode() was called
-        @Override
-        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            // Inflate a menu resource providing context menu items
-            MenuInflater inflater = mode.getMenuInflater();
-            inflater.inflate(R.menu.edit_menu, menu);
-            return true;
-        }
-
-        // Called each time the action mode is shown. Always called after onCreateActionMode, but
-        // may be called multiple times if the mode is invalidated.
-        @Override
-        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            return false; // Return false if nothing is done
-        }
-
-        // Called when the user selects a contextual menu item
-        @Override
-        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.edit_map_name:
-                    for (int i=0; i<pdfMaps.size();i++ ) {
-                        if (pdfMaps.get(i).getId() == selectedId)
-                            renameTxt.setText(pdfMaps.get(i).getName());
-                    }
-                    nameTxt.setVisibility(hide);
-                    renameTxt.setVisibility(vis);
-                    renameTxt.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                        @Override
-                        public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
-                            boolean handled = false;
-                            if(actionId == EditorInfo.IME_ACTION_DONE){
-                                rename(selectedId, renameTxt.getText().toString());
-                                handled = true;
-                            }
-                            return handled;
-                        }
-                    });
-                    //rename(selectedId);
-                    mode.finish(); // Action picked, so close the CAB
-                    return true;
-                case R.id.delete_map:
-                    // display alert dialog
-                    AlertDialog.Builder builder = new AlertDialog.Builder(c);
-                    builder.setTitle("Delete");
-                    builder.setMessage("Delete the imported map? This will not remove it from your device storage.").setPositiveButton("DELETE", dialogClickListener)
-                            .setNegativeButton("CANCEL",dialogClickListener).show();
-                    mode.finish(); // Action picked, so close the CAB
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        // Called when the user exits the action mode
-        @Override
-        public void onDestroyActionMode(ActionMode mode) {
-            mActionMode = null;
-        }
-    };
-
-
-    // Remove Imported Map dialog
-    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-            switch (which){
-                case DialogInterface.BUTTON_POSITIVE:
-                    //'DELETE' button clicked, remove map from imported maps
-                    removeItem(selectedId);
-                    Toast.makeText(c, "Map removed", Toast.LENGTH_LONG).show();
-                    break;
-
-                case DialogInterface.BUTTON_NEGATIVE:
-                    //'CANCEL' button clicked, do nothing
-                    break;
-            }
-        }
-    };
-    */
-
-    private void openMainView() {
-        Intent i = new Intent(c, MainActivity.class);
-        c.startActivity(i);
-    }
     // OPEN PDF VIEW - load the map
-    private void openPDFView(String path, String name, String bounds, String mediaBox, String viewPort) {
+    public void openPDFView(String path, String name, String bounds, String mediaBox, String viewPort) {
         Intent i = new Intent(c, PDFActivity.class);
         //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         i.putExtra("PATH", path);

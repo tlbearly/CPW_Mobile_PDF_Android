@@ -116,6 +116,11 @@ public class EditMapNameActivity extends AppCompatActivity {
             latlong[0]="0";
             latlong[1]="0";
         }
+        if (latlong.length == 1){
+            latlong = new String[2];
+            latlong[0]="0";
+            latlong[1]="0";
+        }
             // get unique lat long values
             String lat1 = latlong[0];
             String long1 = latlong[1];

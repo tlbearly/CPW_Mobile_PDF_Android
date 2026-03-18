@@ -39,6 +39,7 @@ public class EditWayPointActivity extends AppCompatActivity {
     WayPt wayPt;
     //boolean landscape;
     boolean changed=false;
+    Boolean showAllWayPts;
     String prevName;
 
     @Override
@@ -61,6 +62,7 @@ public class EditWayPointActivity extends AppCompatActivity {
         viewPort = i.getExtras().getString("VIEWPORT");
         //landscape = i.getExtras().getBoolean("LANDSCAPE");
 
+        showAllWayPts = i.getExtras().getBoolean("SHOWALLWAYPTS");
         // if the map was locked in landscape, show this also in landscape
         /*if (landscape){
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
@@ -166,6 +168,7 @@ public class EditWayPointActivity extends AppCompatActivity {
             }
         }
     };
+
     // EDIT MENU
     // -------------
     //   ... Menu
@@ -184,7 +187,6 @@ public class EditWayPointActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
 
         if (item.getItemId() == R.id.delete_map) {
-            //case R.id.delete_map:
             // display alert dialog
             AlertDialog.Builder builder = new AlertDialog.Builder(EditWayPointActivity.this);
             builder.setTitle("Delete");
@@ -192,7 +194,6 @@ public class EditWayPointActivity extends AppCompatActivity {
                     .setNegativeButton("CANCEL", dialogClickListener).show();
             return true;
         } else if (item.getItemId() == R.id.save) {
-            //case android.R.id.home:
             // rename map
             String name = editTxt.getText().toString();
             if (name.equals("")) {

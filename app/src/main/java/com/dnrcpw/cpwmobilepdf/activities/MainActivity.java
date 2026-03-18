@@ -37,6 +37,7 @@ import androidx.core.content.ContextCompat;
 
 import com.dnrcpw.cpwmobilepdf.R;
 import com.dnrcpw.cpwmobilepdf.data.DBHandler;
+import com.dnrcpw.cpwmobilepdf.data.DBWayPtHandler;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -45,16 +46,17 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.play.core.appupdate.AppUpdateInfo;
 import com.google.android.play.core.appupdate.AppUpdateManager;
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+import com.google.android.play.core.appupdate.AppUpdateOptions;
 import com.google.android.play.core.install.InstallStateUpdatedListener;
 import com.google.android.play.core.install.model.AppUpdateType;
 import com.google.android.play.core.install.model.InstallStatus;
 import com.google.android.play.core.install.model.UpdateAvailability;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
@@ -62,145 +64,145 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private ListView lv;
     private CustomAdapter myAdapter; // list of imported pdf maps
     private DBHandler dbHandler;
+    private DBWayPtHandler dbWayPtHandler;
     //private String TAG = "MainActivity";
     boolean sortFlag = true;
     Toolbar toolbar;
-    Integer selectedId;
-    static final int MY_PERMISSIONS_LOCATION = 0;
+    int selectedId;
+    final int MY_PERMISSIONS_LOCATION = 0;
 
     // location variables
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
     double latNow, latBefore = 0.0;
     double longNow, longBefore = 0.0;
-    double updateProximityDist = 160.9344; // default change in distance that triggers updating proximity .1 miles
+    double updateProximityDist = 160.9344; // default change in distance that triggers updating proximity .1 miles*/
     Spinner sortByDropdown;
+    TextView sortTitle;
     // Update App
     private AppUpdateManager appUpdateManager;
     private static final int APP_UPDATE_REQUEST_CODE = 123;
     private InstallStateUpdatedListener installStateUpdatedListener;
     private boolean checkedForUpdates = false;
 
+    // Edit Menu
+    //ActionMode mActionMode;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // added to report non sdk apis 12/13/21
-        boolean debug = false;
-        if (debug) {
-            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-                    .detectLeakedSqlLiteObjects()
-                    .detectLeakedClosableObjects()
-                    .penaltyLog()
-                    .penaltyDeath()
-                    .build());
-        }
-
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        setTitle("Imported Maps");
+        try{
+            // added to report non sdk APIs 12/13/21
+            boolean debug = false;
+            if (debug) {
+                StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                        .detectLeakedSqlLiteObjects()
+                        .detectLeakedClosableObjects()
+                        .penaltyLog()
+                        .penaltyDeath()
+                        .build());
+            }
 
-        // DEBUG ***********
-        //latBefore = 38.5;
-        //longBefore = -105.0;
+            setContentView(R.layout.activity_main);
+            setTitle(R.string.title_activity_main); // "Imported Maps"
+
+            // DEBUG ***********
+            //latBefore = 38.5;
+            //longBefore = -105.0;
 
 
-        // top menu with ... button
-        toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+            // top menu with ... button
+            toolbar = findViewById(R.id.toolbar);
+            setSupportActionBar(toolbar);
 
-        //sortView = findViewById(R.id.sortByDropDown);
-        // FILL SORT BY OPTIONS
-        sortByDropdown = findViewById(R.id.sortBy);
-        //create an adapter to describe how the items are displayed, adapters are used in several places in android.
-        // sortByItems is an array defined in res/values/strings.xml
-        // width is set in res/layout/spinner_dropdown_item.xml
-        ArrayAdapter<CharSequence> sortByAdapter = ArrayAdapter.createFromResource(this, R.array.sortByItems,
-                R.layout.spinner_dropdown_item);
-        //set the sortBy adapter to the previously created one.
-        sortByDropdown.setAdapter(sortByAdapter);
-        // set on click functions: onItemSelected and nothingSelected (must have these names)
-        sortByDropdown.setOnItemSelectedListener(this);
-        sortFlag = true;
+            //sortView = findViewById(R.id.sortByDropDown);
+            // FILL SORT BY OPTIONS
+            sortByDropdown = findViewById(R.id.sortBy);
+            //create an adapter to describe how the items are displayed, adapters are used in several places in android.
+            // sortByItems is an array defined in res/values/strings.xml
+            // width is set in res/layout/spinner_dropdown_item.xml
+            ArrayAdapter<CharSequence> sortByAdapter = ArrayAdapter.createFromResource(this, R.array.sortByItems,
+                    R.layout.spinner_dropdown_item);
+            //set the sortBy adapter to the previously created one.
+            sortByDropdown.setAdapter(sortByAdapter);
+            // set on click functions: onItemSelected and nothingSelected (must have these names)
+            sortByDropdown.setOnItemSelectedListener(this);
+            sortFlag = true;
 
-        // Used to keep track of user movement
-        latBefore = 0.0;
-        longBefore = 0.0;
+            // Used to keep track of user movement
+            //latBefore = 0.0;
+            //longBefore = 0.0;
 
-        // FLOATING ACTION BUTTON CLICK
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, GetMoreActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-        });
+            // FLOATING ACTION BUTTON CLICK
+            FloatingActionButton fab = findViewById(R.id.fab);
+            fab.setOnClickListener(view -> {
+                Intent intent = new Intent(MainActivity.this, GetMoreActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+            });
 
-        // SET UP LOCATION SERVICES
-        AlertDialog.Builder builder;
-        // Ask for location permissions
-        if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) ||
-                (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED)) {
-            // Permission is not granted. Request the permission
-            if ((ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) ||
-                    (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
-                            Manifest.permission.ACCESS_COARSE_LOCATION))) {
+            // SET UP LOCATION SERVICES
+            AlertDialog.Builder builder;
+            // Ask for location permissions
+            if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) ||
+                    (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED)) {
+                // Permission is not granted. Request the permission
+                if ((ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                        Manifest.permission.ACCESS_FINE_LOCATION)) ||
+                        (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                                Manifest.permission.ACCESS_COARSE_LOCATION))) {
+                    builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("Location Permission Needed");
+                    builder.setMessage("Permission to access this device's location is needed to show your current location on the map. Please click ALLOW when asked.")
+                            .setPositiveButton("OK", (dialog, id) -> {
+                                // User clicked OK button. Hide dialog. Ask again
+                                ActivityCompat.requestPermissions(MainActivity.this,
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                                        MY_PERMISSIONS_LOCATION);
+                            }).show();
+                } else {
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                            MY_PERMISSIONS_LOCATION);
+                }
+            }
+
+            // Check if GPS is enabled
+            if (!isGPSEnabled(MainActivity.this)) {
+                Toast.makeText(MainActivity.this, "GPS is not enabled.", Toast.LENGTH_LONG).show();
+            }
+            // Check if location services are turned on
+            if (!isLocationEnabled(MainActivity.this)) {
                 builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle("Location Permission Needed");
-                builder.setMessage("Permission to access this device's location is needed to show your current location on the map. Please click ALLOW when asked.")
-                        .setPositiveButton("OK", (dialog, id) -> {
-                            // User clicked OK button. Hide dialog. Ask again
-                            ActivityCompat.requestPermissions(MainActivity.this,
-                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                                    MY_PERMISSIONS_LOCATION);
+                builder.setTitle("Notice");
+                builder.setMessage("Please turn ON Location Services. This can be done in your phone's Settings. If this is not turned on your current location will not appear on the map.")
+                        .setPositiveButton(R.string.ok, (dialog, id) -> {
+                            // User clicked OK button. Hide dialog.
                         }).show();
-            } else {
-                ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                        MY_PERMISSIONS_LOCATION);
-            }
-        }
+            } else
+                setupLocation();
 
-        // Check if GPS is enabled
-        if (!isGPSEnabled(MainActivity.this)){
-            Toast.makeText(MainActivity.this,"GPS is not enabled.",Toast.LENGTH_LONG).show();
+            // Check for updates in the Play Store https://www.section.io/engineering-education/android-application-in-app-update-using-android-studio/
+            appUpdateManager = AppUpdateManagerFactory.create(getApplicationContext());//this);
+            installStateUpdatedListener = state -> {
+                if (state.installStatus() == InstallStatus.DOWNLOADING) {
+                    float bytesDownloaded = (float) state.bytesDownloaded();
+                    float totalBytesToDownload = (float) state.totalBytesToDownload();
+                    // Implement progress
+                    Toast.makeText(getApplicationContext(),"Downloading update " + String.format(Locale.US, "%.0f", bytesDownloaded / totalBytesToDownload * 100f) + "%",Toast.LENGTH_SHORT).show();
+                } else if (state.installStatus() == InstallStatus.DOWNLOADED) {
+                    // After the update is downloaded, show a notification
+                    // and request user confirmation to restart the app.
+                    popupForCompleteUpdate();
+                } else if (state.installStatus() == InstallStatus.INSTALLED) {
+                    removeInstallStateUpdateListener();
+                } else {
+                    Toast.makeText(getApplicationContext(), "InstallStateUpdatedListener: state: " + state.installStatus(), Toast.LENGTH_LONG).show();
+                }
+            };
+        }catch (Exception e) {
+            Log.e("Main", e.getMessage());
         }
-        // Check if location services are turned on
-        if (!isLocationEnabled(MainActivity.this)) {
-            builder = new AlertDialog.Builder(MainActivity.this);
-            builder.setTitle("Notice");
-            builder.setMessage("Please turn ON Location Services. This can be done in your phone's Settings. If this is not turned on your current location will not appear on the map.")
-                    .setPositiveButton(R.string.ok, (dialog, id) -> {
-                        // User clicked OK button. Hide dialog.
-                    }).show();
-        }
-        else
-            setupLocation();
-
-        // Check for updates in the Play Store https://www.section.io/engineering-education/android-application-in-app-update-using-android-studio/
-        appUpdateManager = AppUpdateManagerFactory.create(getApplicationContext());//this);
-        installStateUpdatedListener = state -> {
-            if (state.installStatus() == InstallStatus.DOWNLOADING) {
-                float bytesDownloaded = (float)state.bytesDownloaded();
-                float totalBytesToDownload = (float)state.totalBytesToDownload();
-                // Implement progress.
-                Snackbar snackbar =
-                        Snackbar.make(
-                                getWindow().getDecorView().getRootView(),
-                                "Downloading update "+String.format(Locale.US,"%.0f",bytesDownloaded/totalBytesToDownload*100)+"%",
-                                Snackbar.LENGTH_SHORT);
-                snackbar.show();
-            }
-            else if (state.installStatus() == InstallStatus.DOWNLOADED) {
-                // After the update is downloaded, show a notification
-                // and request user confirmation to restart the app.
-                popupForCompleteUpdate();
-            }
-            else if (state.installStatus() == InstallStatus.INSTALLED) {
-                removeInstallStateUpdateListener();
-            }
-            else {
-                Toast.makeText(getApplicationContext(), "InstallStateUpdatedListener: state: " + state.installStatus(), Toast.LENGTH_LONG).show();
-            }
-        };
     }
 
     // Check for Updates in the Play Store
@@ -221,10 +223,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
     private void startUpdateFlow(AppUpdateInfo appUpdateInfo) {
         try {
-            appUpdateManager.startUpdateFlowForResult(appUpdateInfo,
+            /*appUpdateManager.startUpdateFlowForResult(appUpdateInfo,
                     AppUpdateType.FLEXIBLE,
                     this,
+                    APP_UPDATE_REQUEST_CODE);*/
+            appUpdateManager.startUpdateFlowForResult(appUpdateInfo,
+                    this,
+                    AppUpdateOptions.defaultOptions(AppUpdateType.FLEXIBLE),
                     APP_UPDATE_REQUEST_CODE);
+
         } catch (IntentSender.SendIntentException e) {
             e.printStackTrace();
         }
@@ -268,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
-    protected void setupLocation(){
+   protected void setupLocation(){
         try {
             mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         } catch (Exception e){
@@ -296,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                         // if accuracy is worse than 1/10 of a mile do not update distance to map
                         float accuracy = location.getAccuracy();
-                        Log.d("Accuracy", "onLocationResult: accuracy="+accuracy);
+                        //Log.d("Accuracy", "onLocationResult: accuracy="+accuracy);
                         if (accuracy > 160.9344) {
                             Toast.makeText(MainActivity.this, "Acquiring location...", Toast.LENGTH_SHORT).show();
                             return;
@@ -312,8 +319,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                         // if change in location is > .1 miles update distance to map
                         if (latBefore == 0.0 || results[0] > updateProximityDist) {
-
-
                             // Update distance to map.
                             myAdapter.getDistToMap();
 
@@ -369,7 +374,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                         continue;
                                     TextView distToMap = v.findViewById(R.id.distToMapTxt);
                                     String dist = myAdapter.pdfMaps.get(i).getDistToMap();
-                                    Log.d("Distance", "accuracy:"+accuracy+"  "+myAdapter.pdfMaps.get(i).getName()+" "+dist);
+                                    //Log.d("Distance", "accuracy:"+accuracy+"  "+myAdapter.pdfMaps.get(i).getName()+" "+dist);
                                     if (dist.equals("onmap")) {
                                         v.findViewById(R.id.locationIcon).setVisibility(View.VISIBLE);
                                         distToMap.setText("");
@@ -385,11 +390,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         latBefore = latNow;
                         longBefore = longNow;
                     }
-
+                } catch (SQLException e){
+                    Toast.makeText(MainActivity.this, getResources().getString(R.string.problemReadingDatabase) + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
                 // try to keep app from crashing no gps 6-15-22
                 catch (Exception e) {
-                    //return;
+                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             }
         };
@@ -440,20 +446,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setTitle("Location Permission Needed");
                     builder.setMessage("This app will not run without permission to access this device's location. Please click ALLOW when asked.")
-                            .setPositiveButton("OK", (dialog, id) -> {
-                                // User clicked OK button. Hide dialog. Ask again
-                                dialog.dismiss();
-                                ActivityCompat.requestPermissions(MainActivity.this,
-                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                                        MY_PERMISSIONS_LOCATION);
-                            })
-                            .setNegativeButton("No, Exit App", (dialogInterface, i) -> {
-                                // (Build.VERSION.SDK_INT >= 21) {
-                                    finishAndRemoveTask();
-                                //} else {
-                                //    finish();
-                                //}
-                            }).create().show();
+                        .setPositiveButton("OK", (dialog, id) -> {
+                            // User clicked OK button. Hide dialog. Ask again
+                            dialog.dismiss();
+                            ActivityCompat.requestPermissions(MainActivity.this,
+                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                                    MY_PERMISSIONS_LOCATION);
+                        })
+                        .setNegativeButton("No, Exit App", (dialogInterface, i) -> {
+                            finishAndRemoveTask();
+                        }).create().show();
                 }
                 // permission is denied (and never ask again is checked) go to Settings or exit
                 // shouldShowRequestPermissionRationale will return false
@@ -462,28 +464,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setTitle("Permissions Needed");
                     builder.setMessage("You have denied some needed permissions. Go to Settings, click on Permissions and allow all permissions.  Then restart this app.")
-                            .setPositiveButton("Yes, Go to Settings", (dialog, id) -> {
-                                // User clicked OK button. Hide dialog. Ask again
-                                dialog.dismiss();
-                                // Go to app settings
-                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                        Uri.fromParts("package", getPackageName(), null));
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                startActivity(intent);
-                                //if (Build.VERSION.SDK_INT >= 21) {
-                                    finishAndRemoveTask();
-                                //} else {
-                                //    finish();
-                                //}
-                            })
-                            .setNegativeButton("No, Exit App", (dialog, i) -> {
-                                dialog.dismiss();
-                                //if (Build.VERSION.SDK_INT >= 21) {
-                                    finishAndRemoveTask();
-                                //} else {
-                                //    finish();
-                                //}
-                            }).create().show();
+                        .setPositiveButton("Yes, Go to Settings", (dialog, id) -> {
+                            // User clicked OK button. Hide dialog. Ask again
+                            dialog.dismiss();
+                            // Go to app settings
+                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    Uri.fromParts("package", getPackageName(), null));
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                            finishAndRemoveTask();
+                        })
+                        .setNegativeButton("No, Exit App", (dialog, i) -> {
+                            dialog.dismiss();
+                            finishAndRemoveTask();
+                        }).create().show();
                 }
             }
             else
@@ -494,45 +488,59 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     protected void onResume() {
         super.onResume();
-        // Importing a Map hides this button, show it again
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setVisibility(View.VISIBLE);
-        latBefore=0.0; //reset location so it updates
-        fillList(); // get maps list from database
-        // Start Location Services
-        if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
-                (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
-            startLocationUpdates();
-        }
-        else Toast.makeText(MainActivity.this,"Please turn on Location Services.",Toast.LENGTH_LONG).show();
+        try {
+            try {
+                dbHandler = new DBHandler(MainActivity.this);
+                dbWayPtHandler = new DBWayPtHandler(MainActivity.this);
+            } catch (SQLException e){
+                Toast.makeText(MainActivity.this,getResources().getString(R.string.problemReadingDatabase),Toast.LENGTH_LONG).show();
+            }
+            // Importing a Map hides this button, show it again
+            FloatingActionButton fab = findViewById(R.id.fab);
+            fab.setVisibility(View.VISIBLE);
+            latBefore = 0.0; //reset location so it updates
+            fillList(); // get dbHandler and maps list from database
+            // Start Location Services
+            if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+                    (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+                startLocationUpdates();
+            } else
+                Toast.makeText(MainActivity.this, "Please turn on Location Services.", Toast.LENGTH_LONG).show();
 
-        // Checks that the update is not stalled
-        if (appUpdateManager != null) {
-            appUpdateManager
-                    .getAppUpdateInfo()
-                    .addOnSuccessListener(
-                            appUpdateInfo -> {
-                                if (appUpdateInfo.updateAvailability()
-                                        == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
-                                    // If an in-app update is already running, resume the update.
-                                    try {
-                                        appUpdateManager.startUpdateFlowForResult(
-                                                appUpdateInfo,
-                                                AppUpdateType.FLEXIBLE,
-                                                MainActivity.this,
-                                                APP_UPDATE_REQUEST_CODE);
-                                    } catch (IntentSender.SendIntentException e) {
-                                        Toast.makeText(getApplicationContext(), "Failed to update. " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                        // e.printStackTrace();
+            // Checks that the update is not stalled
+            if (appUpdateManager != null) {
+                appUpdateManager
+                .getAppUpdateInfo()
+                .addOnSuccessListener(
+                appUpdateInfo -> {
+                    if (appUpdateInfo.updateAvailability()
+                            == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                        // If an in-app update is already running, resume the update.
+                        try {
+                            /*appUpdateManager.startUpdateFlowForResult(
+                                    appUpdateInfo,
+                                    AppUpdateType.FLEXIBLE,
+                                    MainActivity.this,
+                                    APP_UPDATE_REQUEST_CODE);*/
+                            appUpdateManager.startUpdateFlowForResult(
+                                    appUpdateInfo,
+                                    MainActivity.this,
+                                    AppUpdateOptions.defaultOptions(AppUpdateType.FLEXIBLE),
+                                    APP_UPDATE_REQUEST_CODE);
+                        } catch (IntentSender.SendIntentException e) {
+                            Toast.makeText(getApplicationContext(), "Failed to update. " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            // e.printStackTrace();
 
-                                    }
-                                }
-                                else // If the update is downloaded but not installed,
-                                    // notify the user to complete the update.
-                                    if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
-                                        popupForCompleteUpdate();
-                                    }
-                            });
+                        }
+                    } else // If the update is downloaded but not installed,
+                        // notify the user to complete the update.
+                        if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+                            popupForCompleteUpdate();
+                        }
+                });
+            }
+        } catch(Exception tr) {
+            Log.e("Main",tr.getMessage());
         }
     }
 
@@ -540,26 +548,37 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     protected void onPause() {
         super.onPause();
-        //Toast.makeText(MainActivity.this, "onPause", Toast.LENGTH_SHORT).show();
-        if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
-                (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
-            stopLocationUpdates();
+        try {
+            //Toast.makeText(MainActivity.this, "onPause", Toast.LENGTH_SHORT).show();
+            if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+                    (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+                stopLocationUpdates();
+            }
+            dbHandler.close();
+            dbWayPtHandler.close();
+        } catch(Exception tr) {
+            Log.e("Main",tr.getMessage());
         }
-        dbHandler.close();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        //dbHandler.close();
+        //dbWayPtHandler.close();
+        /*if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+                (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+            stopLocationUpdates();
+        }*/
     }
 
     @Override
     protected void onStop(){
         super.onStop();
-
-        // try to free memory leaks. Did not seem to help!!!!!!
-        // Unregister mLocationCallback
-        // unregister  dialogClickListener !!!!!!!!!!!
+        /*if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+                (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+            stopLocationUpdates();
+        }*/
     }
 
 
@@ -568,20 +587,68 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     //--------------------
     private void fillList() {
         // GET THE LIST FROM THE DATABASE
-        dbHandler = new DBHandler(MainActivity.this);
         try {
-            myAdapter = new CustomAdapter(MainActivity.this, dbHandler.getAllMaps(MainActivity.this));
-        } catch (SQLException e) {
-            Toast.makeText(MainActivity.this, "Error reading database table: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            /* force this file to push to master2 */
+            myAdapter = new CustomAdapter(MainActivity.this, dbHandler.getAllMaps(), dbHandler, dbWayPtHandler);
+        } catch (SQLException | NullPointerException e) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setTitle("Error");
+            if (e.getMessage() != null)
+                builder.setMessage("Cannot read your maps from the disk. Is the disk full? Are too many apps running? Error message: "+e.getMessage());
+            else
+                builder.setMessage("Cannot read your maps from the disk. Is the disk full? Are too many apps running?");
+            builder.setPositiveButton("CLOSE APP", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    // send email TODO
+
+                    // Close the app
+                    System.exit(1);
+                }
+            }).show();
+            myAdapter = new CustomAdapter(MainActivity.this, new ArrayList<>(), dbHandler, dbWayPtHandler);
         }
+
         lv = findViewById(R.id.lv);
         lv.setAdapter(myAdapter);
-        registerForContextMenu(lv); // set up edit/trash context menu
+
         // Make sure all the maps in the database still exist
         myAdapter.checkIfExists();
+
+        /*lv.setLongClickable(true);
+        //registerForContextMenu(lv); // set up edit/trash context menu
+        lv.setChoiceMode(lv.CHOICE_MODE_MULTIPLE);
+        lv.setOnItemLongClickListener(new OnItemLongClickListener() {
+            // Called when the user long-clicks on someView
+            @Override
+            public boolean onItemLongClick(AdapterView<?> view, View row,
+                                           int position, long id) {
+                view.setActivated(true);
+                if (mActionMode != null) {
+                    return false;
+                }
+
+                setTitle("Editing");
+                sortByDropdown.setVisibility(View.GONE);
+                sortTitle.setVisibility(View.GONE);
+                // Start the CAB using the ActionMode.Callback defined above
+                mActionMode = MainActivity.this.startActionMode(mActionModeCallback);
+                return true;
+            }
+        });*/
+        /*lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // clicking on an activated item unactivates it
+                if (mActionMode != null) {
+                    if (view.isActivated())
+                        view.setActivated(false);
+                    else view.setActivated(true);
+                }
+            }
+        });*/
+
         // Display note if no records found
         showHideNoImportsMessage();
-
 
         // set selected sort by item
         String sort = dbHandler.getMapSort();
@@ -619,16 +686,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private void checkForActivityResult() {
         // GetMoreActivity gets map to import
-        // EditWayPointActivity renames or deletes a map
+        // EditMapNameActivity renames or deletes a map
         // They return extras to pass back the results, update adapter and database here
         final Intent i = MainActivity.this.getIntent();
         if (i.getExtras() != null && !i.getExtras().isEmpty()) {
             // IMPORT NEW MAP INTO LIST
-            // CustomAdapter calls MapImportTask class in CustomAdapter.java
-            if (i.getExtras().containsKey("IMPORT_MAP") && i.getExtras().containsKey("PATH")) {
+            // GetMoreActivity adds a record to the DBHandler database with map name of "Loading..."
+            // CustomAdapter calls importMap in CustomAdapter.java
+            /*if (i.getExtras().containsKey("IMPORT_MAP") && i.getExtras().containsKey("PATH")) {
                 boolean import_map = i.getExtras().getBoolean("IMPORT_MAP");
                 // IMPORT MAP SELECTED
                 if (import_map) {
+                    // read the map pdf and load the database
+                    String newPath = i.getExtras().getString("PATH");
+                    //PDFMap pdfMap = new PDFMap(newPath, "", "", "", null, getResources().getString(R.string.loading), "", "");
+
                     sortFlag = false; // hold off on sorting.
                     FloatingActionButton fab = findViewById(R.id.fab);
                     fab.setVisibility(View.GONE);
@@ -637,14 +709,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     // int pos = myAdapter.findName();
                     int pos = myAdapter.getCount() - 1;
                     if (pos > -1) lv.setSelection(pos);
+
                     //Toast.makeText(MainActivity.this, "Map imported: "+i.getExtras().getString("PATH"), Toast.LENGTH_LONG).show();
                 }
                 i.removeExtra("PATH");
                 i.removeExtra("IMPORT_MAP");
-            }
+            }*/
 
-            // RENAME MAP
-            else if (i.getExtras().containsKey("RENAME") && i.getExtras().containsKey("NAME") && i.getExtras().containsKey("ID")) {
+            // RENAME MAP (EditMapNameActivity)
+            if (i.getExtras().containsKey("RENAME") && i.getExtras().containsKey("NAME") && i.getExtras().containsKey("ID")) {
                 // Renamed map, update with new name
                 //myAdapter.setEditing(false);
                 String name = i.getExtras().getString("NAME");
@@ -690,25 +763,26 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         try {
             LocationRequest mLocationRequest;
             if (Build.VERSION.SDK_INT >= 31){
-                mLocationRequest = LocationRequest.create();
-                if (mLocationRequest != null) {
-                    mLocationRequest.setPriority(Priority.PRIORITY_HIGH_ACCURACY);
-                    mLocationRequest.setInterval(30000); //update location every 30 seconds
-                }
+                mLocationRequest = new LocationRequest.Builder(1000)
+                        .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+                        .setWaitForAccurateLocation(false)
+                        .setMinUpdateIntervalMillis(1000)
+                        .setMaxUpdateDelayMillis(1000)
+                        .build();
             }
             // API <= 30
             else{
                 mLocationRequest = new LocationRequest();
                 if (mLocationRequest != null) {
                     mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-                    mLocationRequest.setInterval(30000); //update location every 30 seconds
+                    mLocationRequest.setInterval(1000); //update location every 1 seconds
                 }
             }
 
 
             if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
                 if (mFusedLocationClient != null)
-                    mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null /*Looper.getMainLooper()*/);
+                    mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null );
             } else {
                 Toast.makeText(MainActivity.this, "Fine Location Services are off.", Toast.LENGTH_LONG).show();
             }
@@ -874,7 +948,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     // Show or Hide no maps imported message
     private void showHideNoImportsMessage(){
         TextView msg = findViewById(R.id.txtMessage);
-        TextView sortTitle = findViewById(R.id.sortTitle);
+        sortTitle = findViewById(R.id.sortTitle);
         Spinner sortBy = findViewById(R.id.sortBy);
         if (myAdapter.pdfMaps.size() == 0){
             msg.setVisibility(View.VISIBLE);
@@ -900,7 +974,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     myAdapter.removeAll();
                     // Disable "Delete all Imported Maps" if there aren't any maps
                     MenuItem delMapsMenuItem = toolbar.getMenu().findItem(R.id.action_deleteAll);
-                    delMapsMenuItem.setEnabled(myAdapter.pdfMaps.size() != 0);
+                    delMapsMenuItem.setVisible(myAdapter.pdfMaps.size() != 0); // setEnabled(myAdapter.pdfMaps.size() != 0);
                     // Display note if no records found
                     showHideNoImportsMessage();
                     break;
@@ -917,8 +991,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         // Disable "Delete all Imported Maps" if there aren't any maps
+        if (toolbar == null) {
+            toolbar = findViewById(R.id.toolbar);
+        }
         MenuItem delMapsMenuItem = toolbar.getMenu().findItem(R.id.action_deleteAll);
-        delMapsMenuItem.setEnabled(myAdapter.pdfMaps.size() != 0);
+        if (delMapsMenuItem != null)
+            delMapsMenuItem.setVisible(myAdapter.pdfMaps.size() != 0);// setEnabled(myAdapter.pdfMaps.size() != 0);
         return true;
     }
 
@@ -947,4 +1025,128 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         return super.onOptionsItemSelected(item);
     }
+
+
+
+    // 7-24-23 try using context menu
+    // EDIT MENU
+    /*private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+        // Called when the action mode is created; startActionMode() was called
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            // Inflate a menu resource providing context menu items
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.edit_menu, menu);
+            return true;
+        }
+
+        // Called each time the action mode is shown. Always called after onCreateActionMode, but
+        // may be called multiple times if the mode is invalidated.
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false; // Return false if nothing is done
+        }
+
+        // Called when the user selects a contextual menu item
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            switch (item.getItemId()) {
+                //case R.id.edit_map_name:
+                    /*for (int i=0; i<myAdapter.pdfMaps.size();i++ ) {
+                        PDFMap map = myAdapter.pdfMaps.get(i);
+                        if (map.getSelected()) {
+                            Log.d("edit","renaming="+map.getName()+" to "+map.getRename());
+                            myAdapter.rename(map.getId(),map.getRename());
+                        }
+
+                    }*/
+
+
+                //    return true;
+    /*            case R.id.delete_map:
+                    // display alert dialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("Delete");
+                    builder.setMessage("Delete all selected maps?").setPositiveButton("DELETE", deleteDialogClickListener)
+                            .setNegativeButton("CANCEL",deleteDialogClickListener).show();
+                    //mode.finish(); // Action picked, so close the CAB
+                    return true;
+                case R.id.info:
+                    // display alert dialog
+                    AlertDialog.Builder builder2 = new AlertDialog.Builder(MainActivity.this);
+                    builder2.setTitle("Info");
+                    String msg = "";
+                    for (int i=0; i<myAdapter.pdfMaps.size(); i++) {
+                        if (myAdapter.pdfMaps.get(i).getSelected()) {
+                            Toast.makeText(MainActivity.this, "Deleting "+myAdapter.pdfMaps.get(i).getName(), Toast.LENGTH_SHORT).show();
+                            msg += myAdapter.pdfMaps.get(i).getRename()+" \nLat Long: ";
+                            msg += myAdapter.pdfMaps.get(i).getBounds()+"\n\n";
+                        }
+                    }
+                    builder2.setMessage(msg).setPositiveButton("OK", infoDialogClickListener)
+                            .show();
+                    //mode.finish(); // Action picked, so close the CAB
+                    return true;
+                default:
+                    mode.finish(); // Action picked, so close the CAB
+                    return false;
+            }
+        }*/
+        // Remove Imported Map dialog
+       /* DialogInterface.OnClickListener deleteDialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        //'DELETE' button clicked, remove selected maps from imported maps
+                        for (int i=myAdapter.pdfMaps.size()-1; i>-1; i--) {
+                            Log.d("Map "+i+" ",myAdapter.pdfMaps.get(i).getName());
+                            if (myAdapter.pdfMaps.get(i).getSelected()) {
+                                Toast.makeText(MainActivity.this, "Deleting "+myAdapter.pdfMaps.get(i).getName(), Toast.LENGTH_SHORT).show();
+                                Log.d("DELETING ",myAdapter.pdfMaps.get(i).getName());
+                                myAdapter.removeItem(myAdapter.pdfMaps.get(i).getId());
+                            }
+                        }
+                        mActionMode.finish();
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        //'CANCEL' button clicked, do nothing
+                        break;
+                }
+            }
+        };*/
+        // Show Info on Imported Map dialog
+        /*DialogInterface.OnClickListener infoDialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        //'OK' button clicked, close
+                        break;
+                }
+            }
+        };*/
+
+        // Called when the user exits the action mode by clicking back arrow or back button
+        // Rename all selected items and unselect all
+        /*@Override
+        public void onDestroyActionMode(ActionMode mode) {
+            mActionMode = null;
+            // unselect all rows
+            for (int i=0;i<myAdapter.pdfMaps.size();i++) {
+                // Save name changes. Must be done here since CustomAdapter renameTxt.setOnFocusChangeListener is called after onDestroyActionMode
+                PDFMap map = myAdapter.pdfMaps.get(i);
+                if (map.getSelected()) {
+                    Log.d("edit","renaming="+map.getName()+" to "+map.getRename());
+                    myAdapter.rename(map.getId(),map.getRename()); // make the name change permanent
+                }
+                myAdapter.pdfMaps.get(i).setSelected(false);
+            }
+            myAdapter.setEditing(false);
+            myAdapter.notifyDataSetChanged();
+            setTitle("Imported Maps");
+            sortByDropdown.setVisibility(View.VISIBLE);
+            sortTitle.setVisibility(View.VISIBLE);
+        }
+    };*/
 }

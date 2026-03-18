@@ -25,7 +25,6 @@
             card_view:cardElevation="5dp">
 
             <ImageView
-                android:id="@+id/imageView"
                 android:layout_width="110dp"
                 android:layout_height="110dp"
                 android:layout_gravity="center_vertical|center_horizontal"
@@ -35,7 +34,6 @@
 
         <!-- Title -->
         <TextView
-            android:id="@+id/textViewGetMoreHelpTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
@@ -46,7 +44,6 @@
 
         <!-- Download -->
         <TextView
-            android:id="@+id/textViewDownloadTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -58,7 +55,6 @@
         <!-- Download with Maps Library -->
 
         <TextView
-            android:id="@+id/textViewDownlaodHelp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
@@ -66,7 +62,6 @@
             android:textSize="18sp" />
 
         <TextView
-            android:id="@+id/textViewDownlaodHelp2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
@@ -75,7 +70,6 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/textViewMapLibTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="10dp"
@@ -83,7 +77,6 @@
             android:textSize="18sp"/>
 
         <TextView
-            android:id="@+id/textViewMapLib"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
@@ -92,7 +85,6 @@
 
         <!-- Download with Hunting/Fishing Atlas -->
         <TextView
-            android:id="@+id/textViewAtlasTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -102,7 +94,6 @@
 
         <!-- Forest Service -->
         <TextView
-            android:id="@+id/textAtlas"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
@@ -110,7 +101,6 @@
             android:textSize="18sp" />
 
         <TextView
-            android:id="@+id/textViewFSTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -126,7 +116,6 @@
             app:srcCompat="@drawable/fs" />
 
         <TextView
-            android:id="@+id/textViewFS"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
@@ -135,7 +124,6 @@
 
         <!-- USGS -->
         <TextView
-            android:id="@+id/textViewUSGSTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -150,7 +138,6 @@
             android:contentDescription="@string/help_USGS_img"
             app:srcCompat="@drawable/usgs" />
         <TextView
-            android:id="@+id/textUSGS"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
@@ -159,7 +146,6 @@
 
         <!-- Import Maps -->
         <TextView
-            android:id="@+id/textViewImportTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="0dp"
@@ -169,14 +155,12 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/textViewImportMapsHelp1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_importmaps1"
             android:textSize="18sp"/>
         <TextView
-            android:id="@+id/textViewImportMapsHelp2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
