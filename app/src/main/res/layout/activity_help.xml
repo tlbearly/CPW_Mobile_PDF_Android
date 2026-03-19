@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="20dp"
+    android:fitsSystemWindows="true"
     tools:context="com.dnrcpw.cpwmobilepdf.activities.MainActivity">
 
     <LinearLayout
@@ -63,7 +64,7 @@
             android:padding="10dp"
             android:text="@string/help_doc"
             android:textSize="18sp"
-            app:layout_anchorGravity="center"/>
+            app:layout_anchorGravity="center" />
 
         <!-- Imported Maps -->
         <TextView
@@ -73,14 +74,14 @@
             android:padding="10dp"
             android:text="@string/title_activity_main"
             android:textSize="24sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_importedmaps"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
 
         <!-- Current Location On The Map -->
         <TextView
@@ -90,7 +91,8 @@
             android:padding="10dp"
             android:text="@string/help_onmap_title"
             android:textSize="24sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
+
         <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
@@ -103,7 +105,7 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_onmap"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
         <!-- Add Map -->
         <TextView
             android:layout_width="wrap_content"
@@ -113,14 +115,14 @@
             android:padding="10dp"
             android:text="@string/title_activity_get_more"
             android:textSize="24sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_addmap"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
 
         <!-- Edit Map -->
         <TextView
@@ -130,14 +132,14 @@
             android:padding="10dp"
             android:text="@string/help_edit_map_title"
             android:textSize="24sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_edit_map"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
         <!-- View Map -->
         <TextView
             android:layout_width="wrap_content"
@@ -146,13 +148,13 @@
             android:padding="10dp"
             android:text="@string/help_map_title"
             android:textSize="24sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_map"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
     </LinearLayout>
 </ScrollView>

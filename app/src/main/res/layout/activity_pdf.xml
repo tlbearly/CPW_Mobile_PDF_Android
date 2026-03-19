@@ -3,12 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_alignParentTop="true"
+    android:fitsSystemWindows="true"
     tools:context="com.dnrcpw.cpwmobilepdf.activities.MainActivity">
-
-  <com.github.barteksc.pdfviewer.PDFView
-      android:id="@+id/pdfView"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"></com.github.barteksc.pdfviewer.PDFView>
 
   <!-- wait icon -->
   <!--RelativeLayout
@@ -16,13 +13,19 @@
       android:layout_width="match_parent"
       android:layout_height="match_parent"
       android:gravity="center" -->
+  <com.github.barteksc.pdfviewer.PDFView
+      android:id="@+id/pdfView"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:layout_alignParentTop="false"></com.github.barteksc.pdfviewer.PDFView>
+
   <ProgressBar
       android:id="@+id/loadingPanel"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_centerInParent="true"
-      android:indeterminate="true"
-      android:gravity="center"/>
+      android:gravity="center"
+      android:indeterminate="true" />
   <!--/RelativeLayout-->
 
   <!-- Must have width and height set to wrap_content or it will not show up on top -->
@@ -31,7 +34,9 @@
       android:id="@+id/cur_pos"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
+      android:layout_alignParentTop="false"
       android:background="@color/black_overlay"
+      android:fitsSystemWindows="false"
       android:paddingStart="10dp"
       android:paddingTop="5dp"
       android:paddingEnd="10dp"
@@ -44,7 +49,9 @@
       android:id="@+id/move_instr"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
+      android:layout_alignParentTop="false"
       android:background="#FFEB3B"
+      android:fitsSystemWindows="false"
       android:paddingStart="10dp"
       android:paddingTop="5dp"
       android:paddingEnd="10dp"
@@ -59,7 +66,9 @@
       android:layout_width="match_parent"
       android:layout_height="48dp"
       android:layout_below="@+id/cur_pos"
+      android:layout_alignParentTop="false"
       android:background="#BF9E9C9C"
+      android:fitsSystemWindows="false"
       android:text="@string/load_adjacent_maps"
       android:textColor="#212121"
       android:visibility="gone" />

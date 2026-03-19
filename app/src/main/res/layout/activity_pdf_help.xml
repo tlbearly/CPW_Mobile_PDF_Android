@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="20dp"
+    android:fitsSystemWindows="true"
     tools:context="com.dnrcpw.cpwmobilepdf.activities.PDFActivity">
 
     <LinearLayout
@@ -41,13 +42,13 @@
             android:padding="10dp"
             android:text="@string/help_view_map_title"
             android:textSize="24sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_view_map"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
     </LinearLayout>
 </ScrollView>

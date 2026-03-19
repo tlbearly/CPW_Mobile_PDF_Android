@@ -64,6 +64,7 @@ import com.google.android.gms.location.Priority;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
@@ -77,6 +78,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     Menu mapMenu;
     // Color and style of current location point
     Paint cyan;
+    Paint cyanLine;
     Paint cyanTrans;
     Paint red;
     Paint green; // debug
@@ -90,8 +92,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     // current screen location adjusted by zoom level
     double currentLocationX; // start offscreen
     double currentLocationY;
+    double prevLocationX; // start offscreen
+    double prevLocationY;
     double latNow;
     double longNow;
+    double latBefore;
+    double longBefore;
     float accuracy;
     float bearing;
 
@@ -193,6 +199,41 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     EditText txtLatLong;
     Button menuBtn;
 
+    class Track {
+        // Save the track so that it can redraw the user's path
+        public float x1;
+        public float x2;
+        public float y1;
+        public float y2;
+
+        public Track(float x1, float y1, float x2, float y2) {
+            this.x1 = x1;
+            this.y1 = y1;
+            this.x2 = x2;
+            this.y2 = y2;
+        }
+
+        public float getX1(double zoom, double marginx, double marginL) {
+            // return x1 in pixels at the zoom level
+            float x1Pixels = (float) (((x1 - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL);
+
+            return x1Pixels;
+        }
+        public float getY1(double zoom, double marginy, double marginT){
+            float y1Pixels = (float) ((((lat2 - y1) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT);
+            return y1Pixels;
+        }
+        public float getX2(double zoom, double marginx, double marginL) {
+            // return x1 in pixels at the zoom level
+            float x2Pixels = (float) (((x2 - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL);
+            return x2Pixels;
+        }
+        public float getY2(double zoom, double marginy, double marginT){
+            float y2Pixels = (float) ((((lat2 - y2) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT);
+            return y2Pixels;
+        }
+    }
+    private List<Track> track = new ArrayList<>();
     //    @SuppressLint("SourceLockedOrientationActivity")
 
     @Override
@@ -203,6 +244,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         wait = findViewById(R.id.loadingPanel);
         wait.setVisibility(View.VISIBLE);
         latNow = -1;
+        latBefore = -1;
+        longBefore = -1;
         addWayPtFlag=false;
         menuBtn = findViewById(R.id.load_adjacent_maps); // adjacent map button
 
@@ -356,9 +399,21 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 //Log.d("LocationCallback","updating location, refreshing waypoints");
                 for (Location location : locationResult.getLocations()) {
                     // Update UI with location data
+
+                    // save last location so we can see how much they moved
+                    latBefore = latNow;
+                    longBefore = longNow;
+
+
                     //GeomagneticField geoField;
                     latNow = location.getLatitude();
                     longNow = location.getLongitude();
+
+                    // Debug make it track
+                    if (latBefore != -1){
+                        latNow =  latBefore + 0.0001;
+                        longNow = longBefore + 0.0001;
+                    }
 
                     //bearing = location.getBearing(); // 0-360 degrees 0 at North
                     accuracy = location.getAccuracy();
@@ -645,6 +700,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private void setupColorsMoveIcon(){
         // Set color and fill of the current location point
         cyan = new Paint(Paint.ANTI_ALIAS_FLAG);
+        cyanLine = new Paint(Paint.ANTI_ALIAS_FLAG);
         cyanTrans = new Paint(Paint.ANTI_ALIAS_FLAG);
         red = new Paint(Paint.ANTI_ALIAS_FLAG);
         green = new Paint(Paint.ANTI_ALIAS_FLAG); // debug
@@ -657,6 +713,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         cyan.setAntiAlias(true);
         cyan.setColor(Color.CYAN);
         cyan.setStyle(Paint.Style.FILL);
+        cyanLine.setAntiAlias(true);
+        cyanLine.setColor(Color.CYAN);
+        cyanLine.setStyle(Paint.Style.STROKE);
+        cyanLine.setStrokeWidth(6.0f);
         outline.setColor(Color.WHITE);
         outline.setStyle(Paint.Style.FILL);
         white.setColor(Color.WHITE);
@@ -1067,34 +1127,53 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //-----------------------
                     // Transparent Arc showing bearing (top of user screen)
                     //  CONVERT LAT LONG TO SCREEN COORDINATES
-                    currentLocationX = ((longNow - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
-                    currentLocationY = (((lat2 - latNow) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
+                    if (longNow != 0.0) {
+                        currentLocationX = ((longNow - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                        currentLocationY = (((lat2 - latNow) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
 
-                    canvas.translate((float) currentLocationX, (float) currentLocationY);
-                    // drawArc (RecF(left,top,right,bottom), starting arc in degrees (drawn clockwise, 0=3 o'clock,90=6 o'clock, 180=9 o'clock), finish arc in degrees, use center? paint)
-                    // Draw the current location as a point on the map. Color of the point is defined in paint & outline above.
-                    if (accuracy > 25) {
-                        accuracy = accuracy / 2;
-                        RectF rec = new RectF(-1 * accuracy, -1 * accuracy, accuracy, accuracy);
-                        canvas.drawArc(rec, 0, 360, true, cyanTrans); // transparent blue circle
-                    } else {
-                        RectF rec = new RectF(-45f, -45f, 45f, 45f);
-                        int arcSize = 90;
-                        float startArc = bearing - 45;
-                        if (startArc < 0) startArc = 360 + startArc;
-                        canvas.drawArc(rec, startArc, arcSize, true, cyanTrans); // transparent blue arc
-                        //TextView bTxt = (TextView)findViewById(R.id.debug);
-                        //bTxt.setText("bearing="+(int)bearing+"  start="+(int)startArc);
+                        canvas.translate((float) currentLocationX, (float) currentLocationY);
+                        // drawArc (RecF(left,top,right,bottom), starting arc in degrees (drawn clockwise, 0=3 o'clock,90=6 o'clock, 180=9 o'clock), finish arc in degrees, use center? paint)
+                        // Draw the current location as a point on the map. Color of the point is defined in paint & outline above.
+                        if (accuracy > 25) {
+                            accuracy = accuracy / 2;
+                            RectF rec = new RectF(-1 * accuracy, -1 * accuracy, accuracy, accuracy);
+                            canvas.drawArc(rec, 0, 360, true, cyanTrans); // transparent blue circle
+                        } else {
+                            RectF rec = new RectF(-45f, -45f, 45f, 45f);
+                            int arcSize = 90;
+                            float startArc = bearing - 45;
+                            if (startArc < 0) startArc = 360 + startArc;
+                            canvas.drawArc(rec, startArc, arcSize, true, cyanTrans); // transparent blue arc
+                            //TextView bTxt = (TextView)findViewById(R.id.debug);
+                            //bTxt.setText("bearing="+(int)bearing+"  start="+(int)startArc);
+                        }
+
+                        //Log.d("latlong", "long="+longDiff+"    "+(int)Math.round(currentLocationY)+" long="+(int)Math.round(currentLocationX));
+
+                        // DRAW POINT AT CURRENT LOCATION drawCircle(x,y,radius,paint)
+                        // drawCircle(centerX,centerY,radius,paint)
+                        canvas.drawCircle(0, 0, 20f, cyan); // final blue outline
+                        canvas.drawCircle(0, 0, 19f, white); // larger white outline
+                        canvas.drawCircle(0, 0, 15f, cyan); // blue center
+                        // go back to 0,0
+                        canvas.translate((float) -currentLocationX, (float) -currentLocationY);
+
+                        // Draw track
+                        if (latBefore != -1) {
+                            // Must store the path and redraw each segment each time
+                            canvas.translate(0,0);
+                            //prevLocationX = ((longBefore - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                            //prevLocationY = (((lat2 - latBefore) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
+                            //double sig_dist = .00001; // significant distance 5 ft
+                            //if ((longBefore - longNow > sig_dist) || (longNow - longBefore > sig_dist) &&
+                            //    (latBefore - latNow > sig_dist) || (latNow - latBefore > sig_dist)) {
+                                track.add(new Track((float) longBefore, (float) latBefore, (float) longNow, (float) latNow));
+                                for (int i = 0; i < track.size(); i++) {
+                                    canvas.drawLine(track.get(i).getX1(zoom,marginx,marginL), track.get(i).getY1(zoom,marginy,marginT), track.get(i).getX2(zoom,marginx,marginL), track.get(i).getY2(zoom,marginy,marginT), cyanLine);
+                                }
+                            //}
+                        }
                     }
-
-                    //Log.d("latlong", "long="+longDiff+"    "+(int)Math.round(currentLocationY)+" long="+(int)Math.round(currentLocationX));
-
-                    // DRAW POINT AT CURRENT LOCATION drawCircle(x,y,radius,paint)
-                    // drawCircle(centerX,centerY,radius,paint)
-                    canvas.drawCircle(0, 0, 20f, cyan); // final blue outline
-                    canvas.drawCircle(0, 0, 19f, white); // larger white outline
-                    canvas.drawCircle(0, 0, 15f, cyan); // blue center
-                    canvas.translate((float) -currentLocationX, (float) -currentLocationY);
 
                     // hide wait icon
                     wait.setVisibility(View.GONE);

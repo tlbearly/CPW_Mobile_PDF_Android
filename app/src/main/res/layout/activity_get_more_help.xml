@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="20dp"
+    android:fitsSystemWindows="true"
     tools:context="com.dnrcpw.cpwmobilepdf.activities.GetMoreActivity">
 
     <LinearLayout
@@ -50,7 +51,7 @@
             android:padding="10dp"
             android:text="@string/help_download_title"
             android:textSize="20sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <!-- Download with Maps Library -->
 
@@ -74,14 +75,14 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_cpw_mapslib_title"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_cpw_mapslib"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
 
         <!-- Download with Hunting/Fishing Atlas -->
         <TextView
@@ -90,7 +91,7 @@
             android:layout_marginTop="20dp"
             android:padding="10dp"
             android:text="@string/help_atlas_title"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
 
         <!-- Forest Service -->
         <TextView
@@ -106,7 +107,7 @@
             android:layout_marginTop="20dp"
             android:padding="10dp"
             android:text="@string/help_FS_title"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
 
         <ImageView
             android:layout_width="wrap_content"
@@ -120,7 +121,7 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_FS"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
 
         <!-- USGS -->
         <TextView
@@ -129,7 +130,7 @@
             android:layout_marginTop="20dp"
             android:padding="10dp"
             android:text="@string/help_USGS_title"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
 
         <ImageView
             android:layout_width="wrap_content"
@@ -137,12 +138,13 @@
             android:layout_gravity="center_horizontal"
             android:contentDescription="@string/help_USGS_img"
             app:srcCompat="@drawable/usgs" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_USGS"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
 
         <!-- Import Maps -->
         <TextView
@@ -159,12 +161,13 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_importmaps1"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:text="@string/help_importmaps2"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
     </LinearLayout>
 </ScrollView>

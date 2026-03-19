@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_alignParentTop="true"
     android:fitsSystemWindows="true"
     tools:context="com.dnrcpw.cpwmobilepdf.activities.MainActivity">
 
@@ -31,8 +32,8 @@
         android:layout_margin="@dimen/fab_margin"
         android:contentDescription="@string/add_btn_desc"
         android:tint="#fff"
-        app:tint="#fff"
-        app:srcCompat="@android:drawable/ic_input_add" />
+        app:srcCompat="@android:drawable/ic_input_add"
+        app:tint="#fff" />
 
     <!-- display blank list message if no maps imported -->
     <TextView
