@@ -41,9 +41,9 @@ android {
     // File / Settings / under Languages & Frameworks / Android SDK.
     // Select SDK Tools tab. Check Show Package Details. Install latest NDK version. Update NDK version below.
     // Use 'FULL' or if > 300mb use 'SYMBOL_TABLE'
-    ndkVersion "26.2.11394342"
-    compileSdkVersion 35 // when remove this it does not compile
-    //buildToolsVersion "34.0.0" //"30.0.3"
+    ndkVersion "29.0.14206865"
+    compileSdkVersion 36 // when remove this it does not compile
+    buildToolsVersion "36.0.0"
 
     // For new release change versionCode and versionName
     // versionCode must be an integer!
@@ -51,7 +51,7 @@ android {
     defaultConfig {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 23
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode 69
         versionName "1.6"
         // History
