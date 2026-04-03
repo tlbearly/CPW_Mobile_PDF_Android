@@ -37,7 +37,12 @@
           android:checked="true"
           android:visible="true"
           app:showAsAction="never" />
-      <item
+    <item
+        android:id="@+id/action_showTracks"
+        android:checkable="true"
+        android:title="@string/showTracks"
+        app:showAsAction="never" />
+    <item
           android:id="@+id/action_showAll"
           android:title="@string/showWayPtLabels"
           android:icon="@drawable/chat_bubble"

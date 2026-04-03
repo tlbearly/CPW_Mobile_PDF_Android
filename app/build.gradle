@@ -52,8 +52,8 @@ android {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 23
         targetSdkVersion 35
-        versionCode 68
-        versionName "1.5.9"
+        versionCode 69
+        versionName "1.5.10"
         // History
         // v1.3.01 Removed asynctask
         // v1.3.02 Adjust waypoint on long click, added edit, move, delete buttons to top menu
@@ -108,6 +108,7 @@ android {
         //     Upgrade androidx.appcompat:appcompat:1.6.1 to 1.7.0
         //     Upgrade com.google.android.material:material:1.11.0 to 1.12.0
         // v 1.5.8 3/18/25 Update add map help
+        // v 1.5.10 4/2/26 add tracking, show all waypoints now shows only labels, update to sdk 36
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
@@ -119,7 +120,7 @@ android {
     buildTypes {
         debug {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
             debuggable true
         }
@@ -131,7 +132,7 @@ android {
             //shrinkResources false
             minifyEnabled true
             signingConfig signingConfigs.release
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             // use next line for even more code shrinking
             //proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
@@ -171,9 +172,9 @@ dependencies {
     // Google Play Location Services
     // compile is deprecated use api or implementation. Must have SDK version 28.0.0
     implementation 'com.google.android.gms:play-services-location:21.3.0'
-    implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
+    implementation 'com.google.android.material:material:1.13.0'
 
     // Google Play In-App Update Library
     // This dependency is downloaded from the Google’s Maven repository.

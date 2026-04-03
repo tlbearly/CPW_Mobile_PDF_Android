@@ -92,8 +92,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     // current screen location adjusted by zoom level
     double currentLocationX; // start offscreen
     double currentLocationY;
-    double prevLocationX; // start offscreen
-    double prevLocationY;
     double latNow;
     double longNow;
     double latBefore;
@@ -190,6 +188,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private Boolean showAllWayPtLabels = false;
     private Boolean showAllWayPts = true;
     private Integer stateShowAllWayPts = -1;
+    private Boolean showTracks = false;
+    private Integer stateShowTracks = -1;
     private Boolean loadAdjacentMaps = true;
     private Boolean deleting = false;
     AtomicReference<Double> optimalPageWidth = new AtomicReference<>((double) 0);
@@ -213,27 +213,23 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             this.y2 = y2;
         }
 
+        // convert from lat, long to screen pixels
         public float getX1(double zoom, double marginx, double marginL) {
             // return x1 in pixels at the zoom level
-            float x1Pixels = (float) (((x1 - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL);
-
-            return x1Pixels;
+            return (float) (((x1 - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL);
         }
         public float getY1(double zoom, double marginy, double marginT){
-            float y1Pixels = (float) ((((lat2 - y1) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT);
-            return y1Pixels;
+            return (float) (((lat2 - y1) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy) + marginT);
         }
         public float getX2(double zoom, double marginx, double marginL) {
             // return x1 in pixels at the zoom level
-            float x2Pixels = (float) (((x2 - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL);
-            return x2Pixels;
+            return (float) (((x2 - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL);
         }
         public float getY2(double zoom, double marginy, double marginT){
-            float y2Pixels = (float) ((((lat2 - y2) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT);
-            return y2Pixels;
+            return (float) (((lat2 - y2) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy) + marginT);
         }
     }
-    private List<Track> track = new ArrayList<>();
+    private final List<Track> track = new ArrayList<>();
     //    @SuppressLint("SourceLockedOrientationActivity")
 
     @Override
@@ -410,10 +406,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     longNow = location.getLongitude();
 
                     // Debug make it track
-                    if (latBefore != -1){
+                    /*if (latBefore != -1){
                         latNow =  latBefore + 0.0001;
                         longNow = longBefore + 0.0001;
-                    }
+                    }*/
 
                     //bearing = location.getBearing(); // 0-360 degrees 0 at North
                     accuracy = location.getAccuracy();
@@ -435,7 +431,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     pdfView.invalidate();
                     //
                     // Load Adjacent Maps?
-                    // check if need to display load adjacent maps button because current location is within 1/4 mile of other maps
+                    // check if we need to display load adjacent maps button because current location is within 1/4 mile of other maps
                     //
 
                     // OLD WAY when current location goes off edge. Problem USGS and FS maps have a margin CPW maps do not. Show when close to edge.
@@ -457,14 +453,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         longNow > (long1 - quarterMileInDegrees) &&
                         longNow < (long2 + quarterMileInDegrees)){
                         // Get list of all available maps and see if the current location is on or within a 1/4 mile of one or more of them
-                        ArrayList<Integer> mapIds = new ArrayList<>();// pdf maps that the current location is on
+                        ArrayList<Integer> mapIds = new ArrayList<>();// PDF maps that the current location is on
                         if (maps == null) return;
                         for (int i = 0; i < maps.size(); i++) {
                             PDFMap map = maps.get(i);
                             if (map.getName().equals(mapName)) continue; // don't list current map
                             String bounds = map.getBounds(); // lat1 long1 lat2 long1 lat2 long2 lat1 long2
-                            if (bounds == null || bounds.length() == 0)
-                                return; // it will be 0 length if is importing
+                            if (bounds == null || bounds.isEmpty())
+                                return; // it will be 0 length if it is importing
                             bounds = bounds.trim(); // remove leading and trailing spaces
 
                             // Get Latitude, Longitude bounds.
@@ -502,7 +498,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             loadNewMap(maps, mapIds.get(0));
                             Toast.makeText(PDFActivity.this,"Now showing adjacent map.",Toast.LENGTH_SHORT).show();
                         }*/
-                        if (mapIds.size() > 0) {
+                        if (!mapIds.isEmpty()) {
                             // Several maps found. Display button and menu to load new map.
                             //Toast.makeText(PDFActivity.this,"Several adjacent maps are available",Toast.LENGTH_SHORT).show();
                             menuBtn.setVisibility(View.VISIBLE);
@@ -516,23 +512,17 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 }
 
                                 popup.show();
-                                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                                    @Override
-                                    public boolean onMenuItemClick(MenuItem item) {
-                                        // load the user selected map
-                                        int i1 = item.getItemId();
-                                        loadNewMap(maps, i1);
-                                        return true;
-                                    }
+                                popup.setOnMenuItemClickListener(item -> {
+                                    // load the user selected map
+                                    int i1 = item.getItemId();
+                                    loadNewMap(maps, i1);
+                                    return true;
                                 });
-                                popup.setOnDismissListener(new PopupMenu.OnDismissListener() {
-                                    // hide the Load Adjacent Maps button
-                                    @Override
-                                    public void onDismiss(PopupMenu menu) {
-                                        Button menuBtn = findViewById(R.id.load_adjacent_maps);
-                                        menuBtn.setVisibility(View.GONE);
-                                        adjacentMapsBtnShowing = false;
-                                    }
+                                // hide the Load Adjacent Maps button
+                                popup.setOnDismissListener(menu -> {
+                                    Button menuBtn = findViewById(R.id.load_adjacent_maps);
+                                    menuBtn.setVisibility(View.GONE);
+                                    adjacentMapsBtnShowing = false;
                                 });
                             });
                         }
@@ -768,14 +758,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     // if tapped while moving or deleting a waypoint finish that
                     if (adjustWP != -1 || deleting) return false;
 
-                    // current location went off screen, several maps were found that contained
+                    // current location went off-screen, several maps were found that contained
                     // the current location, a button was displayed to prompt the user for which
                     // one they want to load, but they clicked elsewhere so hide the button.
                     if (adjacentMapsBtnShowing){
                         menuBtn.setVisibility(View.GONE);
                         adjacentMapsBtnShowing = false;
                     }
-                    updatePageSize(); // get new pdf page width and height
+                    updatePageSize(); // get new PDF page width and height
 
                     if (!showAllWayPts && !addWayPtFlag) {
                         //Toast.makeText(PDFActivity.this,"Waypoints are hidden.",Toast.LENGTH_LONG).show();
@@ -905,7 +895,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     return false;
                 }).onDraw((canvas, pageWidth, pageHeight, displayedPage) -> {
                     //Log.d("onDraw", "enter onDraw pageWidth="+pageWidth+" pageHeight="+pageHeight+" zoom="+pdfView.getZoom());
-                    updatePageSize(); // get new pdf page width and height
+                    updatePageSize(); // get new PDF page width and height
                     // Display current lat/long position
                     TextView pTxt = findViewById(R.id.cur_pos);
                     pTxt.setTextColor(Color.WHITE);
@@ -1100,13 +1090,15 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             // Show all Waypoint Labels
                             if (showAllWayPtLabels && (adjustWP != i12)) {
                                 String desc = wayPts.get(i12).getDesc();
-                                drawPopup(canvas, x, y, boxWidth, desc);
+                                //drawPopup(canvas, x, y, boxWidth, desc);
+                                drawLabels(canvas, x, y, boxWidth, desc);
                             }
                         }
                     }
 
                     // Draw popup if waypoint was clicked on
-                    if ((newWP || clickedWP != -1) && !showAllWayPtLabels && showAllWayPts && adjustWP == -1) {
+                    //if ((newWP || clickedWP != -1) && !showAllWayPtLabels && showAllWayPts && adjustWP == -1) {
+                    if ((newWP || clickedWP != -1) && showAllWayPts && adjustWP == -1) {
                         //Log.d("PDFActivity", "onDraw: draw waypoint and popup balloon. newWP="+newWP+" clickedWP="+clickedWP);
                         if (clickedWP != -1 && clickedWP < wayPts.size()) {
                             int i12 = clickedWP;
@@ -1159,19 +1151,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         canvas.translate((float) -currentLocationX, (float) -currentLocationY);
 
                         // Draw track
-                        if (latBefore != -1) {
+                        if (showTracks && latBefore != -1) {
                             // Must store the path and redraw each segment each time
                             canvas.translate(0,0);
-                            //prevLocationX = ((longBefore - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
-                            //prevLocationY = (((lat2 - latBefore) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
-                            //double sig_dist = .00001; // significant distance 5 ft
-                            //if ((longBefore - longNow > sig_dist) || (longNow - longBefore > sig_dist) &&
-                            //    (latBefore - latNow > sig_dist) || (latNow - latBefore > sig_dist)) {
-                                track.add(new Track((float) longBefore, (float) latBefore, (float) longNow, (float) latNow));
-                                for (int i = 0; i < track.size(); i++) {
-                                    canvas.drawLine(track.get(i).getX1(zoom,marginx,marginL), track.get(i).getY1(zoom,marginy,marginT), track.get(i).getX2(zoom,marginx,marginL), track.get(i).getY2(zoom,marginy,marginT), cyanLine);
-                                }
-                            //}
+                            track.add(new Track((float) longBefore, (float) latBefore, (float) longNow, (float) latNow));
+                            for (int i = 0; i < track.size(); i++) {
+                                canvas.drawLine(track.get(i).getX1(zoom,marginx,marginL), track.get(i).getY1(zoom,marginy,marginT), track.get(i).getX2(zoom,marginx,marginL), track.get(i).getY2(zoom,marginy,marginT), cyanLine);
+                            }
                         }
                     }
 
@@ -1195,7 +1181,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 //Toast.makeText(PDFActivity.this,String.valueOf(nbPages), Toast.LENGTH_LONG).show();
                 //Toast.makeText(PDFActivity.this,"Loaded file ", Toast.LENGTH_SHORT).show();
 
-                // META DATA
+                // METADATA
                         /*PdfDocument.Meta meta = pdfView.getDocumentMeta();
                         Log.d(TAG, "title = " + meta.getTitle().toString());
                         Log.d(TAG, "author = " + meta.getAuthor());
@@ -1323,7 +1309,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     }
 
     public int getOffsetXBox(float x,float popupWidth){
-        // Return the adjustment for popup going off screen horizontally
+        // Return the adjustment for popup going off-screen horizontally
         // Test for balloon popup going off right side of screen
         int offsetBox = Math.round(screenWidth - (pdfView.getCurrentXOffset() + x + (popupWidth / 2)));
 
@@ -1342,12 +1328,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         return startY + 6 + triangle_ht;
     }
 
-    public void drawPopup(Canvas canvas, float x, float y, float boxWidth, String desc){
-        // check if waypoint has scrolled off screen
+    public void drawPopup(Canvas canvas, float x, float y, float boxWidth, String desc) {
+        // check if waypoint has scrolled off-screen
         if (pdfView.getCurrentXOffset() + x <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
             // truncate the description if it is longer than the popup
             float w = txtCol.measureText(desc);
-            if (w > boxWidth - 2*marg) {
+            if (w > boxWidth - 2 * marg) {
                 int chIndex = (int) (desc.length() * (boxWidth - 2 * marg) / w);
                 desc = desc.substring(0, chIndex);
             }
@@ -1400,7 +1386,85 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
             canvas.save();
             // add edit/move/delete buttons below label
-            canvas.translate(x - boxWidth/2.0f + offsetBox,y + offsetYBox - startY - boxHt/2.0f);
+            canvas.translate(x - boxWidth / 2.0f + offsetBox, y + offsetYBox - startY - boxHt / 2.0f);
+            Drawable editImg = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_edit, getTheme());//getResources().getDrawable(R.drawable.ic_edit, null);
+            assert editImg != null;
+            editImg.setBounds(0, 0, btn_size, btn_size);
+            editImg.draw(canvas);
+            canvas.translate(btn_size + marg, 0);
+            Drawable moveImg = ResourcesCompat.getDrawable(getResources(), R.drawable.move_pin, getTheme());//getResources().getDrawable(R.drawable.ic_my_location, null);
+            assert moveImg != null;
+            moveImg.setBounds(0, 0, btn_size, btn_size);
+            moveImg.draw(canvas);
+            canvas.translate(btn_size + marg, 0);
+            Drawable deleteImg = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete, getTheme());//getResources().getDrawable(R.drawable.ic_delete, null);
+            assert deleteImg != null;
+            deleteImg.setBounds(0, 0, btn_size, btn_size);
+            deleteImg.draw(canvas);
+            canvas.translate((x + (boxWidth / 2)) + offsetBox + 10, y + offsetYBox - startY - boxHt - 12);
+            canvas.restore();
+        }
+    }
+    public void drawLabels(Canvas canvas, float x, float y, float boxWidth, String desc){
+        // check if waypoint has scrolled off-screen
+        if (pdfView.getCurrentXOffset() + x <= screenWidth && pdfView.getCurrentXOffset() + x > 0) {
+            // truncate the description if it is longer than the popup
+            float w = txtCol.measureText(desc);
+            int labelHt = txtSize + (marg * 2);
+            if (w > boxWidth - 2*marg) {
+                int chIndex = (int) (desc.length() * (boxWidth - 2 * marg) / w);
+                desc = desc.substring(0, chIndex);
+            }
+
+            // Test for label going off right or left side of screen
+            int offsetBox = getOffsetXBox(x, boxWidth);
+            // Test for waypoint at top half of screen, display popup below
+            int offsetYBox = -1 * triangle_ht;
+            int offsetYTriangle = -1 * triangle_ht; // edit in drawTriangle too
+            //Log.d("Draw Popup","y="+y+"+ pdfViewYoffset="+pdfView.getCurrentYOffset()+" "+(y + pdfView.getCurrentYOffset())+" < "+(pdfView.getHeight() / 2.0));
+            if ((y + pdfView.getCurrentYOffset()) < (pdfView.getHeight() / 2.0)) {
+                offsetYBox = startY + labelHt + triangle_ht;
+                offsetYTriangle = getOffsetYTriangle();
+            }
+            // black border
+            Paint recCol = new Paint();
+            int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+            switch (currentNightMode) {
+                case Configuration.UI_MODE_NIGHT_NO:
+                    // Night mode is not active, we're using the light theme
+                    // black border
+                    recCol.setColor(Color.BLACK);
+                    recCol.setStrokeWidth(3);
+                    canvas.drawRect((x - (boxWidth / 2) - 3) + offsetBox, y + offsetYBox - startY - labelHt, (x + (boxWidth / 2) + 3) + offsetBox, y + offsetYBox - startY + 3, recCol);
+                    // white rectangle
+                    recCol.setColor(Color.WHITE);
+                    recCol.setStrokeWidth(0); // solid fill
+                    canvas.drawRect((x - (boxWidth / 2)) + offsetBox, y + offsetYBox - startY - labelHt + 3, (x + (boxWidth / 2)) + offsetBox, y + offsetYBox - startY, recCol);
+                    drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
+                    // white triangle, reset text to black
+                    txtCol.setColor(Color.BLACK);
+                    canvas.drawText(desc, (x - (boxWidth / 2)) + marg + offsetBox, y + offsetYBox - startY - (labelHt * 0.75f) + 12 + (txtSize / 2.0f), txtCol);
+                    break;
+                case Configuration.UI_MODE_NIGHT_YES:
+                    // Night mode is active, we're using dark theme
+                    // White border
+                    recCol.setColor(Color.BLACK);
+                    recCol.setStrokeWidth(3);
+                    canvas.drawRect((x - (boxWidth / 2) - 3) + offsetBox, y + offsetYBox - startY - labelHt, (x + (boxWidth / 2) + 3) + offsetBox, y + offsetYBox - startY + 3, recCol);
+                    // black rectangle
+                    recCol.setColor(Color.GRAY);
+                    recCol.setStrokeWidth(0); // solid fill
+                    canvas.drawRect((x - (boxWidth / 2)) + offsetBox, y + offsetYBox - startY - labelHt + 3, (x + (boxWidth / 2)) + offsetBox, y + offsetYBox - startY, recCol);
+                    drawTriangle(canvas, recCol, (int) (x), (int) (y + offsetYTriangle - startY - 3), offsetYTriangle); // passing offsetYBox tells if triangle should be up or down
+                    // white text
+                    txtCol.setColor(Color.WHITE);
+                    canvas.drawText(desc, (x - (boxWidth / 2)) + marg + offsetBox, y + offsetYBox - startY - (labelHt * 0.75f) + 12 + (txtSize / 2.0f), txtCol);
+                    break;
+            }
+
+            canvas.save();
+            // add edit/move/delete buttons below label
+            /*canvas.translate(x - boxWidth/2.0f + offsetBox,y + offsetYBox - startY - boxHt/2.0f);
             Drawable editImg = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_edit, getTheme());//getResources().getDrawable(R.drawable.ic_edit, null);
             assert editImg != null;
             editImg.setBounds(0, 0, btn_size, btn_size);
@@ -1416,7 +1480,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             deleteImg.setBounds(0, 0, btn_size, btn_size);
             deleteImg.draw(canvas);
             canvas.translate((x + (boxWidth / 2)) + offsetBox + 10, y + offsetYBox - startY - boxHt - 12);
-            canvas.restore();
+            canvas.restore();*/
         }
     }
     public void drawTriangle(Canvas canvas, Paint paint, int x, int y, int offsetYBox) {
@@ -1474,6 +1538,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             loadAdjacentMaps = db2.getLoadAdjMaps() != 0;
             if (stateShowAllWayPts == -1)
                 showAllWayPts = db2.getShowWaypoints() != 0;
+            if (stateShowTracks == -1)
+                showTracks = db2.getShowTracks() != 0;
             showAllWayPtLabels = db2.getShowAllWaypointLabels() != 0;
             // set orientation for this map
             myMap = db2.getMap(mapName);
@@ -1521,6 +1587,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         // This bundle will be passed to onCreate if the process is
         // killed and restarted.
         savedInstanceState.putBoolean("showAllWayPts", showAllWayPts);
+        savedInstanceState.putBoolean("showTracks", showTracks);
         super.onSaveInstanceState(savedInstanceState);
     }
     @Override
@@ -1529,6 +1596,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         // Restore UI state from the savedInstanceState.
         // This bundle has also been passed to onCreate.
         boolean showAllWayPts = savedInstanceState.getBoolean("showAllWayPts");
+        boolean showTracks = savedInstanceState.getBoolean("showTracks");
     }*/
 
     @Override
@@ -1539,6 +1607,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             stateShowAllWayPts = 1;
         else
             stateShowAllWayPts = 0;
+        // save state of tracking
+        if (showTracks)
+            stateShowTracks = 1;
+        else
+            stateShowTracks = 0;
         stopLocationUpdates();
         //Log.d("PDFActivity:onPause","close dbWayPtHandler, stop location updates");
         db.close();
@@ -1690,6 +1763,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     MenuItem action_landscape;
     MenuItem action_showAll;
     MenuItem action_showWayPts;
+    MenuItem action_showTracks;
     MenuItem action_loadAdjacentMaps;
     /*DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
         @SuppressLint("SourceLockedOrientationActivity")
@@ -1726,6 +1800,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         action_landscape = menu.findItem(R.id.action_landscape);
         action_showAll = menu.findItem(R.id.action_showAll);
         action_showWayPts = menu.findItem(R.id.action_showWayPts);
+        action_showTracks = menu.findItem(R.id.action_showTracks);
         action_loadAdjacentMaps = menu.findItem(R.id.action_loadAdjacentMaps);
         wayPtMenuItem = menu.findItem(R.id.action_add_way_pt);
         action_loadAdjacentMaps.setChecked(loadAdjacentMaps);
@@ -1733,6 +1808,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         action_landscape.setChecked(landscapeLocked);
         action_showAll.setChecked((showAllWayPtLabels));
         action_showWayPts.setChecked(showAllWayPts);
+        action_showTracks.setChecked(showTracks);
         return true;
     }
 
@@ -1805,6 +1881,22 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 action_showWayPts.setChecked(true);
                 showAllWayPts = true;
                 db2.setShowWaypoints(1);
+            }
+        }
+        // Tracking
+        else if (id == R.id.action_showTracks){
+            // isChecked() returns the state before the user clicked on it
+            // uncheck waypoints
+            if (action_showTracks.isChecked()){
+                action_showTracks.setChecked(false);
+                showTracks = false;
+                db2.setShowTracks(0);
+            }
+            // check waypoints
+            else{
+                action_showTracks.setChecked(true);
+                showTracks = true;
+                db2.setShowTracks(1);
             }
         }
         // Show AdjacentMaps when current location is on or close to other maps
@@ -1921,72 +2013,63 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 .setTitle("Add Waypoint by Lat/Long")
                 .setMessage("Enter a latitude between "+String.format(Locale.US, "%.4f",lat1)+" and "+String.format(Locale.US, "%.4f",lat2)+" and longitude between "+String.format(Locale.US, "%.4f",long1)+" and "+String.format(Locale.US, "%.4f",long2)+".\n\nExample: "+String.format(Locale.US,"%.4f",(lat2+lat1)/2.0)+","+String.format(Locale.US,"%.4f",(long2+long1)/2.0)+"\n\n")
                 .setView(txtLatLong)
-                .setPositiveButton("Add", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                    }
+                .setPositiveButton("Add", (dialog, whichButton) -> {
                 })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                    }
+                .setNegativeButton("Cancel", (dialog, whichButton) -> {
                 });
 
             final AlertDialog dialogLatLong = builderLatLong.create();
             dialogLatLong.show();
             // overriding the handler immediately after show so that it does not call dismiss
-            dialogLatLong.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
-            {
-                @Override
-                public void onClick(View v)
-                {
-                    String[] latlong = txtLatLong.getText().toString().split(",");
-                    if (latlong.length != 2){
-                        Toast.makeText(PDFActivity.this,"Missing comma. Enter: lat, long", Toast.LENGTH_LONG).show();
-                    }
-                    else{
-                    // Add waypoint
-                    try {
-                        double latitude = Double.parseDouble(latlong[0]);
-                        double longitude = Double.parseDouble(latlong[1]);
-                        if (longitude > 0) longitude = longitude * -1;// make longitude negative
-                        if (latitude <= lat1 || latitude >= lat2) {
-                            Toast.makeText(PDFActivity.this, "latitude is not on map!!!!", Toast.LENGTH_LONG).show();
-                        } else if (longitude <= long1 || longitude >= long2) {
-                            Toast.makeText(PDFActivity.this, "longitude is not on map!!!!", Toast.LENGTH_LONG).show();
-                        } else {
-                            addWayPtFlag = false;
-                            clickedWP = -1; // hide balloon popups
-                            showAllWayPts = true;
-                            action_showWayPts.setChecked(true);
-                            wait.setVisibility(View.VISIBLE);
-                            newWP = true;
-                            String location = String.format(Locale.US, "%.5f, %.5f", latitude, longitude);
-                            int num = findAUniqueName();
-                            WayPt wayPt = wayPts.add(mapName, "Waypoint " + num, (float) longitude, (float) latitude, "blue", location);
-                            wayPts.SortPts();
-                            try {
-                                db.addWayPt(wayPt);
-                                // get the index of the new waypoint
-                                for (int i1 = 0; i1 < wayPts.size(); i1++) {
-                                    if (wayPts.get(i1).getX() == (float) longitude && wayPts.get(i1).getY() == (float) latitude) {
-                                        lastClickedWP = clickedWP;
-                                        clickedWP = i1;
-                                        break;
-                                    }
+            dialogLatLong.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                String[] latlong = txtLatLong.getText().toString().split(",");
+                if (latlong.length != 2){
+                    Toast.makeText(PDFActivity.this,"Missing comma. Enter: lat, long", Toast.LENGTH_LONG).show();
+                }
+                else{
+                // Add waypoint
+                try {
+                    double latitude = Double.parseDouble(latlong[0]);
+                    double longitude = Double.parseDouble(latlong[1]);
+                    if (longitude > 0) longitude = longitude * -1;// make longitude negative
+                    if (latitude <= lat1 || latitude >= lat2) {
+                        Toast.makeText(PDFActivity.this, "latitude is not on map!!!!", Toast.LENGTH_LONG).show();
+                    } else if (longitude <= long1 || longitude >= long2) {
+                        Toast.makeText(PDFActivity.this, "longitude is not on map!!!!", Toast.LENGTH_LONG).show();
+                    } else {
+                        addWayPtFlag = false;
+                        clickedWP = -1; // hide balloon popups
+                        showAllWayPts = true;
+                        action_showWayPts.setChecked(true);
+                        wait.setVisibility(View.VISIBLE);
+                        newWP = true;
+                        String location = String.format(Locale.US, "%.5f, %.5f", latitude, longitude);
+                        int num = findAUniqueName();
+                        WayPt wayPt = wayPts.add(mapName, "Waypoint " + num, (float) longitude, (float) latitude, "blue", location);
+                        wayPts.SortPts();
+                        try {
+                            db.addWayPt(wayPt);
+                            // get the index of the new waypoint
+                            for (int i1 = 0; i1 < wayPts.size(); i1++) {
+                                if (wayPts.get(i1).getX() == (float) longitude && wayPts.get(i1).getY() == (float) latitude) {
+                                    lastClickedWP = clickedWP;
+                                    clickedWP = i1;
+                                    break;
                                 }
-                            } catch (SQLException exc) {
-                                Toast.makeText(PDFActivity.this, "Failed to save waypoint. " + exc.getMessage(), Toast.LENGTH_LONG).show();
-                                wayPts.remove((float) longitude, (float) latitude);
-                                clickedWP = -1;
-                                newWP = false;
-                                addWayPtFlag = false;
                             }
-                            dialogLatLong.dismiss();
+                        } catch (SQLException exc) {
+                            Toast.makeText(PDFActivity.this, "Failed to save waypoint. " + exc.getMessage(), Toast.LENGTH_LONG).show();
+                            wayPts.remove((float) longitude, (float) latitude);
+                            clickedWP = -1;
+                            newWP = false;
+                            addWayPtFlag = false;
                         }
-                    }catch (NumberFormatException e){
-                        Toast.makeText(PDFActivity.this,"lat, long must be numbers in decimal degrees", Toast.LENGTH_LONG).show();
+                        dialogLatLong.dismiss();
                     }
+                }catch (NumberFormatException e){
+                    Toast.makeText(PDFActivity.this,"lat, long must be numbers in decimal degrees", Toast.LENGTH_LONG).show();
                 }
-                }
+            }
             });
         }
         else if (id == R.id.action_help){

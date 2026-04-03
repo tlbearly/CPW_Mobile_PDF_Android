@@ -20,7 +20,7 @@ import java.util.Locale;
  */
 
 public class DBHandler extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     private static final String DATABASE_NAME = "mapsInfo";
     private final Context context;
     // Maps table name
@@ -44,6 +44,7 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String KEY_MAP_SORT = "map_sort"; // Imported maps sort order. Valid values: name, date, or size
     private static final String KEY_LOAD_ADJ_MAPS ="load_adj_maps"; // turn on or off loading of adjacent maps for all maps. Valid values: "1" or "0"
     private static final String KEY_SHOW_WAYPOINTS="show_waypoints"; // turn on or off showing waypoints for all maps. Valid values: "1" or "0"
+    private static final String KEY_SHOW_TRACKS="show_tracks"; // turn on or off showing tracks for all maps. Valid values: "1" or "0"
     private static final String KEY_SHOW_ALL_WAYPOINT_LABELS="show_all_waypoints"; //  turn on or off showing all waypoint labels for all maps. Valid values: "1" or "0"
 
     public DBHandler(Context c) throws SQLException {
@@ -60,7 +61,7 @@ public class DBHandler extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db1, int oldVersion, int newVersion) throws SQLException {
-         // For new version do new stuff here. Drop tables and call onCreate
+         // For new version do new stuff here. Drop tables
          if (oldVersion != newVersion) {
              switch (oldVersion) {
                  case 1:
@@ -83,6 +84,13 @@ public class DBHandler extends SQLiteOpenHelper {
                      db1.execSQL("UPDATE " + TABLE_SETTINGS + " SET " + KEY_LOAD_ADJ_MAPS + " = '1'");
                      db1.execSQL("UPDATE " + TABLE_SETTINGS + " SET " + KEY_SHOW_WAYPOINTS + " = '1'");
                      db1.execSQL("UPDATE " + TABLE_SETTINGS + " SET " + KEY_SHOW_ALL_WAYPOINT_LABELS + " = '0'");
+                     // version 3 new stuff
+                     db1.execSQL("ALTER TABLE " + TABLE_SETTINGS + " ADD COLUMN " + KEY_SHOW_TRACKS + " TEXT");
+                     db1.execSQL("UPDATE " + TABLE_SETTINGS + " SET " + KEY_SHOW_TRACKS + " = '0'");
+                 case 2:
+                     // Version 3 new stuff
+                     db1.execSQL("ALTER TABLE " + TABLE_SETTINGS + " ADD COLUMN " + KEY_SHOW_TRACKS + " TEXT");
+                     db1.execSQL("UPDATE " + TABLE_SETTINGS + " SET " + KEY_SHOW_TRACKS + " = '0'");
              }
 
              //recreateSettingsTable(db1);
@@ -182,7 +190,7 @@ public class DBHandler extends SQLiteOpenHelper {
         // User preferences for all maps
         String CREATE_SETTINGS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_SETTINGS + "("
             + KEY_SETTINGS_ID + " INTEGER PRIMARY KEY," + KEY_MAP_SORT + " TEXT," + KEY_LOAD_ADJ_MAPS + " TEXT,"
-            + KEY_SHOW_WAYPOINTS + " TEXT," + KEY_SHOW_ALL_WAYPOINT_LABELS + " TEXT)";
+            + KEY_SHOW_WAYPOINTS + " TEXT," + KEY_SHOW_ALL_WAYPOINT_LABELS + " TEXT," + KEY_SHOW_TRACKS + " TEXT)";
         db1.execSQL(CREATE_SETTINGS_TABLE);
         // Insert default user settings
         ContentValues values = new ContentValues();
@@ -190,6 +198,7 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(KEY_LOAD_ADJ_MAPS, "1");
         values.put(KEY_SHOW_WAYPOINTS, "1");
         values.put(KEY_SHOW_ALL_WAYPOINT_LABELS, "0");
+        values.put(KEY_SHOW_TRACKS, "0");
         db1.insert(TABLE_SETTINGS, null, values);
     }
     /*public void recreateSettingsTable(SQLiteDatabase db1) throws SQLException{
@@ -379,6 +388,35 @@ public class DBHandler extends SQLiteOpenHelper {
             // Settings table does not exist. Create it.
             createSettingsTable(db);
             return 1;
+        }
+    }
+    //---------------------
+    // Show Tracks?
+    //---------------------
+    public void setShowTracks(int show) throws SQLiteException{
+        // Sets user preference, should show waypoints when map loads?
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_SHOW_TRACKS, Integer.toString(show));
+        String id = "1";
+        db.update(TABLE_SETTINGS, values, KEY_SETTINGS_ID + " = ?", new String[]{id});
+    }
+    public int getShowTracks() throws SQLiteException {
+        // Sets user preference, should show tracks when map loads?
+        SQLiteDatabase db = this.getWritableDatabase();
+        int show;
+        String selectQuery = "SELECT " + KEY_SHOW_TRACKS + " FROM " + TABLE_SETTINGS;
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        // Only one record
+        if (cursor.moveToFirst()) {
+            show = Integer.parseInt(cursor.getString(0));
+            cursor.close();
+            return show;
+        }
+        else {
+            // Settings table does not exist. Create it.
+            createSettingsTable(db);
+            return 0;
         }
     }
     //---------------------

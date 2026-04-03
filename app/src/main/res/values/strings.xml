@@ -11,6 +11,7 @@
     <string name="add_lat_long">Add a waypoint by lat/long</string>
     <string name="showWayPtLabels">Show all waypoint labels</string>
     <string name="showWayPts">Show waypoints</string>
+    <string name="showTracks">Show tracks</string>
     <string name="loadAdjacentMaps">Load adjacent maps</string>
     <string name="deleteAllWayPts">Delete all waypoints</string>
     <string name="wayPtInstr">Tap map to add waypoint</string>
