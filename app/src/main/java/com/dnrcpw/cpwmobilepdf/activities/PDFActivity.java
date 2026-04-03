@@ -797,8 +797,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         if (!continueProcessing) return false;
                     }
 
+                    // Now just show labels - do not process button clicks
                     // check if clicked on any balloon when all waypoints are showing their labels
-                    if (showAllWayPtLabels) {
+                    /*if (showAllWayPtLabels) {
                         //Log.d("PDFActivity","Show all waypoint labels.");
                         for (int j = wayPts.size()-1; j > -1; j--) {
                             wayPtX = (((wayPts.get(j).getX() - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx)) + marginL;
@@ -807,7 +808,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             continueProcessing = checkForWaypointButtonClick(boxWidth, x, y, wayPtX, wayPtY, j);
                             if (!continueProcessing) return false;
                         }
-                    }
+                    }*/
 
                     //
                     // Check if clicked on existing waypoint
