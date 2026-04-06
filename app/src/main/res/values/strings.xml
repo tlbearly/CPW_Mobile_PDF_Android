@@ -74,15 +74,18 @@
     <string name="fileLocation">File Location:\u0020</string>
     <string name="fileSize">File Size:\u0020</string>
     <string name="push_pin_img">Pushpin Image</string>
+    <string name="trackImg">Track Image</string>
     <string name="latLongBounds">Lat/Long Bounds:\u0020</string>
     <string name="wayLocation">Lat, Long:\u0020</string>
     <string name="wayTime">Date Added:\u0020</string>
     <string name="wayColor">Pushpin Color:\u0020</string>
+    <string name="trackColor">Track Color:\u0020</string>
     <string name="clear">Clear Name</string>
     <string name="title_activity_edit_map_name">Edit Map Name</string>
     <string name="title_activity_edit_way_pt">Edit Waypoint</string>
     <string name="renameMap">Rename Map</string>
     <string name="renameWayPt">Rename Waypoint</string>
+    <string name="renameTrack">Rename Track</string>
     <!--string name="downloading">Downloading…</string-->
 
     <!-- Main Help -->
