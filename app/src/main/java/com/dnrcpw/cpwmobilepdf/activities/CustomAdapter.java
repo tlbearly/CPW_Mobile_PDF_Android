@@ -18,6 +18,7 @@ import com.dnrcpw.cpwmobilepdf.R;
 import com.dnrcpw.cpwmobilepdf.data.DBHandler;
 import com.dnrcpw.cpwmobilepdf.data.DBWayPtHandler;
 import com.dnrcpw.cpwmobilepdf.model.PDFMap;
+import com.dnrcpw.cpwmobilepdf.model.WayPts;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -91,6 +92,27 @@ public class CustomAdapter extends BaseAdapter {
         longNow = location.getLongitude();
     }
 
+    public ArrayList<String> getAllMapNames() throws SQLException {
+        // 4-16-26 for removing waypts that no longer have an existing map. Old bug.
+        ArrayList<String> list = new ArrayList<>();
+        for (int i=0; i<this.pdfMaps.size(); i++){
+            if (!list.contains(this.pdfMaps.get(i).getName()))
+                list.add(this.pdfMaps.get(i).getName());
+        }
+        return list;
+    }
+
+    public void removeWayPtsForOldMaps(){
+        // 4-16-26 Make sure all waypoints have map files that exist. Old bug left waypoints when map was deleted!
+        ArrayList <String> existingMapNames = getAllMapNames();
+        ArrayList <String> wayPtMapNames = wpdb.getAllMapNames();
+        for (int i = 0; i < wayPtMapNames.size(); i++) {
+            if (!existingMapNames.contains(wayPtMapNames.get(i))){
+                // map no longer exists. Remove waypoints for this map
+                wpdb.deleteWayPts(wayPtMapNames.get(i));
+            }
+        }
+    }
     public void checkIfExists() {
         // Check if the pdf exists in App directory. If not remove it from the database. Called by MainActivity.
         try {
@@ -276,8 +298,9 @@ public class CustomAdapter extends BaseAdapter {
             for (int i = 0; i < pdfMaps.size(); i++) {
                 if (pdfMaps.get(i).getId() == id) {
                     map = pdfMaps.get(i);
+                    String oldMapName = map.getName(); // save old name before we rename it!
                     try {
-                        // Check if name has change. If not return
+                        // Check if name has changed. If not return
                         //Log.d("CustomAdapter","Rename "+map.getName()+" to "+name);
                         if (name.equals(map.getName())) return;
                         File sdcard = c.getFilesDir();
@@ -292,6 +315,16 @@ public class CustomAdapter extends BaseAdapter {
                         map.setName(name);
                         map.setPath(sdcard + "/" + fileName);
                         db.updateMap(map);
+
+                        // update waypoint map names
+                        WayPts wayPts = wpdb.getWayPts(oldMapName);
+                        for (int j=0; j<wayPts.size(); j++){
+                            wayPts.get(j).setName(name); // update class
+                            wpdb.updateWayPt(wayPts.get(j)); // update database
+                        }
+
+                        // TODO update track map names
+                        /// ***********TODO*********
                     } catch (Exception e) {
                         //db.close();
                         Toast.makeText(c, "Error renaming: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -310,6 +343,7 @@ public class CustomAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int i) {
+        // get the row associated with the item in the list
         return i;
     }
 
@@ -330,6 +364,7 @@ public class CustomAdapter extends BaseAdapter {
                 }
                 db.deleteMap(map);
                 wpdb.deleteWayPt(map.getName());// delete waypoints
+                // TODO remove tracks *********************************************
                 pdfMaps.remove(i);
                 // delete thumbnail image also
                 if (map.getThumbnail() != null) {
@@ -370,6 +405,7 @@ public class CustomAdapter extends BaseAdapter {
                     //Toast.makeText(c,"Deleting: "+map.getName(), Toast.LENGTH_LONG).show();
                     db.deleteMap(map);
                     wpdb.deleteWayPts(map.getName());
+                    // TODO remove tracks **********************************************
                     pdfMaps.remove(i);
                     // delete thumbnail image also
                     String imgPath = map.getThumbnail();

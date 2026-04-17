@@ -10,6 +10,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.dnrcpw.cpwmobilepdf.model.WayPt;
 import com.dnrcpw.cpwmobilepdf.model.WayPts;
 
+import java.util.ArrayList;
+
 public class DBWayPtHandler extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     // Database Name
@@ -97,6 +99,28 @@ public class DBWayPtHandler extends SQLiteOpenHelper {
         cursor.close();
         return wayPt;
     }*/
+
+    // Get All MapNames
+    public ArrayList<String> getAllMapNames() throws SQLException {
+        // 4-16-26 for removing waypts that no longer have an existing map. Old bug.
+        SQLiteDatabase db = this.getWritableDatabase();
+        ArrayList<String> list = new ArrayList<>();
+        // Select All Query
+        String selectQuery = "SELECT * FROM " + TABLE_WAYPTS;
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                // Add mapName to list
+                if (!list.contains(cursor.getString(1)))
+                    list.add(cursor.getString(1));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        // return map names list
+        return list;
+    }
 
     // Getting All Waypoints from one PDF map
     public WayPts getWayPts(String mapName) throws SQLException {

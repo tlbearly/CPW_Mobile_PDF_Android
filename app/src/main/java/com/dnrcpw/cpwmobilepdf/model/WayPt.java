@@ -38,10 +38,6 @@ public class WayPt {
         this.desc = desc;
         this.x = x;
         this.y = y;
-        //Calendar cal = Calendar.getInstance();
-        //java.util.Date date = cal.getTime();
-        //DateFormat formattedDate = new SimpleDateFormat("MM-dd-yyyy HH:mma");
-        //this.time = formattedDate.format(date);
         this.time = time;
         this.colorName = colorName;
         this.location = location;

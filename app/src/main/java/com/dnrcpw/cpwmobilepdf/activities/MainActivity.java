@@ -723,7 +723,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 //myAdapter.setEditing(false);
                 String name = i.getExtras().getString("NAME");
                 int id = i.getExtras().getInt("ID");
-                myAdapter.rename(id, name);
+                myAdapter.rename(id, name); // also updates waypts and tracks
                 //Toast.makeText(MainActivity.this, "Map renamed to: " + name, Toast.LENGTH_LONG).show();
                 i.removeExtra("NAME");
                 i.removeExtra("ID");
@@ -735,7 +735,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 // Delete map, remove from Imported Maps list, delete from database
                 //myAdapter.setEditing(false);
                 selectedId = i.getExtras().getInt("ID");
-                myAdapter.removeItem(selectedId);
+                myAdapter.removeItem(selectedId); // also removes waypts and tracks
                 Toast.makeText(MainActivity.this, "Map removed", Toast.LENGTH_LONG).show();
                 i.removeExtra("ID");
                 i.removeExtra("DELETE");
@@ -752,6 +752,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         if(!checkedForUpdates) {
             checkForUpdate();
         }
+
+        // clean up waypoints, bug left old maps that no longer exist, remove these from db
+        myAdapter.removeWayPtsForOldMaps();
     }
 
 
@@ -972,7 +975,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             switch (which){
                 case DialogInterface.BUTTON_POSITIVE:
                     //DELETE all imported maps clicked and recreate the database
-                    myAdapter.removeAll();
+                    myAdapter.removeAll(); // also removes all waypts and tracks
                     // Disable "Delete all Imported Maps" if there aren't any maps
                     MenuItem delMapsMenuItem = toolbar.getMenu().findItem(R.id.action_deleteAll);
                     delMapsMenuItem.setVisible(myAdapter.pdfMaps.size() != 0); // setEnabled(myAdapter.pdfMaps.size() != 0);

@@ -21,12 +21,12 @@ import com.dnrcpw.cpwmobilepdf.data.DBWayPtHandler;
 import com.dnrcpw.cpwmobilepdf.model.WayPt;
 import com.dnrcpw.cpwmobilepdf.model.WayPts;
 
-public class EditWayPointActivity extends AppCompatActivity {
+public class EditTrackActivity extends AppCompatActivity{
     EditText editTxt;
     TextView timeStamp;
     TextView location;
-    ImageView pin;
-    RadioGroup pinColorGrp;
+    ImageView trackImg;
+    RadioGroup trackColorGrp;
     RadioButton cyanBtn, redBtn, blueBtn;
     private WayPts wayPts = null;
     String mapName;
@@ -49,7 +49,7 @@ public class EditWayPointActivity extends AppCompatActivity {
         // Read the waypoint id that was clicked on and the map name
         Intent i = this.getIntent();
         if (i.getExtras() == null){
-            Toast.makeText(EditWayPointActivity.this, "Failed to get map values. Try again.",Toast.LENGTH_LONG).show();
+            Toast.makeText(EditTrackActivity.this, "Failed to get map values. Try again.",Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -72,52 +72,48 @@ public class EditWayPointActivity extends AppCompatActivity {
         wayPts.SortPts();
         wayPt = wayPts.get(id);
 
-        setContentView(R.layout.activity_way_pt);
+        setContentView(R.layout.activity_track);
         prevName = wayPt.getDesc();
-        editTxt = findViewById(R.id.waypt);
+        editTxt = findViewById(R.id.trackName);
         editTxt.setText(wayPt.getDesc());
-        pin = findViewById(R.id.pushPin);
-        timeStamp = findViewById(R.id.wayTime);
-        timeStamp.setText(wayPt.getTime());
-        location = findViewById(R.id.wayLocation);
-        location.setText(wayPt.getLocation());
-        pinColorGrp = findViewById(R.id.trackColor);
-        String pinColor = wayPt.getColorName();
-        cyanBtn = findViewById(R.id.cyanPin);
-        redBtn = findViewById(R.id.redPin);
-        blueBtn = findViewById(R.id.bluePin);
-        if (pinColor.equals("cyan")){
+        trackImg = findViewById(R.id.track_img);
+        trackColorGrp = findViewById(R.id.trackColor);
+        String trackColor = wayPt.getColorName();
+        cyanBtn = findViewById(R.id.cyanTrack);
+        redBtn = findViewById(R.id.redTrack);
+        blueBtn = findViewById(R.id.blueTrack);
+        if (trackColor.equals("cyan")){
             cyanBtn.setChecked(true);
-            pin.setImageResource(R.mipmap.ic_cyan_pin2);
+            trackImg.setImageResource(R.drawable.ic_cyan_track);
         }
-        else if (pinColor.equals("red")){
+        else if (trackColor.equals("red")){
             redBtn.setChecked(true);
-            pin.setImageResource(R.mipmap.ic_red_pin);
+            trackImg.setImageResource(R.drawable.ic_red_track);
         }
         else {
             blueBtn.setChecked(true);
-            pin.setImageResource(R.mipmap.ic_blue_pin);
+            trackImg.setImageResource(R.drawable.ic_blue_track);
         }
-        ImageButton clearBtn = findViewById(R.id.clear_waypt);
+        ImageButton clearBtn = findViewById(R.id.clear_track);
 
-        // Clear waypoint name
+        // Clear track name
         clearBtn.setOnClickListener(view -> editTxt.setText(""));
 
-        // Listeners for Pin color radio buttons
-        pinColorGrp.setOnCheckedChangeListener((radioGroup, checkedId) -> {
+        // Listeners for track color radio buttons
+        trackColorGrp.setOnCheckedChangeListener((radioGroup, checkedId) -> {
             if (checkedId == R.id.cyanPin){
                 wayPt.setColorName("cyan");
-                pin.setImageResource(R.mipmap.ic_cyan_pin2);
+                trackImg.setImageResource(R.mipmap.ic_cyan_pin2);
                 changed = true;
             }
             else if  (checkedId == R.id.redPin){
                 wayPt.setColorName("red");
-                pin.setImageResource(R.mipmap.ic_red_pin);
+                trackImg.setImageResource(R.mipmap.ic_red_pin);
                 changed = true;
             }
             else if  (checkedId == R.id.bluePin){
                 wayPt.setColorName("blue");
-                pin.setImageResource(R.mipmap.ic_blue_pin);
+                trackImg.setImageResource(R.mipmap.ic_blue_pin);
                 changed = true;
             }
         });
@@ -152,7 +148,7 @@ public class EditWayPointActivity extends AppCompatActivity {
                     //'SAVE' button clicked, save then exit
                     String name = editTxt.getText().toString();
                     if (name.equals("")) {
-                        Toast.makeText(EditWayPointActivity.this, "Cannot rename to blank!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(EditTrackActivity.this, "Cannot rename to blank!", Toast.LENGTH_LONG).show();
                     } else {
                         wayPt.setDesc(name);
                         dbWayPtHandler.updateWayPt(wayPts.get(id));
@@ -188,7 +184,7 @@ public class EditWayPointActivity extends AppCompatActivity {
 
         if (item.getItemId() == R.id.delete_map) {
             // display alert dialog
-            AlertDialog.Builder builder = new AlertDialog.Builder(EditWayPointActivity.this);
+            AlertDialog.Builder builder = new AlertDialog.Builder(EditTrackActivity.this);
             builder.setTitle("Delete");
             builder.setMessage("Delete this waypoint?").setPositiveButton("DELETE", dialogClickListener)
                     .setNegativeButton("CANCEL", dialogClickListener).show();
@@ -197,7 +193,7 @@ public class EditWayPointActivity extends AppCompatActivity {
             // rename map
             String name = editTxt.getText().toString();
             if (name.equals("")) {
-                Toast.makeText(EditWayPointActivity.this, "Cannot rename to blank!", Toast.LENGTH_LONG).show();
+                Toast.makeText(EditTrackActivity.this, "Cannot rename to blank!", Toast.LENGTH_LONG).show();
             } else {
                 wayPt.setDesc(name);
                 dbWayPtHandler.updateWayPt(wayPts.get(id));
@@ -208,7 +204,7 @@ public class EditWayPointActivity extends AppCompatActivity {
         } else if (item.getItemId() == android.R.id.home){
             // show dialog if not saved
             if (changed || !prevName.equals(editTxt.getText().toString())) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(EditWayPointActivity.this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(EditTrackActivity.this);
                 builder.setTitle("Warning");
                 builder.setMessage("Changes are not saved.").setPositiveButton("SAVE", dialogClickListener2)
                         .setNegativeButton("DON'T SAVE", dialogClickListener2).show();

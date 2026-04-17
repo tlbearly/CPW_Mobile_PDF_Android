@@ -41,7 +41,7 @@
           android:layout_marginStart="10dp"
           android:autofillHints="@string/renameWayPt"
           android:ems="10"
-          android:hint="@string/renameWayPt"
+          android:hint="@string/renameTrack"
           android:inputType="text"
           android:minHeight="48dp"
           android:textAppearance="?android:attr/textAppearanceMedium"
@@ -99,7 +99,7 @@
         android:textStyle="bold" />
 
     <RadioGroup
-        android:id="@+id/pinColor"
+        android:id="@+id/trackColor"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 

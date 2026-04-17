@@ -1,5 +1,8 @@
 package com.dnrcpw.cpwmobilepdf.model;
 
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
