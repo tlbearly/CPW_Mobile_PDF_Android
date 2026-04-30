@@ -858,22 +858,23 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                         for (var s=0; s<tracks.get(t).getTrackSegments().size(); s++) {
                             TrackSegment segment = track.getTrackSegments().get(s);
-                            // Check if clicked point is on the line segment using the distance of a point to a line
-                            float dist = distToSegmentSquared(x, y,
-                                    segment.getX1(zoom, marginx, marginL, long1, longDiff, optimalPageWidth.get()),
-                                    segment.getY1(zoom, marginx, marginL, lat2, latDiff, optimalPageHeight.get()),
-                                    segment.getX2(zoom, marginx, marginL, long2, longDiff, optimalPageWidth.get()),
-                                    segment.getY2(zoom, marginx, marginL, lat1, latDiff, optimalPageHeight.get()));
-                            dist = (float) Math.sqrt(dist); // square root
-                            if (dist < 100)
-                                Log.d("DEBUG", "distance squared " + dist + " zoom=" + zoom);
-                            if (dist < 100)
-                            {
-                                // show popup for track
-                                clickedTrack = t; // tracks index
-                                clickTrackX = x;
-                                clickTrackY = y;
-                                break;
+                            if (segment != null) {
+                                // Check if clicked point is on the line segment using the distance of a point to a line
+                                float dist = distToSegmentSquared(x, y,
+                                        segment.getX1(zoom, marginx, marginL, long1, longDiff, optimalPageWidth.get()),
+                                        segment.getY1(zoom, marginx, marginL, lat2, latDiff, optimalPageHeight.get()),
+                                        segment.getX2(zoom, marginx, marginL, long2, longDiff, optimalPageWidth.get()),
+                                        segment.getY2(zoom, marginx, marginL, lat1, latDiff, optimalPageHeight.get()));
+                                dist = (float) Math.sqrt(dist); // square root
+                                if (dist < 100)
+                                    Log.d("DEBUG", "distance squared " + dist + " zoom=" + zoom);
+                                if (dist < 100) {
+                                    // show popup for track
+                                    clickedTrack = t; // tracks index
+                                    clickTrackX = x;
+                                    clickTrackY = y;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -2125,6 +2126,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 trackMenuItem.setIcon(R.mipmap.ic_grey_pin_forgnd); // TODO set to grey track
                 currentTrackID = -1;
                 clickedTrack = -1;
+                Toast.makeText(PDFActivity.this, getResources().getString(R.string.trackingOff), Toast.LENGTH_LONG).show();
             }
             // turn on add track icon
             else {
@@ -2136,7 +2138,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 showTracks = true;
                 action_showTracks.setChecked(true);
                 trackMenuItem.setIcon(R.drawable.ic_cyan_track);
-                //Toast.makeText(PDFActivity.this, getResources().getString(R.string.wayPtInstr), Toast.LENGTH_LONG).show();
+                Toast.makeText(PDFActivity.this, getResources().getString(R.string.trackingOn), Toast.LENGTH_LONG).show();
             }
         }
         else if (id == R.id.action_add_way_pt_menu) {
