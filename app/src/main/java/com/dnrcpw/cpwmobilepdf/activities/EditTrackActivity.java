@@ -17,35 +17,33 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dnrcpw.cpwmobilepdf.R;
-import com.dnrcpw.cpwmobilepdf.data.DBWayPtHandler;
-import com.dnrcpw.cpwmobilepdf.model.WayPt;
-import com.dnrcpw.cpwmobilepdf.model.WayPts;
+import com.dnrcpw.cpwmobilepdf.data.DBTrackHandler;
+import com.dnrcpw.cpwmobilepdf.model.Track;
+import com.dnrcpw.cpwmobilepdf.model.Tracks;
 
 public class EditTrackActivity extends AppCompatActivity{
     EditText editTxt;
     TextView timeStamp;
-    TextView location;
     ImageView trackImg;
     RadioGroup trackColorGrp;
     RadioButton cyanBtn, redBtn, blueBtn;
-    private WayPts wayPts = null;
+    private Tracks tracks = null;
     String mapName;
     String path;
     String bounds;
     String viewPort;
     //private DBWayPtHandler db = DBWayPtHandler.getInstance(this);
-    private DBWayPtHandler dbWayPtHandler;
+    private DBTrackHandler dbTrackHandler;
     private int id;
-    WayPt wayPt;
+    Track track;
     //boolean landscape;
     boolean changed=false;
-    Boolean showAllWayPts;
     String prevName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        dbWayPtHandler = new DBWayPtHandler(this);
+        dbTrackHandler = new DBTrackHandler(this);
         // Read the waypoint id that was clicked on and the map name
         Intent i = this.getIntent();
         if (i.getExtras() == null){
@@ -62,23 +60,21 @@ public class EditTrackActivity extends AppCompatActivity{
         viewPort = i.getExtras().getString("VIEWPORT");
         //landscape = i.getExtras().getBoolean("LANDSCAPE");
 
-        showAllWayPts = i.getExtras().getBoolean("SHOWALLWAYPTS");
         // if the map was locked in landscape, show this also in landscape
         /*if (landscape){
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         }*/
-        wayPts = dbWayPtHandler.getWayPts(mapName);
-        wayPts.SortPts();
-        wayPt = wayPts.get(id);
+        tracks = dbTrackHandler.getTracks(mapName);
+        track = tracks.get(id);
 
         setContentView(R.layout.activity_track);
-        prevName = wayPt.getDesc();
+        prevName = track.getDesc();
         editTxt = findViewById(R.id.trackName);
-        editTxt.setText(wayPt.getDesc());
+        editTxt.setText(track.getDesc());
         trackImg = findViewById(R.id.track_img);
         trackColorGrp = findViewById(R.id.trackColor);
-        String trackColor = wayPt.getColorName();
+        String trackColor = track.getColorName();
         cyanBtn = findViewById(R.id.cyanTrack);
         redBtn = findViewById(R.id.redTrack);
         blueBtn = findViewById(R.id.blueTrack);
@@ -102,31 +98,31 @@ public class EditTrackActivity extends AppCompatActivity{
         // Listeners for track color radio buttons
         trackColorGrp.setOnCheckedChangeListener((radioGroup, checkedId) -> {
             if (checkedId == R.id.cyanPin){
-                wayPt.setColorName("cyan");
+                track.setColorName("cyan");
                 trackImg.setImageResource(R.mipmap.ic_cyan_pin2);
                 changed = true;
             }
             else if  (checkedId == R.id.redPin){
-                wayPt.setColorName("red");
+                track.setColorName("red");
                 trackImg.setImageResource(R.mipmap.ic_red_pin);
                 changed = true;
             }
             else if  (checkedId == R.id.bluePin){
-                wayPt.setColorName("blue");
+                track.setColorName("blue");
                 trackImg.setImageResource(R.mipmap.ic_blue_pin);
                 changed = true;
             }
         });
     }
 
-    // Remove Imported Map dialog
+    // Remove track dialog
     DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
             switch (which){
                 case DialogInterface.BUTTON_POSITIVE:
                     //'DELETE' button clicked, remove map from imported maps
-                    dbWayPtHandler.deleteWayPt(wayPt);
+                    dbTrackHandler.deleteTrack(track);
 
                     // Return to PDFActivity
                     finish();
@@ -150,8 +146,8 @@ public class EditTrackActivity extends AppCompatActivity{
                     if (name.equals("")) {
                         Toast.makeText(EditTrackActivity.this, "Cannot rename to blank!", Toast.LENGTH_LONG).show();
                     } else {
-                        wayPt.setDesc(name);
-                        dbWayPtHandler.updateWayPt(wayPts.get(id));
+                        track.setDesc(name);
+                        dbTrackHandler.updateTrack(track);
                         // Return to PDFActivity
                         finish();
                     }
@@ -195,8 +191,8 @@ public class EditTrackActivity extends AppCompatActivity{
             if (name.equals("")) {
                 Toast.makeText(EditTrackActivity.this, "Cannot rename to blank!", Toast.LENGTH_LONG).show();
             } else {
-                wayPt.setDesc(name);
-                dbWayPtHandler.updateWayPt(wayPts.get(id));
+                track.setDesc(name);
+                dbTrackHandler.updateTrack(track);
                 // Return to PDFActivity
                 finish();
             }
@@ -222,6 +218,6 @@ public class EditTrackActivity extends AppCompatActivity{
     @Override
     protected void onStop(){
         super.onStop();
-        dbWayPtHandler.close();
+        dbTrackHandler.close();
     }
 }

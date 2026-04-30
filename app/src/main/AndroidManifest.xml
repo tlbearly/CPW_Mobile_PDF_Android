@@ -3,6 +3,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <!--foregroundServiceType="location"-->
 
     <!-- add usesCleartextTraffic to prevent error when downloading over http like fstopo uses     android:usesCleartextTraffic="true" -->
     <!-- use adjustPan to scroll list up when keyboard displays -->
@@ -81,6 +82,16 @@
             android:name="com.dnrcpw.cpwmobilepdf.activities.EditWayPointActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label= "@string/title_activity_edit_way_pt"
+            android:theme="@style/FullscreenTheme"
+            android:parentActivityName="com.dnrcpw.cpwmobilepdf.activities.PDFActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.dnrcpw.cpwmobilepdf.activities.PDFActivity" />
+        </activity>
+        <activity
+            android:name="com.dnrcpw.cpwmobilepdf.activities.EditTrackActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label= "@string/title_activity_edit_track"
             android:theme="@style/FullscreenTheme"
             android:parentActivityName="com.dnrcpw.cpwmobilepdf.activities.PDFActivity" >
             <meta-data

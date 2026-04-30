@@ -7,7 +7,13 @@
         android:icon="@mipmap/ic_grey_pin_forgnd"
         android:title="@string/add_way_pt"
         android:visible="true"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_add_track"
+        android:icon="@drawable/ic_cyan_track"
+        android:title="@string/add_track"
+        android:visible="true"
+        app:showAsAction="always" />
     <item
       android:id="@+id/action_markCurrent"
       android:title="@string/markCurrent"

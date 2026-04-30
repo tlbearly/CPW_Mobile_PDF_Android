@@ -30,7 +30,7 @@
           android:layout_gravity="center_vertical"
           android:contentDescription="Track image"
           android:minHeight="90dp"
-          android:src="@drawable/ic_blue_track"
+          android:src="@drawable/ic_cyan_track"
           tools:ignore="ImageContrastCheck" />
 
       <EditText

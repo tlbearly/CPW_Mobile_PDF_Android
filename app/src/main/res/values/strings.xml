@@ -6,6 +6,7 @@
     <string name="pdfimg">Image of the PDF</string>
     <string name="markCurrent">Mark current location</string>
     <string name="add_way_pt">Add a waypoint</string>
+    <string name="add_track">Add a track</string>
     <string name="map_settings">MAP SETTINGS:</string>
     <string name="app_settings">APP SETTINGS:</string>
     <string name="add_lat_long">Add a waypoint by lat/long</string>
@@ -83,6 +84,7 @@
     <string name="clear">Clear Name</string>
     <string name="title_activity_edit_map_name">Edit Map Name</string>
     <string name="title_activity_edit_way_pt">Edit Waypoint</string>
+    <string name="title_activity_edit_track">Edit Track</string>
     <string name="renameMap">Rename Map</string>
     <string name="renameWayPt">Rename Waypoint</string>
     <string name="renameTrack">Rename Track</string>
