@@ -1210,13 +1210,20 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                 List<TrackSegment> segments = currentTrack.getTrackSegments();
                                 for (int i = 0; i < currentTrack.getTrackSegments().size(); i++) {
                                     Paint lineColor;
-                                    if (currentTrack.getColorName().equals("cyan"))
-                                        lineColor = cyanLine;
-                                    else if (currentTrack.getColorName().equals("blue"))
-                                        lineColor = blueLine;
-                                    else if (currentTrack.getColorName().equals("red"))
-                                        lineColor = redLine;
-                                    else lineColor = cyanLine;
+                                    switch (currentTrack.getColorName()) {
+                                        case "cyan":
+                                            lineColor = cyanLine;
+                                            break;
+                                        case "blue":
+                                            lineColor = blueLine;
+                                            break;
+                                        case "red":
+                                            lineColor = redLine;
+                                            break;
+                                        default:
+                                            lineColor = cyanLine;
+                                            break;
+                                    }
                                     canvas.drawLine(segments.get(i).getX1(zoom, marginx, marginL, long1, longDiff, optimalPageWidth.get()),
                                             segments.get(i).getY1(zoom, marginy, marginT, lat2, latDiff, optimalPageHeight.get()),
                                             segments.get(i).getX2(zoom, marginx, marginL, long2, longDiff, optimalPageWidth.get()),
