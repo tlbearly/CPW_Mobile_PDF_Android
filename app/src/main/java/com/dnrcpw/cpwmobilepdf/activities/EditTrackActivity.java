@@ -2,6 +2,7 @@ package com.dnrcpw.cpwmobilepdf.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.SQLException;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,7 +28,7 @@ public class EditTrackActivity extends AppCompatActivity{
     ImageView trackImg;
     RadioGroup trackColorGrp;
     RadioButton cyanBtn, redBtn, blueBtn;
-    private Tracks tracks = null;
+    private Tracks tracks;
     String mapName;
     String path;
     String bounds;
@@ -65,7 +66,15 @@ public class EditTrackActivity extends AppCompatActivity{
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         }*/
-        tracks = dbTrackHandler.getTracks(mapName);
+        try {
+            tracks = dbTrackHandler.getTracks(mapName);
+        }catch (SQLException exc){
+            Toast.makeText(EditTrackActivity.this, "Failed to read tracks from database. "+exc.getMessage(), Toast.LENGTH_LONG).show();
+
+        }catch (Exception exc){
+            Toast.makeText(EditTrackActivity.this, "Failed to read tracks from database. "+exc.getMessage(), Toast.LENGTH_LONG).show();
+
+        }
         track = tracks.get(id);
 
         setContentView(R.layout.activity_track);

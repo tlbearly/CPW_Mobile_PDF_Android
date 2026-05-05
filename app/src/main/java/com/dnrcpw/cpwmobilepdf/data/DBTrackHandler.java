@@ -10,8 +10,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.dnrcpw.cpwmobilepdf.model.Track;
 import com.dnrcpw.cpwmobilepdf.model.TrackSegment;
 import com.dnrcpw.cpwmobilepdf.model.Tracks;
-import com.dnrcpw.cpwmobilepdf.model.WayPt;
-import com.dnrcpw.cpwmobilepdf.model.WayPts;
 
 public class DBTrackHandler extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
@@ -88,9 +86,9 @@ public class DBTrackHandler extends SQLiteOpenHelper {
                 new String[] { String.valueOf(track.getId()) });
     }
 
-    public Tracks getTracks(String mapName) throws SQLException {
+    public Tracks getTracks(String mapName) throws SQLException, Exception {
         SQLiteDatabase db = this.getWritableDatabase();
-        Tracks trackList = new Tracks(mapName);
+        Tracks trackList = new Tracks();
         // Select All Query
         String selectQuery = "SELECT * FROM " + TABLE_TRACKS;
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -98,14 +96,14 @@ public class DBTrackHandler extends SQLiteOpenHelper {
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
             do {
-                // Adding waypoint to list if matches name
-                if (mapName.equals(cursor.getString(1)))
-                    trackList.add(Integer.parseInt(cursor.getString(0)),cursor.getString(1),cursor.getString(2),cursor.getString(3),cursor.getString(4),cursor.getString(5));
-
+                // Adding track to list if matches name
+                if (mapName.equals(cursor.getString(1))) {
+                    trackList.add(Integer.parseInt(cursor.getString(0)), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5));
+                }
             } while (cursor.moveToNext());
         }
         cursor.close();
-        // return waypoints list
+        // return tracks object
         return trackList;
     }
 }

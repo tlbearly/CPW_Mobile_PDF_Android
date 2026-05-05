@@ -247,6 +247,17 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         mapName = "";
 
         markCurrent = false;
+        // done in onResume!!!
+        /*try {
+            dbTrack = new DBTrackHandler(PDFActivity.this);
+            tracks = dbTrack.getTracks(mapName);
+        }catch (SQLException exc){
+            Toast.makeText(PDFActivity.this, "Failed to read tracks from database. "+exc.getMessage(), Toast.LENGTH_LONG).show();
+            tracks = null;
+        } catch (Exception exc) {
+            Toast.makeText(PDFActivity.this, "Failed to read tracks from database. "+exc.getMessage(), Toast.LENGTH_LONG).show();
+        }*/
+
         clickedWP = -1; // index of waypoint that was clicked on
         lastClickedWP = -1;
         clickedTrack = -1; // index of track that was clicked on
@@ -537,7 +548,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         getViewPortVariables();
         wayPts = db.getWayPts(mapName);
         wayPts.SortPts();
-        tracks = dbTrack.getTracks(mapName);
+        try {
+            tracks = dbTrack.getTracks(mapName);
+        }catch (SQLException exc){
+            Toast.makeText(PDFActivity.this, "Failed to read tracks from database. "+exc.getMessage(), Toast.LENGTH_LONG).show();
+        }catch (Exception exc){
+            Toast.makeText(PDFActivity.this, "Failed to read tracks from database. "+exc.getMessage(), Toast.LENGTH_LONG).show();
+        }
         clickedWP = -1; // hide balloon
         clickedTrack = -1; // hide balloon for tracks
         clickTrackX = -1.0f;
@@ -803,7 +820,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //
                     // Check if clicked on track popup balloon of the single track that is showing the balloon
                     //
-                    if (clickedTrack != -1 && clickedTrack < tracks.size()) {
+                    if (tracks != null && tracks.size()>0 && clickedTrack != -1 && clickedTrack < tracks.size()) {
                         Boolean continueProcessing;
                         continueProcessing = checkForWaypointButtonClick(boxWidth, x, y, clickTrackX, clickTrackY, clickedTrack);
                         if (!continueProcessing) return false;
@@ -853,27 +870,29 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     }
 
                     // If clicked on a track show balloon
-                    for(var t=0; t<tracks.size(); t++){
-                        Track track = tracks.get(t);
+                    if (tracks != null && tracks.size()>0) {
+                        for (var t = 0; t < tracks.size(); t++) {
+                            Track track = tracks.get(t);
 
-                        for (var s=0; s<tracks.get(t).getTrackSegments().size(); s++) {
-                            TrackSegment segment = track.getTrackSegments().get(s);
-                            if (segment != null) {
-                                // Check if clicked point is on the line segment using the distance of a point to a line
-                                float dist = distToSegmentSquared(x, y,
-                                        segment.getX1(zoom, marginx, marginL, long1, longDiff, optimalPageWidth.get()),
-                                        segment.getY1(zoom, marginx, marginL, lat2, latDiff, optimalPageHeight.get()),
-                                        segment.getX2(zoom, marginx, marginL, long2, longDiff, optimalPageWidth.get()),
-                                        segment.getY2(zoom, marginx, marginL, lat1, latDiff, optimalPageHeight.get()));
-                                dist = (float) Math.sqrt(dist); // square root
-                                if (dist < 100)
-                                    Log.d("DEBUG", "distance squared " + dist + " zoom=" + zoom);
-                                if (dist < 100) {
-                                    // show popup for track
-                                    clickedTrack = t; // tracks index
-                                    clickTrackX = x;
-                                    clickTrackY = y;
-                                    break;
+                            for (var s = 0; s < tracks.get(t).getTrackSegments().size(); s++) {
+                                TrackSegment segment = track.getTrackSegments().get(s);
+                                if (segment != null) {
+                                    // Check if clicked point is on the line segment using the distance of a point to a line
+                                    float dist = distToSegmentSquared(x, y,
+                                            segment.getX1(zoom, marginx, marginL, long1, longDiff, optimalPageWidth.get()),
+                                            segment.getY1(zoom, marginx, marginL, lat2, latDiff, optimalPageHeight.get()),
+                                            segment.getX2(zoom, marginx, marginL, long2, longDiff, optimalPageWidth.get()),
+                                            segment.getY2(zoom, marginx, marginL, lat1, latDiff, optimalPageHeight.get()));
+                                    dist = (float) Math.sqrt(dist); // square root
+                                    if (dist < 100)
+                                        Log.d("DEBUG", "distance squared " + dist + " zoom=" + zoom);
+                                    if (dist < 100) {
+                                        // show popup for track
+                                        clickedTrack = t; // tracks index
+                                        clickTrackX = x;
+                                        clickTrackY = y;
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -1154,12 +1173,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         }
                     }
 
-                        // Draw popup if track was clicked on
-                        if ((clickTrackX != -1) && showTracks && clickedTrack < tracks.size()) {
-                            //Log.d("PDFActivity", "onDraw: draw track and popup balloon. newWP="+newWP+" clickedWP="+clickedWP);
-                            String desc = tracks.get(clickedTrack).getDesc();
-                            drawPopup(canvas, clickTrackX, clickTrackY, boxWidth, desc);
-                        }
+                    // Draw popup if track was clicked on
+                    if (tracks != null && tracks.size()>0 && (clickTrackX != -1) && showTracks && clickedTrack < tracks.size()) {
+                        //Log.d("PDFActivity", "onDraw: draw track and popup balloon. newWP="+newWP+" clickedWP="+clickedWP);
+                        String desc = tracks.get(clickedTrack).getDesc();
+                        drawPopup(canvas, clickTrackX, clickTrackY, boxWidth, desc);
+                    }
 
                     //-----------------------
                     // Draw Current Location
@@ -1198,22 +1217,21 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         canvas.translate((float) -currentLocationX, (float) -currentLocationY);
 
                         // Draw Tracks
-                        if (showTracks && latBefore != -1) {
+                        if (tracks != null && tracks.size()>0 && showTracks && latBefore != -1) {
                             // Must store the path and redraw each segment each time
                             canvas.translate(0,0);
                             for (var t=0; t<tracks.size(); t++) {
                                 Track currentTrack = tracks.get(t);
                                 // Add to the current track's path with current location
                                 if (currentTrackID != -1 && t == currentTrackID) {
-                                    currentTrack.addTrackSegment(new TrackSegment((float) longBefore, (float) latBefore, (float) longNow, (float) latNow));
+                                    TrackSegment trackSegment = new TrackSegment((float) longBefore, (float) latBefore, (float) longNow, (float) latNow);
+                                    currentTrack.addTrackSegment(trackSegment);
                                 }
+                                // Draw all tracks
                                 List<TrackSegment> segments = currentTrack.getTrackSegments();
                                 for (int i = 0; i < currentTrack.getTrackSegments().size(); i++) {
                                     Paint lineColor;
                                     switch (currentTrack.getColorName()) {
-                                        case "cyan":
-                                            lineColor = cyanLine;
-                                            break;
                                         case "blue":
                                             lineColor = blueLine;
                                             break;
@@ -1660,6 +1678,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         startLocationUpdates();
 
         // read user preferences from DBHandler SETTINGS_TABLE
+        // read waypoints and tracks for this map
         try {
             db = new DBWayPtHandler(PDFActivity.this);
             dbTrack = new DBTrackHandler(PDFActivity.this);
@@ -1682,6 +1701,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             }
             // Update Waypoints
             wayPts = db.getWayPts(mapName);
+            // Update Tracks
+            tracks = dbTrack.getTracks(mapName);
         }catch (Exception e){
             Toast.makeText(PDFActivity.this,getResources().getString(R.string.problemReadingDatabase)+e.getMessage(),Toast.LENGTH_LONG).show();
         }
@@ -2137,11 +2158,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             }
             // turn on add track icon
             else {
+                tracks.add(mapName,"Track 1", "cyan", null);
+                currentTrackID = tracks.size()-1;
+                dbTrack.addTrack(tracks.get(currentTrackID));
                 addTrackFlag = true;
                 clickedTrack = -1; // hide balloon popups
                 //newTrack = false;
-                tracks.add(mapName,"Track 1","cyan",null);
-                currentTrackID = tracks.size()-1;
+
                 showTracks = true;
                 action_showTracks.setChecked(true);
                 trackMenuItem.setIcon(R.drawable.ic_cyan_track);

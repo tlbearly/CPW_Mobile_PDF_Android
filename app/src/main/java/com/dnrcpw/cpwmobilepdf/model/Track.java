@@ -36,23 +36,24 @@ public class Track {
         this.desc = desc;
         this.colorName = colorName;
         this.time = time;
-        List<String> segments = Arrays.asList(trackSegments.split(","));
-        for (int i=0; i < segments.size(); i+=4){
-            float x1 = Float.parseFloat(segments.get(i));
-            float y1 = Float.parseFloat(segments.get(i+1));
-            float x2 = Float.parseFloat(segments.get(i+2));
-            float y2 = Float.parseFloat(segments.get(i+3));
-            TrackSegment thisSegment = new TrackSegment(x1,y1,x2,y2);
-            this.trackSegments.add(thisSegment);
+        if (trackSegments == null){
+            this.trackSegments = null;
+        }else {
+            List<String> segments = Arrays.asList(trackSegments.split(","));
+            for (int i = 0; i < segments.size(); i += 4) {
+                float x1 = Float.parseFloat(segments.get(i));
+                float y1 = Float.parseFloat(segments.get(i + 1));
+                float x2 = Float.parseFloat(segments.get(i + 2));
+                float y2 = Float.parseFloat(segments.get(i + 3));
+                TrackSegment thisSegment = new TrackSegment(x1, y1, x2, y2);
+                this.trackSegments.add(thisSegment);
+            }
         }
-
-        Calendar cal = Calendar.getInstance();
-        java.util.Date date = cal.getTime();
-        DateFormat formattedDate = new SimpleDateFormat("MM/dd/yyyy hh:mm aa", Locale.US);
-        this.time = formattedDate.format(date);
     }
     public String getLineSegments(){
         // DBTrackHandler calls this to store it in the database as a string of comma-delimited lat, long points
+
+        if (trackSegments == null) return "";
         String lineSegments = "";
         for (int i=0; i< trackSegments.size(); i++){
             if (lineSegments != "") lineSegments += ",";

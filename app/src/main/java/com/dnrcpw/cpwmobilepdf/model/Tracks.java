@@ -1,26 +1,25 @@
 package com.dnrcpw.cpwmobilepdf.model;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
 public class Tracks {
     // Array of Track objects for a given map
     private final ArrayList<Track> tracks;
 
-    public Tracks(String mapName){
+    public Tracks(){
         this.tracks = new ArrayList<>();
     }
-    public Track add (String name, String desc, String colorName, List<TrackSegment> trackSegment){
-        // Add a waypoint to the list.
+    public Track add(String name, String desc, String colorName, List<TrackSegment> trackSegment){
+        // Add a track to the list.
+        if (trackSegment == null)
+            trackSegment =  new ArrayList<>();
         Track obj = new Track(name, desc, colorName, trackSegment);
         tracks.add(obj);
         return obj;
     }
 
-    public void add (int id, String name, String desc, String colorName, String time, String trackSegment){
+    public void add(int id, String name, String desc, String colorName, String time, String trackSegment){
         // Add a track to the database
         Track obj = new Track(id, name, desc, colorName, time, trackSegment);
         tracks.add(obj);
