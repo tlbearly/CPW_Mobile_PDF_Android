@@ -1,5 +1,8 @@
 package com.dnrcpw.cpwmobilepdf.model;
 
+import com.dnrcpw.cpwmobilepdf.activities.PDFActivity;
+import com.dnrcpw.cpwmobilepdf.data.DBTrackHandler;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,13 +33,9 @@ public class Track {
         this.time = formattedDate.format(date);
     }
 
-    public Track(int id, String mapName, String desc, String colorName, String time, String trackSegments){
-        this.id = id;
-        this.mapName = mapName;
-        this.desc = desc;
-        this.colorName = colorName;
-        this.time = time;
-        if (trackSegments == null){
+    public Track(int id, String mapName, String desc, String trackSegments, String colorName, String time){
+        // Called by Tracks/add and DBTrackHandler/getTracks to read the tracks from the database and fill the tracks ArrayList
+        if (trackSegments.equals("")){
             this.trackSegments = null;
         }else {
             List<String> segments = Arrays.asList(trackSegments.split(","));
@@ -49,10 +48,14 @@ public class Track {
                 this.trackSegments.add(thisSegment);
             }
         }
+        this.id = id;
+        this.mapName = mapName;
+        this.desc = desc;
+        this.colorName = colorName;
+        this.time = time;
     }
     public String getLineSegments(){
         // DBTrackHandler calls this to store it in the database as a string of comma-delimited lat, long points
-
         if (trackSegments == null) return "";
         String lineSegments = "";
         for (int i=0; i< trackSegments.size(); i++){
@@ -61,7 +64,8 @@ public class Track {
         }
         return lineSegments;
     }
-    public void addTrackSegment(TrackSegment trackSegment){
+    public void addTrackSegment(float x1, float y1, float x2, float y2){
+        TrackSegment trackSegment = new TrackSegment(x1,y1, x2, y2);
         this.trackSegments.add(trackSegment);
     }
     public List<TrackSegment> getTrackSegments(){

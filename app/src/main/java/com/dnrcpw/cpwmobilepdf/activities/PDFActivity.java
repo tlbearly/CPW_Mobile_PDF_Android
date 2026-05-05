@@ -871,6 +871,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                     // If clicked on a track show balloon
                     if (tracks != null && tracks.size()>0) {
+                        clickedTrack = -1; // tracks index
+                        clickTrackX = -1;
+                        clickTrackY = -1;
                         for (var t = 0; t < tracks.size(); t++) {
                             Track track = tracks.get(t);
 
@@ -881,8 +884,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                     float dist = distToSegmentSquared(x, y,
                                             segment.getX1(zoom, marginx, marginL, long1, longDiff, optimalPageWidth.get()),
                                             segment.getY1(zoom, marginx, marginL, lat2, latDiff, optimalPageHeight.get()),
-                                            segment.getX2(zoom, marginx, marginL, long2, longDiff, optimalPageWidth.get()),
-                                            segment.getY2(zoom, marginx, marginL, lat1, latDiff, optimalPageHeight.get()));
+                                            segment.getX2(zoom, marginx, marginL, long1, longDiff, optimalPageWidth.get()),
+                                            segment.getY2(zoom, marginx, marginL, lat2, latDiff, optimalPageHeight.get()));
                                     dist = (float) Math.sqrt(dist); // square root
                                     if (dist < 100)
                                         Log.d("DEBUG", "distance squared " + dist + " zoom=" + zoom);
@@ -1222,10 +1225,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             canvas.translate(0,0);
                             for (var t=0; t<tracks.size(); t++) {
                                 Track currentTrack = tracks.get(t);
-                                // Add to the current track's path with current location
-                                if (currentTrackID != -1 && t == currentTrackID) {
-                                    TrackSegment trackSegment = new TrackSegment((float) longBefore, (float) latBefore, (float) longNow, (float) latNow);
-                                    currentTrack.addTrackSegment(trackSegment);
+                                // Add to the current track's path with current location if on map
+                                if (currentTrackID != -1 && t == currentTrackID &&
+                                    (latNow >= lat1 && latNow <= lat2) &&
+                                    (longNow >= long1 && longNow <= long2)) {
+                                    currentTrack.addTrackSegment((float) longBefore, (float) latBefore, (float) longNow, (float) latNow);
+                                    // Save new line segment in database
+                                    dbTrack.updateTrack(currentTrack);
                                 }
                                 // Draw all tracks
                                 List<TrackSegment> segments = currentTrack.getTrackSegments();
@@ -1244,8 +1250,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                     }
                                     canvas.drawLine(segments.get(i).getX1(zoom, marginx, marginL, long1, longDiff, optimalPageWidth.get()),
                                             segments.get(i).getY1(zoom, marginy, marginT, lat2, latDiff, optimalPageHeight.get()),
-                                            segments.get(i).getX2(zoom, marginx, marginL, long2, longDiff, optimalPageWidth.get()),
-                                            segments.get(i).getY2(zoom, marginy, marginT, lat1, latDiff, optimalPageHeight.get()), lineColor);
+                                            segments.get(i).getX2(zoom, marginx, marginL, long1, longDiff, optimalPageWidth.get()),
+                                            segments.get(i).getY2(zoom, marginy, marginT, lat2, latDiff, optimalPageHeight.get()), lineColor);
                                 }
                             }
                         }

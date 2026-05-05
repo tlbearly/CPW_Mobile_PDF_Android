@@ -11,6 +11,8 @@ import com.dnrcpw.cpwmobilepdf.model.Track;
 import com.dnrcpw.cpwmobilepdf.model.TrackSegment;
 import com.dnrcpw.cpwmobilepdf.model.Tracks;
 
+import java.util.ArrayList;
+
 public class DBTrackHandler extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     // Database Name
@@ -79,11 +81,17 @@ public class DBTrackHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         db.delete(TABLE_TRACKS, "mapName=?", new String[]{mapName});
     }
-    // Deleting a Waypoint
+    // Deleting a Track
     public void deleteTrack(Track track) throws SQLException {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_TRACKS, KEY_ID + " = ?",
                 new String[] { String.valueOf(track.getId()) });
+    }
+
+    public void deleteTrack(int id) throws SQLException {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_TRACKS, KEY_ID + " = ?",
+                new String[] { String.valueOf(id) });
     }
 
     public Tracks getTracks(String mapName) throws SQLException, Exception {
@@ -92,17 +100,25 @@ public class DBTrackHandler extends SQLiteOpenHelper {
         // Select All Query
         String selectQuery = "SELECT * FROM " + TABLE_TRACKS;
         Cursor cursor = db.rawQuery(selectQuery, null);
+        ArrayList<Integer> deleteIds = new ArrayList<>();
 
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
             do {
+                // Make sure this track has line segments
+                if (cursor.getString(3).isEmpty())
+                    deleteIds.add(cursor.getInt(0));
                 // Adding track to list if matches name
-                if (mapName.equals(cursor.getString(1))) {
+                 else if (mapName.equals(cursor.getString(1))) {
+
                     trackList.add(Integer.parseInt(cursor.getString(0)), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5));
                 }
             } while (cursor.moveToNext());
         }
         cursor.close();
+        // Delete empty tracks with no line segments
+        for (int i=0; i<deleteIds.size(); i++)
+            deleteTrack(deleteIds.get(i));
         // return tracks object
         return trackList;
     }

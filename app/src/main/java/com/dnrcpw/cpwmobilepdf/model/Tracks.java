@@ -20,9 +20,12 @@ public class Tracks {
     }
 
     public void add(int id, String name, String desc, String colorName, String time, String trackSegment){
-        // Add a track to the database
+        // Add a track to tracks array.
+        // Called in DBTrackHandler getTracks
         Track obj = new Track(id, name, desc, colorName, time, trackSegment);
-        tracks.add(obj);
+        // Make sure this track has segments
+        if (obj.getTrackSegments() != null)
+            tracks.add(obj);
     }
 
     public void removeAllFromMap(String mapName){
