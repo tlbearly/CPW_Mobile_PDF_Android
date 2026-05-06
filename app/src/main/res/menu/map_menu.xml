@@ -10,7 +10,7 @@
         app:showAsAction="always" />
     <item
         android:id="@+id/action_add_track"
-        android:icon="@drawable/ic_cyan_track"
+        android:icon="@drawable/ic_gray_track"
         android:title="@string/add_track"
         android:visible="true"
         app:showAsAction="always" />

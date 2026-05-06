@@ -39,7 +39,7 @@ public class Tracks {
     }
     public void remove(Track track){
         // Remove a track from tracks
-        int id = track.getId();
+        long id = track.getId();
         for (int i=0; i<tracks.size(); i++){
             // used to be == mapName))
             if ((tracks.get(i).getId() == id)) {

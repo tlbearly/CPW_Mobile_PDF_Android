@@ -45,7 +45,7 @@ public class DBTrackHandler extends SQLiteOpenHelper {
         // For new version do new stuff here
     }
 
-    public void addTrack(Track track) throws SQLException {
+    public long addTrack(Track track) throws SQLException {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_MAPNAME, track.getMapName()); // Name of map
@@ -54,15 +54,15 @@ public class DBTrackHandler extends SQLiteOpenHelper {
         values.put(KEY_COLOR, track.getColorName()); // Color name of pushpin image
         values.put(KEY_TIME, track.getTime()); // Date and time of creation of waypoint
         // Inserting Row
-        db.insert(TABLE_TRACKS, null, values);
+        return db.insert(TABLE_TRACKS, null, values);
     }
 
-    public void updateTrack(int id, TrackSegment trackSegment){
+    /*public void updateTrack(int id, TrackSegment trackSegment){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         String strSegment = trackSegment.getSegment(); // get line segment as comma-delimited string x1,y1,x2,y2
         values.put(KEY_LINE_SEGMENTS, strSegment); // Name of map
-    }
+    }*/
     public int updateTrack(Track track){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();

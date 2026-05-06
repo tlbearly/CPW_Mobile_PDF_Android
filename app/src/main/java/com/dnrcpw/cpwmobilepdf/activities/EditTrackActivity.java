@@ -75,7 +75,12 @@ public class EditTrackActivity extends AppCompatActivity{
             Toast.makeText(EditTrackActivity.this, "Failed to read tracks from database. "+exc.getMessage(), Toast.LENGTH_LONG).show();
 
         }
-        track = tracks.get(id);
+        try {
+            track = tracks.get(id);
+        }catch (Exception e){
+            Toast.makeText(EditTrackActivity.this,"That track was not found in the database. Error: "+e.getMessage(),Toast.LENGTH_LONG);
+            return;
+        }
 
         setContentView(R.layout.activity_track);
         prevName = track.getDesc();
@@ -106,19 +111,19 @@ public class EditTrackActivity extends AppCompatActivity{
 
         // Listeners for track color radio buttons
         trackColorGrp.setOnCheckedChangeListener((radioGroup, checkedId) -> {
-            if (checkedId == R.id.cyanPin){
+            if (checkedId == R.id.cyanTrack){
                 track.setColorName("cyan");
-                trackImg.setImageResource(R.mipmap.ic_cyan_pin2);
+                trackImg.setImageResource(R.drawable.ic_cyan_track);
                 changed = true;
             }
-            else if  (checkedId == R.id.redPin){
+            else if (checkedId == R.id.redTrack){
                 track.setColorName("red");
-                trackImg.setImageResource(R.mipmap.ic_red_pin);
+                trackImg.setImageResource(R.drawable.ic_red_track);
                 changed = true;
             }
-            else if  (checkedId == R.id.bluePin){
+            else if  (checkedId == R.id.blueTrack){
                 track.setColorName("blue");
-                trackImg.setImageResource(R.mipmap.ic_blue_pin);
+                trackImg.setImageResource(R.drawable.ic_blue_track);
                 changed = true;
             }
         });

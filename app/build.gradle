@@ -113,8 +113,8 @@ android {
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
         compileOptions {
-            sourceCompatibility JavaVersion.VERSION_11 //1_8
-            targetCompatibility JavaVersion.VERSION_11 //1_8
+            sourceCompatibility JavaVersion.VERSION_11
+            targetCompatibility JavaVersion.VERSION_11
         }
     }
     buildTypes {

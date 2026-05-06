@@ -13,7 +13,7 @@ import java.util.Locale;
 
 public class Track {
     // Array of Track objects for a given map
-    private int id;
+    private long id;
     public String mapName; // filename minus the path
     public String desc; // label or description
     public String colorName; // cyan, blue, red
@@ -75,8 +75,11 @@ public class Track {
         this.trackSegments = trackSegments;
     }
 
-    public int getId() {
+    public long getId() {
         return this.id;
+    }
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getMapName(){
