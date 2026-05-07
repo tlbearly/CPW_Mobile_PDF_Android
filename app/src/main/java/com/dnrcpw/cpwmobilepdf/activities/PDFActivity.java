@@ -71,6 +71,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
 /* show the map */
@@ -405,8 +406,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                     // Debug make it simulate user movement to draw a track
                     if (latBefore != -1){
-                        latNow =  latBefore + 0.0001;
-                        longNow = longBefore + 0.0001;
+                        Random rand = new Random();
+                        int randomInt = rand.nextInt(9);
+                        double r = randomInt / 10000;
+                        latNow =  latBefore + r;
+                        randomInt = rand.nextInt(9);
+                        r = randomInt / 10000;
+                        longNow = longBefore + r;
                     }
 
                     //bearing = location.getBearing(); // 0-360 degrees 0 at North
@@ -2163,13 +2169,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         else if (id == R.id.action_add_track) {
             // turn off add track icon
             if (addTrackFlag){
-
+                turnTrackingOff();
                 // TODO move to a function also call from 2395
-                addTrackFlag = false;
+                /*addTrackFlag = false;
                 trackMenuItem.setIcon(R.drawable.ic_gray_track); // set to gray track
                 currentTrackID = -1;
                 clickedTrack = -1;
                 Toast.makeText(PDFActivity.this, getResources().getString(R.string.trackingOff), Toast.LENGTH_LONG).show();
+                */
             }
             // turn on add track icon
             else {
@@ -2283,6 +2290,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         return super.onOptionsItemSelected(item);
     }
 
+    // Turn tracking odd
+    private void turnTrackingOff(){
+        addTrackFlag = false;
+        trackMenuItem.setIcon(R.drawable.ic_gray_track); // set to gray track
+        currentTrackID = -1;
+        clickedTrack = -1;
+        Toast.makeText(PDFActivity.this, getResources().getString(R.string.trackingOff), Toast.LENGTH_LONG).show();
+    }
     // ADJUST WAYPOINT MENU
     private final ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
         // Called when the action mode is created; startActionMode() was called
@@ -2393,9 +2408,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     clickedTrack = -1;
                     pdfView.invalidate();
                     if (del_id == currentTrackID) {
-                        currentTrackID = -1;
-                        tracking = false;
-                        icon = ic_gray_line;
+                        turnTrackingOff();
                     }
                     break;
 
