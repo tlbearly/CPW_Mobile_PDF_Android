@@ -161,7 +161,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private DBTrackHandler dbTrack;
     private Boolean markCurrent;
     private Tracks tracks;
-    private int currentTrackID = 0;
+    private int currentTrackID = -1;
     private int clickedWP; // index of waypoint that was clicked on
     private int clickedTrack; // index of track that was clicked on
     private float clickTrackX;  // x,y in screen coordinates of track that was clicked on
@@ -407,11 +407,19 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     // Debug make it simulate user movement to draw a track
                     if (latBefore != -1){
                         Random rand = new Random();
-                        int randomInt = rand.nextInt(9);
-                        double r = randomInt / 10000;
+                        int randomInt = 1;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                            randomInt = rand.nextInt(1,9);
+                        }
+                        if (randomInt > 7) randomInt = randomInt * -1;
+                        double r = (double)randomInt / 10000.0;
                         latNow =  latBefore + r;
-                        randomInt = rand.nextInt(9);
-                        r = randomInt / 10000;
+                        randomInt = 1;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                            randomInt = rand.nextInt(1,9);
+                        }
+                        if (randomInt > 4) randomInt = randomInt * -1;
+                        r = (double)randomInt / 10000.0;
                         longNow = longBefore + r;
                     }
 
@@ -1089,7 +1097,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //Toast.makeText(PDFActivity.this, "counter="+count+"   zoom="+zoom+"  right=" + x1+"  bottom="+y1, Toast.LENGTH_SHORT).show();
 
                     // Draw Tracks
-                    if (tracks != null && tracks.size()>0 && showTracks && latBefore != -1) {
+                    if (tracks != null && tracks.size()>0 && showTracks) {
                         // Must store the path and redraw each segment each time
                         canvas.translate(0,0);
                         for (var t=0; t<tracks.size(); t++) {
@@ -1107,7 +1115,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                     break;
                             }
                             // Add to the current track's path with current location if on map
-                            if (currentTrackID != -1 && t == currentTrackID &&
+                            if (latBefore != -1 && currentTrackID != -1 && t == currentTrackID &&
                                     (latNow >= lat1 && latNow <= lat2) &&
                                     (longNow >= long1 && longNow <= long2)) {
                                 currentTrack.addTrackSegment((float) longBefore, (float) latBefore, (float) longNow, (float) latNow);
@@ -1159,7 +1167,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     if (showAllWayPts) {
                         for (int i12 = 0; i12 < wayPts.size(); i12++) {
                             //Log.d("PDFActivity","drawing waypoint "+i12);
-
                             double xLong = wayPts.get(i12).getX();
                             double yLat = wayPts.get(i12).getY();
                             // convert lat, long to screen coordinates
@@ -1223,7 +1230,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     }
 
                     // Draw popup if track was clicked on
-                    if (tracks != null && tracks.size()>0 && (clickTrackX != -1) && showTracks && clickedTrack < tracks.size()) {
+                    if (tracks != null && tracks.size()>0 && (clickTrackX != -1) && showTracks && clickedTrack != -1 && clickedTrack < tracks.size()) {
                         //Log.d("PDFActivity", "onDraw: draw track and popup balloon. newWP="+newWP+" clickedWP="+clickedWP);
                         String desc = tracks.get(clickedTrack).getDesc();
                         drawPopup(canvas, clickTrackX, clickTrackY, boxWidth, desc);
@@ -1353,6 +1360,28 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         } while (!done);
         return num;
     }
+
+    private int findAUniqueTrackName(){
+        // find a unique name for track labels
+        int num = 1;
+        boolean unique = true;
+        boolean done = false;
+        do {
+            for (int i1 = 0; i1 < tracks.size(); i1++) {
+                if (tracks.get(i1).getDesc().equals("Track " + num)) {
+                    unique = false;
+                    num++;
+                    break;
+                }
+            }
+            if (unique) {
+                done = true;
+            } else {
+                unique = true; // reset for next try
+            }
+        } while (!done);
+        return num;
+    }
     private Boolean checkForWaypointButtonClick(float boxWidth, float x, float y, double wayPtX, double wayPtY, int wpIndex) {
         // check for click on Edit, Move, or Delete button on waypoint or track popup
         if (adjustWP != -1 || deleting) return false; // if overlapping buttons only handle one event
@@ -1361,7 +1390,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             int offsetBox = getOffsetXBox((int) wayPtX, boxWidth);
 
             // Test for balloon popup going off top of screen
-            int offsetYBox = 0;
+            int offsetYBox = -1 * triangle_ht; //0;
+            if (clickedTrack != -1){
+                offsetYBox = startY - triangle_ht;
+            }
 
             if ((wayPtY + pdfView.getCurrentYOffset()) < (pdfView.getHeight() / 2.0)) {
                 offsetYBox = getOffsetYBox();
@@ -1499,10 +1531,15 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
             // Test for balloon popup going off right or left side of screen
             int offsetBox = getOffsetXBox(x, boxWidth);
-            // Test for waypoint at top half of screen, display popup below
+            // Test for waypoint at bottom half of screen, display popup above
             int offsetYBox = -1 * triangle_ht;
             int offsetYTriangle = -1 * triangle_ht; // edit in drawTriangle too
+            if (clickedTrack != -1){
+                offsetYBox = startY-triangle_ht;
+                offsetYTriangle = startY-triangle_ht;
+            }
             //Log.d("Draw Popup","y="+y+"+ pdfViewYoffset="+pdfView.getCurrentYOffset()+" "+(y + pdfView.getCurrentYOffset())+" < "+(pdfView.getHeight() / 2.0));
+            // Test for waypoint at top half of screen, display popup below
             if ((y + pdfView.getCurrentYOffset()) < (pdfView.getHeight() / 2.0)) {
                 offsetYBox = getOffsetYBox();
                 offsetYTriangle = getOffsetYTriangle();
@@ -1656,12 +1693,16 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         int width = Math.round(getResources().getDimension(R.dimen.triangle_width));
         int halfWidth = width / 2;
         Path path = new Path();
-        if (offsetYBox == -1 * triangle_ht) {
+        // down arrow
+        if (offsetYBox == -1 * triangle_ht || offsetYBox == startY-triangle_ht) {
+        //if(offsetYBox > 0 || offsetYBox == triangle_ht){
             path.moveTo(x - halfWidth, y); // Top left
             path.lineTo(x, y + triangle_ht); //  Bottom
             path.lineTo(x + halfWidth, y); // Top right
             path.lineTo(x - halfWidth, y); // Back to Top left
-        }else{
+        }
+        // up arrow
+        else{
             path.moveTo(x - halfWidth, y); // Bottom left
             path.lineTo(x, y - triangle_ht); // Top
             path.lineTo(x + halfWidth, y); // Bottom right
@@ -1673,10 +1714,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         Paint outline = new Paint();
         outline.setColor(Color.BLACK);
         outline.setStrokeWidth(3);
-        if (offsetYBox == -1 * triangle_ht){
+        // down arrow
+        if (offsetYBox == -1 * triangle_ht || offsetYBox == startY-triangle_ht){
+        //if (offsetYBox > 0  || offsetYBox == triangle_ht){
             canvas.drawLine(x - halfWidth, y + 3, x, y + triangle_ht, outline);
             canvas.drawLine(x + halfWidth, y + 3, x, y + triangle_ht, outline);
-        }else{
+        }
+        // up arrow
+        else{
             canvas.drawLine(x - halfWidth, y - 3, x, y - triangle_ht, outline);
             canvas.drawLine(x + halfWidth, y - 3, x, y - triangle_ht, outline);
         }
@@ -2170,21 +2215,15 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             // turn off add track icon
             if (addTrackFlag){
                 turnTrackingOff();
-                // TODO move to a function also call from 2395
-                /*addTrackFlag = false;
-                trackMenuItem.setIcon(R.drawable.ic_gray_track); // set to gray track
-                currentTrackID = -1;
-                clickedTrack = -1;
-                Toast.makeText(PDFActivity.this, getResources().getString(R.string.trackingOff), Toast.LENGTH_LONG).show();
-                */
             }
             // turn on add track icon
             else {
-                tracks.add(mapName,"Track 1", "cyan", null);
+                int num = findAUniqueTrackName();
+                tracks.add(mapName,"Track "+num, "cyan", null);
                 currentTrackID = tracks.size()-1;
                 long newId = dbTrack.addTrack(tracks.get(currentTrackID));
                 tracks.get(currentTrackID).setId(newId);
-                addTrackFlag = true;
+                addTrackFlag = true; // tracking icon is active
                 clickedTrack = -1; // hide balloon popups
                 //newTrack = false;
 
@@ -2292,7 +2331,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
     // Turn tracking odd
     private void turnTrackingOff(){
-        addTrackFlag = false;
+        addTrackFlag = false; // tracking icon in top menu is inactive
         trackMenuItem.setIcon(R.drawable.ic_gray_track); // set to gray track
         currentTrackID = -1;
         clickedTrack = -1;
