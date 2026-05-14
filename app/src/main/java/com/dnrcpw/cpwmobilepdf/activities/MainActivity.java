@@ -1,9 +1,11 @@
 package com.dnrcpw.cpwmobilepdf.activities;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.database.SQLException;
@@ -70,14 +72,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     boolean sortFlag = true;
     Toolbar toolbar;
     int selectedId;
+    // TODO remove
     final int MY_PERMISSIONS_LOCATION = 0;
+    private static final int FOREGROUND_REQUEST_CODE = 1001;
+    private static final int BACKGROUND_REQUEST_CODE = 1002;
+    private LocationUpdateReceiver locationReceiver;
 
     // location variables
+    // TODO remove
     private FusedLocationProviderClient mFusedLocationClient;
+    // TODO remove
     private LocationCallback mLocationCallback;
     double latNow, latBefore = 0.0;
     double longNow, longBefore = 0.0;
-    double updateProximityDist = 160.9344; // default change in distance that triggers updating proximity .1 miles*/
+    double updateProximityDist = 160.9344; // default change in distance that triggers updating proximity .1 miles
     Spinner sortByDropdown;
     TextView sortTitle;
     // Update App
@@ -107,6 +115,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             setContentView(R.layout.activity_main);
             setTitle(R.string.title_activity_main); // "Imported Maps"
 
+            locationReceiver = new LocationUpdateReceiver(); // new TrackingService
             // DEBUG ***********
             //latBefore = 38.5;
             //longBefore = -105.0;
@@ -142,8 +151,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 startActivity(intent);
             });
 
+            // SET UP LOCATION SERVICES 5-13-26
+            if (checkLocationPermissions()) {
+                startTrackingService();
+            } else {
+                checkAndRequestTracking();
+            }
+
+            // TODO REMOVE
             // SET UP LOCATION SERVICES
-            AlertDialog.Builder builder;
+            /*AlertDialog.Builder builder;
             // Ask for location permissions
             if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) ||
                     (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED)) {
@@ -166,14 +183,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                             new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                             MY_PERMISSIONS_LOCATION);
                 }
-            }
+            }*/
 
             // Check if GPS is enabled
             if (!isGPSEnabled(MainActivity.this)) {
                 Toast.makeText(MainActivity.this, "GPS is not enabled.", Toast.LENGTH_LONG).show();
             }
+            // TODO remove
             // Check if location services are turned on
-            if (!isLocationEnabled(MainActivity.this)) {
+            /*if (!isLocationEnabled(MainActivity.this)) {
+                AlertDialog.Builder builder;
                 builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle("Notice");
                 builder.setMessage("Please turn ON Location Services. This can be done in your phone's Settings. If this is not turned on your current location will not appear on the map.")
@@ -182,6 +201,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         }).show();
             } else
                 setupLocation();
+            */
+
 
             // Check for updates in the Play Store https://www.section.io/engineering-education/android-application-in-app-update-using-android-studio/
             appUpdateManager = AppUpdateManagerFactory.create(getApplicationContext());//this);
@@ -205,6 +226,305 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Log.e("Main", e.getMessage());
         }
     }
+
+    // Setup Tracking Service 5-13-26
+    private boolean checkLocationPermissions() {
+        // TODO may need to add this to prevent the system from killing your tracking service to save power: Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Manifest.permission.WAKE_LOCK
+        int fineLocation = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            int backgroundLocation = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION);
+            return fineLocation == PackageManager.PERMISSION_GRANTED && backgroundLocation == PackageManager.PERMISSION_GRANTED;
+        }
+        return fineLocation == PackageManager.PERMISSION_GRANTED;
+    }
+
+
+    // 1. Trigger the flow
+    private void checkAndRequestTracking() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            // Foreground is good! Now verify background status
+            checkBackgroundAccess();
+        } else {
+            // Step 1: Force foreground request first
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    FOREGROUND_REQUEST_CODE);
+        }
+    }
+
+    // 2. Validate background state sequentially
+    private void checkBackgroundAccess() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Android 10+
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                startTrackingService();
+            } else {
+                // Step 2: Educate user before opening system settings
+                showBackgroundRationaleDialog();
+            }
+        } else {
+            // Older versions automatically grant background access if foreground is active
+            startTrackingService();
+        }
+    }
+
+    private void showBackgroundRationaleDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Background Location Required")
+                .setMessage("This app maps routes while your screen is off. Please select 'Allow all the time' on the next Settings screen under: Permissions Location, Allowed Location, to enable background logging.")
+                .setPositiveButton("Settings", (dialog, which) -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) { // Android 11+
+                        // System API blocks direct popups. You must open app details settings.
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        Uri uri = Uri.fromParts("package", getPackageName(), null);
+                        intent.setData(uri);
+                        startActivity(intent);
+                    } else {
+                        // Android 10 supports a targeted system dialog popup
+                        ActivityCompat.requestPermissions(MainActivity.this,
+                                new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                                BACKGROUND_REQUEST_CODE);
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == FOREGROUND_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Foreground permission secured, proceed seamlessly to Step 2
+                checkBackgroundAccess();
+            }
+        } else if (requestCode == BACKGROUND_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startTrackingService();
+            }
+        }
+    }
+
+    /*private void requestLocationPermissions() {
+        //TODO may need to add this to prevent the system from killing your tracking service to save power: Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Manifest.permission.WAKE_LOCK
+        // For Android 11+, you should ideally request Foreground first, then Background.
+        // *****If you add move permissions, update ****
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                    LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    LOCATION_PERMISSION_REQUEST_CODE);
+        }
+    }*/
+
+
+    private void startTrackingService() {
+        Intent intent = new Intent(this, TrackingService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent);
+        } else {
+            startService(intent);
+        }
+    }
+
+    // Define the receiver class
+    private class LocationUpdateReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent != null && "ACTION_LOCATION_UPDATE".equals(intent.getAction())) {
+                double latNow = intent.getDoubleExtra("extra_latitude", 0.0);
+                double longNow = intent.getDoubleExtra("extra_longitude", 0.0);
+                float accuracy = intent.getFloatExtra("extra_accuracy", 0.0f); // Read accuracy
+
+                try {
+                        // Update UI with location data
+                        float[] results = new float[1];
+                        //latNow = location.getLatitude();
+                        //longNow = location.getLongitude(); // make it positive
+
+                        // for debugging ****************
+                        //latBefore = latBefore + .5;
+                        //longBefore = longBefore -.2;
+
+                        if (myAdapter == null) return;
+                        myAdapter.setLocation(latNow,longNow);
+                        //bearing = location.getBearing(); // 0-360 degrees 0 at North
+
+                        // if accuracy is worse than 1/10 of a mile do not update distance to map
+
+                        //Log.d("Accuracy", "onLocationResult: accuracy="+accuracy);
+                        if (accuracy > 160.9344) {
+                            Toast.makeText(MainActivity.this, "Acquiring location...", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        if (latBefore != 0.0) {
+                            try {
+                                Location.distanceBetween(latBefore, longBefore, latNow, longNow, results);
+                            } catch (IllegalArgumentException e) {
+                                return;
+                            }
+                        }
+
+                        // if change in location is > .1 miles update distance to map
+                        if (latBefore == 0.0 || results[0] > updateProximityDist) {
+                            // Update distance to map.
+                            myAdapter.getDistToMap();
+
+                            String sort = dbHandler.getMapSort();
+                            if ((sort.equals("proximity") || sort.equals("proximityrev")) && sortFlag) {
+                                if (sort.equals("proximity"))
+                                    myAdapter.SortByProximity();
+                                else
+                                    myAdapter.SortByProximityReverse();
+                                myAdapter.notifyDataSetChanged();
+
+                                // Refresh all data in visible table cells
+                                for (int i = 0; i < myAdapter.pdfMaps.size(); i++) {
+                                    View v = lv.getChildAt(i - lv.getFirstVisiblePosition());
+                                    if (v == null)
+                                        continue;
+
+                                    ImageView img = v.findViewById(R.id.pdfImage);
+                                    try {
+                                        File imgFile = new File(myAdapter.pdfMaps.get(i - lv.getFirstVisiblePosition()).getThumbnail());
+                                        Bitmap myBitmap;
+                                        myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                                        if (myBitmap != null)
+                                            img.setImageBitmap(myBitmap);
+                                        else
+                                            img.setImageResource(R.drawable.pdf_icon);
+                                    } catch (Exception ex) {
+                                        Toast.makeText(MainActivity.this, "Problem reading thumbnail.", Toast.LENGTH_LONG).show();
+                                        img.setImageResource(R.drawable.pdf_icon);
+                                    }
+
+                                    TextView name = v.findViewById(R.id.nameTxt);
+                                    name.setText(myAdapter.pdfMaps.get(i - lv.getFirstVisiblePosition()).getName());
+                                    TextView fileSize = v.findViewById(R.id.fileSizeTxt);
+                                    fileSize.setText(myAdapter.pdfMaps.get(i).getFileSize());
+                                    TextView distToMap = v.findViewById(R.id.distToMapTxt);
+                                    String dist = myAdapter.pdfMaps.get(i - lv.getFirstVisiblePosition()).getDistToMap();
+                                    if (dist.equals("onmap")) {
+                                        v.findViewById(R.id.locationIcon).setVisibility(View.VISIBLE);
+                                        distToMap.setText("");
+                                    } else {
+                                        v.findViewById(R.id.locationIcon).setVisibility(View.GONE);
+                                        distToMap.setText(dist);
+                                    }
+                                }
+                            }
+                            // Refresh only dist to map
+                            else if (sortFlag) {
+                                // Refresh visible table cells
+                                for (int i = 0; i < myAdapter.pdfMaps.size(); i++) {
+                                    View v = lv.getChildAt(i - lv.getFirstVisiblePosition());
+                                    if (v == null)
+                                        continue;
+                                    TextView distToMap = v.findViewById(R.id.distToMapTxt);
+                                    String dist = myAdapter.pdfMaps.get(i).getDistToMap();
+                                    //Log.d("Distance", "accuracy:"+accuracy+"  "+myAdapter.pdfMaps.get(i).getName()+" "+dist);
+                                    if (dist.equals("onmap")) {
+                                        v.findViewById(R.id.locationIcon).setVisibility(View.VISIBLE);
+                                        distToMap.setText("");
+                                    } else {
+                                        v.findViewById(R.id.locationIcon).setVisibility(View.GONE);
+                                        distToMap.setText(dist);
+                                    }
+                                }
+                            }
+                        }
+
+                        // save current location so we can see how much they moved
+                        latBefore = latNow;
+                        longBefore = longNow;
+
+                } catch (SQLException e){
+                    Toast.makeText(MainActivity.this, getResources().getString(R.string.problemReadingDatabase) + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+                // try to keep app from crashing no gps 6-15-22
+                catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+
+            }
+        }
+    }
+
+    /*@Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length == 2 && grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                grantResults[1] == PackageManager.PERMISSION_GRANTED)
+                startTrackingService();
+            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startTrackingService();
+            }else {
+                // permission denied (this is the first time "never ask again" is not checked)
+                // so ask again explaining the usage of permission
+                // shouldShowRequestPermissionRationale will return true
+                AlertDialog.Builder builder;
+                if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("Location Permission Needed");
+                    builder.setMessage("This app will not run without permission to access this device's location. Please click 'ALLOW' when asked.")
+                            .setPositiveButton("OK", (dialog, id) -> {
+                                // User clicked OK button. Hide dialog. Ask again
+                                dialog.dismiss();
+                                ActivityCompat.requestPermissions(MainActivity.this,
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                                        LOCATION_PERMISSION_REQUEST_CODE);
+                            })
+                            .setNegativeButton("No, Exit App", (dialogInterface, i) -> {
+                                finishAndRemoveTask();
+                            }).create().show();
+                }
+                else if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+                    builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("Background Location Permission Needed");
+                    builder.setMessage("This app will not run without permission to access this device's location while in the background. Please click 'ALLOW all the time' when asked.")
+                            .setPositiveButton("OK", (dialog, id) -> {
+                                // User clicked OK button. Hide dialog. Ask again
+                                dialog.dismiss();
+                                ActivityCompat.requestPermissions(MainActivity.this,
+                                        new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                                        LOCATION_PERMISSION_REQUEST_CODE);
+                            })
+                            .setNegativeButton("No, Exit App", (dialogInterface, i) -> {
+                                finishAndRemoveTask();
+                            }).create().show();
+                }
+                // TODO may need to add more if checks for these permissions: to prevent the system from killing your tracking service to save power: Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Manifest.permission.WAKE_LOCK
+                // permission is denied (and never ask again is checked) go to Settings or exit
+                // shouldShowRequestPermissionRationale will return false
+                else {
+                    // Ask user to go to setting and manually allow permissions
+                    builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("Permissions Needed");
+                    builder.setMessage("You have denied some needed permissions. Go to Settings, click on Permissions and allow all permissions all the time. Then restart this app.")
+                            .setPositiveButton("Yes, Go to Settings", (dialog, id) -> {
+                                // User clicked OK button. Hide dialog. Ask again
+                                dialog.dismiss();
+                                // Go to app settings
+                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                        Uri.fromParts("package", getPackageName(), null));
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                finishAndRemoveTask();
+                            })
+                            .setNegativeButton("No, Exit App", (dialog, i) -> {
+                                dialog.dismiss();
+                                finishAndRemoveTask();
+                            }).create().show();
+                }
+            }
+        }
+    }*/
+    // END NEW CODE 5-13-26 **********************
 
     // Check for Updates in the Play Store
     protected void checkForUpdate(){
@@ -276,7 +596,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
-   protected void setupLocation(){
+    // TODO remove
+   /*protected void setupLocation(){
         try {
             mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         } catch (Exception e){
@@ -299,7 +620,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         //longBefore = longBefore -.2;
 
                         if (myAdapter == null) return;
-                        myAdapter.setLocation(location);
+                        myAdapter.setLocation(latNow,longNow);
                         //bearing = location.getBearing(); // 0-360 degrees 0 at North
 
                         // if accuracy is worse than 1/10 of a mile do not update distance to map
@@ -400,7 +721,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 }
             }
         };
-    }
+    }*/
 
     public boolean isGPSEnabled(Context context){
         // 6-15-22 Check if GPS is enabled
@@ -413,6 +734,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     // PERMISSIONS
+    // TODO remove
     // location service enabled?
     public boolean isLocationEnabled(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -427,8 +749,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
+    // TODO remove
     // Permission
-    @Override
+    /*@Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         AlertDialog.Builder builder;
@@ -484,7 +807,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             else
                 setupLocation();
         }
-    }
+    }*/
 
     @Override
     protected void onResume() {
@@ -501,12 +824,23 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             fab.setVisibility(View.VISIBLE);
             latBefore = 0.0; //reset location so it updates
             fillList(); // get dbHandler and maps list from database
-            // Start Location Services
-            if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+
+            // Start Location Services Receiver
+            // Register receiver when UI is visible
+            IntentFilter filter = new IntentFilter("ACTION_LOCATION_UPDATE");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // Android 13+ requires specifying export flags for security
+                registerReceiver(locationReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+            } else {
+                registerReceiver(locationReceiver, filter);
+            }
+            // TODO remove
+            /*if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
                     (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
                 startLocationUpdates();
             } else
                 Toast.makeText(MainActivity.this, "Please turn on Location Services.", Toast.LENGTH_LONG).show();
+             */
 
             // Checks that the update is not stalled
             if (appUpdateManager != null) {
@@ -551,10 +885,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onPause();
         try {
             //Toast.makeText(MainActivity.this, "onPause", Toast.LENGTH_SHORT).show();
-            if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
+
+            // Location Service
+            // Unregister to prevent memory leaks when app is in background
+            unregisterReceiver(locationReceiver);
+            // TODO remove
+            /*  if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
                     (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
                 stopLocationUpdates();
-            }
+            }*/
+
             dbHandler.close();
             dbWayPtHandler.close();
         } catch(Exception tr) {
@@ -565,21 +905,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onDestroy() {
         super.onDestroy();
-        //dbHandler.close();
-        //dbWayPtHandler.close();
-        /*if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
-                (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
-            stopLocationUpdates();
-        }*/
     }
 
     @Override
     protected void onStop(){
         super.onStop();
-        /*if ((ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) &&
-                (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
-            stopLocationUpdates();
-        }*/
     }
 
 

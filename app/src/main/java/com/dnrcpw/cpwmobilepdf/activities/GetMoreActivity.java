@@ -205,7 +205,8 @@ public class GetMoreActivity extends AppCompatActivity {
             case DialogInterface.BUTTON_POSITIVE:
                 //Show Browser - if the web  page does not load make sure you are signed in to you gmail account in settings on the emulator
                 try {
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://cpw.state.co.us/learn/Pages/Maps.aspx"));
+                    // old link https://cpw.state.co.us/learn/Pages/Maps.aspx
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://cpw.state.co.us/maps-and-gis#static-maps"));
                     startActivity(browserIntent);
                 } catch(ActivityNotFoundException browserNotFound){
                     Toast.makeText(this, "Cannot start your browser.", Toast.LENGTH_SHORT).show();

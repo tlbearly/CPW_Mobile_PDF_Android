@@ -45,6 +45,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
@@ -418,7 +419,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                             randomInt = rand.nextInt(1,9);
                         }
-                        if (randomInt > 4) randomInt = randomInt * -1;
+                        if (randomInt > 7) randomInt = randomInt * -1;
                         r = (double)randomInt / 10000.0;
                         longNow = longBefore + r;
                     }
@@ -1736,6 +1737,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         //Log.d("page size","width="+optimalPageWidth.get()+" height="+optimalPageHeight.get());
     }
 
+    public float calculateDistance(double startLat, double startLng, double endLat, double endLng) {
+        float[] results = new float[1];
+        // The result is written directly into the first index of the array
+        Location.distanceBetween(startLat, startLng, endLat, endLng, results);
+        return results[0]; // Returns distance in meters
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -2101,16 +2109,16 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 db2.setShowWaypoints(1);
             }
         }
-        // Tracking
+        // Show Tracking
         else if (id == R.id.action_showTracks){
             // isChecked() returns the state before the user clicked on it
-            // uncheck waypoints
+            // uncheck tracks
             if (action_showTracks.isChecked()){
                 action_showTracks.setChecked(false);
                 showTracks = false;
                 db2.setShowTracks(0);
             }
-            // check waypoints
+            // check tracks
             else{
                 action_showTracks.setChecked(true);
                 showTracks = true;
@@ -2194,6 +2202,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         .setNegativeButton("PORTRAIT", dialogClickListener).show();
             return true;
         }*/
+        // Turn Add WayPoint On/Off
         else if (id == R.id.action_add_way_pt) {
             // turn off add waypoint pin
             if (addWayPtFlag){
@@ -2211,6 +2220,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 Toast.makeText(PDFActivity.this, getResources().getString(R.string.wayPtInstr), Toast.LENGTH_LONG).show();
             }
         }
+        // Turn Tracking On/Off
         else if (id == R.id.action_add_track) {
             // turn off add track icon
             if (addTrackFlag){
@@ -2218,6 +2228,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             }
             // turn on add track icon
             else {
+                //TODO check for FOREGROUND_SERVICE && FOREGROUND_SERVICE_LOCATION instead of ACCESS_FINE_LOCATION
+                if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+
+                } else {
+                    Toast.makeText(PDFActivity.this, "Tracking requires permission to run in the background.", Toast.LENGTH_LONG).show();
+                }
                 int num = findAUniqueTrackName();
                 tracks.add(mapName,"Track "+num, "cyan", null);
                 currentTrackID = tracks.size()-1;
@@ -2318,6 +2334,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         }
         else if (item.getItemId() == android.R.id.home){
             // back button pressed, return
+            // stop tracking
+            turnTrackingOff();
             Intent mainIntent = new Intent(PDFActivity.this, MainActivity.class);
             mainIntent.putExtra("ID",id);
             mainIntent.putExtra("UPDATES", "true");

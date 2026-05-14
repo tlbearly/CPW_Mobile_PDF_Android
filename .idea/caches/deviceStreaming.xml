@@ -4,6 +4,19 @@
     <option name="deviceSelectionList">
       <list>
         <PersistentDeviceSelectionData>
+          <option name="api" value="33" />
+          <option name="brand" value="samsung" />
+          <option name="codename" value="y2q" />
+          <option name="id" value="y2q" />
+          <option name="labId" value="google" />
+          <option name="manufacturer" value="Samsung" />
+          <option name="name" value="Galaxy S20+ 5G" />
+          <option name="screenDensity" value="600" />
+          <option name="screenX" value="1440" />
+          <option name="screenY" value="3200" />
+          <option name="selected" value="true" />
+        </PersistentDeviceSelectionData>
+        <PersistentDeviceSelectionData>
           <option name="api" value="34" />
           <option name="brand" value="Sony" />
           <option name="codename" value="A402SO" />
@@ -1467,6 +1480,18 @@
         <PersistentDeviceSelectionData>
           <option name="api" value="36" />
           <option name="brand" value="samsung" />
+          <option name="codename" value="q7mq" />
+          <option name="id" value="q7mq" />
+          <option name="labId" value="google" />
+          <option name="manufacturer" value="Samsung" />
+          <option name="name" value="Galaxy Z TriFold" />
+          <option name="screenDensity" value="320" />
+          <option name="screenX" value="2160" />
+          <option name="screenY" value="1584" />
+        </PersistentDeviceSelectionData>
+        <PersistentDeviceSelectionData>
+          <option name="api" value="36" />
+          <option name="brand" value="samsung" />
           <option name="codename" value="r0q" />
           <option name="id" value="r0q" />
           <option name="labId" value="google" />
@@ -1729,18 +1754,6 @@
           <option name="screenDensity" value="450" />
           <option name="screenX" value="1080" />
           <option name="screenY" value="2408" />
-        </PersistentDeviceSelectionData>
-        <PersistentDeviceSelectionData>
-          <option name="api" value="33" />
-          <option name="brand" value="samsung" />
-          <option name="codename" value="y2q" />
-          <option name="id" value="y2q" />
-          <option name="labId" value="google" />
-          <option name="manufacturer" value="Samsung" />
-          <option name="name" value="Galaxy S20+ 5G" />
-          <option name="screenDensity" value="600" />
-          <option name="screenX" value="1440" />
-          <option name="screenY" value="3200" />
         </PersistentDeviceSelectionData>
         <PersistentDeviceSelectionData>
           <option name="api" value="33" />

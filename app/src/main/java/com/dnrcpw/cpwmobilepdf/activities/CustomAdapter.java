@@ -92,6 +92,11 @@ public class CustomAdapter extends BaseAdapter {
         longNow = location.getLongitude();
     }
 
+    public void setLocation(Double latitude, Double longitude){
+        latNow = latitude;
+        longNow = longitude;
+    }
+
     public ArrayList<String> getAllMapNames() throws SQLException {
         // 4-16-26 for removing waypts that no longer have an existing map. Old bug.
         ArrayList<String> list = new ArrayList<>();
