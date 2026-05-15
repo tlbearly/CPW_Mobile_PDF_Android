@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="280dp"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/windowBackground"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/menu_interval_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Manual Interval: 10s"
+        android:textColor="?android:attr/textColorPrimary" />
+
+    <SeekBar
+        android:id="@+id/menu_interval_seekbar"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="12dp"
+        android:max="30"
+        android:progress="10" />
+
+    <Button
+        android:id="@+id/menu_btn_reset_auto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enable Auto-Speed" />
+</LinearLayout>

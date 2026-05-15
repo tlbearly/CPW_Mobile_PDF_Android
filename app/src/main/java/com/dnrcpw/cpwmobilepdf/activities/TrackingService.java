@@ -24,6 +24,12 @@ public class TrackingService extends Service {
     private static final String CHANNEL_ID = "Tracking_Channel";
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
+    // Global tracker configuration (Default values)
+    private long currentIntervalMillis = 10000; // 10 seconds default
+    private long currentFastestIntervalMillis = 5000; // 5 seconds default
+    private boolean isAutoAdjustEnabled = true; // Toggle for speed-based adjustment
+    private float lastSpeedMps = 0.0f;
+
 
     @Override
     public void onCreate() {
@@ -45,6 +51,12 @@ public class TrackingService extends Service {
                     // Default to -1.0f if the location object does not contain a valid bearing
                     float bearing = location.hasBearing() ? location.getBearing() : -1.0f;
 
+                    // Extract speed in meters per second (requires GPS)
+                    float speed = location.hasSpeed() ? location.getSpeed() : 0.0f;
+
+                    if (isAutoAdjustEnabled) {
+                        adjustIntervalBasedOnSpeed(speed);
+                    }
 
                     // Create an intent with a custom action string
                     Intent intent = new Intent("ACTION_LOCATION_UPDATE");
@@ -61,9 +73,32 @@ public class TrackingService extends Service {
         };
     }
 
+    private void adjustIntervalBasedOnSpeed(float speedMps) {
+        long newInterval;
+        long newFastest;
+
+        if (speedMps > 11.1) { // Faster than 25 mph / 40 kmh (Driving)
+            newInterval = 2000;  // 2 seconds
+            newFastest = 1000;
+        } else if (speedMps > 1.5) { // Running / Cycling
+            newInterval = 5000;  // 5 seconds
+            newFastest = 2000;
+        } else { // Walking / Stationary
+            newInterval = 15000; // 15 seconds
+            newFastest = 7000;
+        }
+
+        // Only rebuild request if state shifts drastically to avoid endless loop resetting
+        if (Math.abs(speedMps - lastSpeedMps) > 2.0f) {
+            lastSpeedMps = speedMps;
+            changeLocationInterval(newInterval, newFastest);
+            Log.d("TrackingService", "Auto-adjusted interval to: " + newInterval + "ms");
+        }
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        createNotificationChannel();
+        /*createNotificationChannel();
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Location Tracking")
                 .setContentText("Running in the background...")
@@ -76,17 +111,56 @@ public class TrackingService extends Service {
             startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
         } else {
             startForeground(1, notification);
-        }
+        }*/ // not needed??????
 
-        startLocationUpdates();
+        // Check if the Intent contains custom interval update instructions
+        if (intent != null && intent.hasExtra("update_interval")) {
+            // User overridden via SeekBar: Disable auto-speed adjustment
+            isAutoAdjustEnabled = false;
+            long newInterval = intent.getLongExtra("update_interval", 10000);
+            long newFastestInterval = intent.getLongExtra("update_fastest_interval", 5000);
+
+            // Trigger the runtime change function
+            changeLocationInterval(newInterval, newFastestInterval);
+        } else if (intent != null && intent.hasExtra("enable_auto")) {
+            isAutoAdjustEnabled = intent.getBooleanExtra("enable_auto", true);
+        } else {
+            // First-time setup launch code
+            startLocationUpdates();
+        }
         return START_STICKY;
+    }
+
+    // The dedicated function to handle updates safely at runtime
+    public void changeLocationInterval(long newIntervalMillis, long newFastestIntervalMillis) {
+        this.currentIntervalMillis = newIntervalMillis;
+        this.currentFastestIntervalMillis = newFastestIntervalMillis;
+
+        if (fusedLocationClient != null && locationCallback != null) {
+            try {
+                // 1. Remove the old update callback first to prevent dual loops
+                fusedLocationClient.removeLocationUpdates(locationCallback);
+
+                // 2. Build the fresh configuration request
+                LocationRequest newRequest = new LocationRequest.Builder(
+                        Priority.PRIORITY_HIGH_ACCURACY, currentIntervalMillis)
+                        .setMinUpdateIntervalMillis(currentFastestIntervalMillis)
+                        .build();
+
+                // 3. Restart tracking immediately with the new timing
+                fusedLocationClient.requestLocationUpdates(newRequest, locationCallback, Looper.getMainLooper());
+
+            } catch (SecurityException e) {
+                // Fail-safe handling for permission checks
+            }
+        }
     }
 
     private void startLocationUpdates() {
         // Configure location intervals (Adjust for battery optimization)
         LocationRequest locationRequest = new LocationRequest.Builder(
-                Priority.PRIORITY_HIGH_ACCURACY, 10000) // 10 seconds
-                .setMinUpdateIntervalMillis(5000)       // 5 seconds fastest
+                Priority.PRIORITY_HIGH_ACCURACY, currentIntervalMillis)
+                .setMinUpdateIntervalMillis(currentFastestIntervalMillis)
                 .build();
 
         try {

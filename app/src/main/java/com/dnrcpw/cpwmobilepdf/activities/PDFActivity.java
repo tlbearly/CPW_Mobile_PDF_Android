@@ -27,23 +27,29 @@ import android.text.TextPaint;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ActionMode;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.WindowMetrics;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -550,6 +556,22 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         setupColorsMoveIcon();
         setupPDFView();
     }
+
+    // LOCATION SERVICE FUNCTIONS 5-14-26
+    private void updateTrackingSpeed(long intervalMs, long fastestIntervalMs) {
+        Intent intent = new Intent(this, TrackingService.class);
+        intent.putExtra("update_interval", intervalMs);
+        intent.putExtra("update_fastest_interval", fastestIntervalMs);
+
+        // This tells the OS to pass the new instructions to the existing running instance
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent);
+        } else {
+            startService(intent);
+        }
+    }
+
+
     private void loadNewMap(ArrayList<PDFMap> maps, int id){
         if (id > maps.size()-1)return;
         path = maps.get(id).getPath();
@@ -1990,6 +2012,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     MenuItem action_showWayPts;
     MenuItem action_showTracks;
     MenuItem action_loadAdjacentMaps;
+    MenuItem settingsItem;
     /*DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
         @SuppressLint("SourceLockedOrientationActivity")
         @Override
@@ -2015,6 +2038,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             }
         }
     };*/
+
+    // for Tracking Configuration icon to show up
+    @SuppressLint("RestrictedApi")
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         mapMenu = menu;
@@ -2035,6 +2061,70 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         action_showAll.setChecked((showAllWayPtLabels));
         action_showWayPts.setChecked(showAllWayPts);
         action_showTracks.setChecked(showTracks);
+
+        // Force Android to display icons inside the 3-dot overflow dropdown
+        if (menu instanceof MenuBuilder) {
+            MenuBuilder menuBuilder = (MenuBuilder) menu;
+            menuBuilder.setOptionalIconsVisible(true);
+        }
+        /*settingsItem = menu.findItem(R.id.action_tracking_settings);
+        // Set up Tracking Settings
+        if (settingsItem != null) {
+            // Unpack the layout view reference bound to the action layer
+            View actionView = settingsItem.getActionView();
+
+            if (actionView != null) {
+                TextView intervalLabel = actionView.findViewById(R.id.menu_interval_label);
+                SeekBar seekBar = actionView.findViewById(R.id.menu_interval_seekbar);
+                Button btnAuto = actionView.findViewById(R.id.menu_btn_reset_auto);
+
+                // Set up your SeekBar listener
+                seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        if (progress < 1) progress = 1;
+                        intervalLabel.setText("Manual Interval: " + progress + "s");
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {}
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                        int progress = seekBar.getProgress();
+                        if (progress < 1) progress = 1;
+
+                        // Send updated long variables directly to TrackingService via Intent
+                        Intent intent = new Intent(PDFActivity.this, TrackingService.class);
+                        intent.putExtra("update_interval", progress * 1000L);
+                        intent.putExtra("update_fastest_interval", (progress * 1000L) / 2);
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            startForegroundService(intent);
+                        } else {
+                            startService(intent);
+                        }
+                    }
+                });
+
+                // Set up your Button listener
+                btnAuto.setOnClickListener(v -> {
+                    Intent intent = new Intent(PDFActivity.this, TrackingService.class);
+                    intent.putExtra("enable_auto", true);
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startForegroundService(intent);
+                    } else {
+                        startService(intent);
+                    }
+                    intervalLabel.setText("Interval: Controlled by Speed");
+                    // OPTIONAL FIX: Programmatically collapses the tracking layout back
+                    // into a simple settings icon once auto-tracking is engaged.
+                    settingsItem.collapseActionView();
+                });
+            }
+        }*/
+
         return true;
     }
 
@@ -2328,6 +2418,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             }
             });
         }
+        else if (id == R.id.action_tracking_settings) {
+            // Trigger our floating drop-down menu panel
+            showTrackingConfigurationPanel();
+            return true;
+        }
         else if (id == R.id.action_help){
             Intent i = new Intent(PDFActivity.this, PDFHelpActivity.class);
             startActivity(i);
@@ -2345,6 +2440,77 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showTrackingConfigurationPanel() {
+        // 1. Inflate the layout manually
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        View popupView = inflater.inflate(R.layout.menu_tracking_config, null);
+
+        // 2. Initialize the views inside the layout
+        TextView intervalLabel = popupView.findViewById(R.id.menu_interval_label);
+        SeekBar seekBar = popupView.findViewById(R.id.menu_interval_seekbar);
+        Button btnAuto = popupView.findViewById(R.id.menu_btn_reset_auto);
+
+        // 3. Create the window frame configuration
+        final PopupWindow popupWindow = new PopupWindow(
+                popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true // Allows closing the panel if the user taps outside of it
+        );
+
+        // 4. Bind the SeekBar listener logic
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (progress < 1) progress = 1;
+                intervalLabel.setText("Manual Interval: " + progress + "s");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                int progress = seekBar.getProgress();
+                if (progress < 1) progress = 1;
+
+                Intent intent = new Intent(PDFActivity.this, TrackingService.class);
+                intent.putExtra("update_interval", progress * 1000L);
+                intent.putExtra("update_fastest_interval", (progress * 1000L) / 2);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(intent);
+                } else {
+                    startService(intent);
+                }
+                // Closes the drop-down menu once auto-speed is toggled
+                popupWindow.dismiss();
+            }
+        });
+
+        // 5. Bind the Auto Button click listener
+        btnAuto.setOnClickListener(v -> {
+            Intent intent = new Intent(PDFActivity.this, TrackingService.class);
+            intent.putExtra("enable_auto", true);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent);
+            } else {
+                startService(intent);
+            }
+
+            // Closes the drop-down menu once auto-speed is toggled
+            popupWindow.dismiss();
+        });
+
+        // 6. Anchor the window framework underneath the top right menu zone
+        View anchorView = findViewById(android.R.id.content);
+        if (anchorView != null) {
+            // Displays the custom overlay in the upper right quadrant of the display screen
+            popupWindow.showAtLocation(anchorView, Gravity.TOP | Gravity.END, 16, 150);
+        }
     }
 
     // Turn tracking odd

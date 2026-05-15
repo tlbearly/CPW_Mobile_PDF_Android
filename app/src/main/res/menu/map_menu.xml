@@ -44,18 +44,25 @@
           android:visible="true"
           app:showAsAction="never" />
     <item
+        android:id="@+id/action_showAll"
+        android:title="@string/showWayPtLabels"
+        android:icon="@drawable/chat_bubble"
+        android:checkable="true"
+        android:checked="false"
+        android:visible="true"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_showTracks"
         android:checkable="true"
         android:title="@string/showTracks"
         app:showAsAction="never" />
     <item
-          android:id="@+id/action_showAll"
-          android:title="@string/showWayPtLabels"
-          android:icon="@drawable/chat_bubble"
-          android:checkable="true"
-          android:checked="false"
-          android:visible="true"
-          app:showAsAction="never" />
+        android:id="@+id/action_tracking_settings"
+        android:title="Tracking Configuration"
+        android:icon="@android:drawable/ic_menu_preferences"
+        app:showAsAction="never"
+        app:iconTint="@android:color/black"
+        app:actionLayout="@layout/menu_tracking_config" />
       <item
           android:id="@+id/action_loadAdjacentMaps"
           android:title="@string/loadAdjacentMaps"
