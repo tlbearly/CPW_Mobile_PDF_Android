@@ -21,6 +21,7 @@
     <string name="wayPtInstr">Tap map to add waypoint</string>
     <string name="trackingOn">Tracking is on</string>
     <string name="trackingOff">Tracking is off</string>
+    <string name="distance">Distance:\u0020</string>
     <string name="portrait">Lock in Portrait</string>
     <string name="landscape">Lock in Landscape</string>
     <string name="red">Red</string>

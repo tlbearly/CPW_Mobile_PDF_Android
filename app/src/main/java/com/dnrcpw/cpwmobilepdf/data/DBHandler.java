@@ -27,7 +27,7 @@ import java.util.Locale;
 
 public class DBHandler extends SQLiteOpenHelper {
     private static DBHandler sInstance; // used by every activity. Application context.
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 6;
     private static final String DATABASE_NAME = "mapsInfo";
     // Maps table name
     private static final String TABLE_MAPS = "maps";
@@ -65,6 +65,7 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String KEY_MAXLONG = "max_long";
     private static final String KEY_MINLAT = "min_lat";
     private static final String KEY_MAXLAT = "max_lat";
+    private static final String KEY_DIST = "dist";
 
     // Waypoint table name. Stores waypoints for each map
     private static final String TABLE_WAYPTS = "wayPts";
@@ -128,7 +129,7 @@ public class DBHandler extends SQLiteOpenHelper {
                      // version 3 new stuff
                      db1.execSQL("ALTER TABLE " + TABLE_SETTINGS + " ADD COLUMN " + KEY_SHOW_TRACKS + " TEXT");
                      db1.execSQL("UPDATE " + TABLE_SETTINGS + " SET " + KEY_SHOW_TRACKS + " = '0'");
-                     // Version 4 & 5 new stuff
+                     // Version 4 & 5 & 6 new stuff
                      // Create Tables if they don't exist
                      createWayPtTable(db1);
                      createTracksTable(db1);
@@ -139,7 +140,7 @@ public class DBHandler extends SQLiteOpenHelper {
                      // Version 3 new stuff
                      db1.execSQL("ALTER TABLE " + TABLE_SETTINGS + " ADD COLUMN " + KEY_SHOW_TRACKS + " TEXT");
                      db1.execSQL("UPDATE " + TABLE_SETTINGS + " SET " + KEY_SHOW_TRACKS + " = '0'");
-                     // Version 4 new stuff
+                     // Version 4 & 5 & 6 new stuff
                      // Create Tables if they don't exist
                      createWayPtTable(db1);
                      createTracksTable(db1);
@@ -155,21 +156,41 @@ public class DBHandler extends SQLiteOpenHelper {
                      migrateExternalDatabase(context, db1, "wayPtsInfo", "wayPts");
                      migrateExternalDatabase(context, db1, "tracksInfo", "tracks");
                  case 4:
-                     // Version 5 new stuff
-                     String selectQuery1 = "SELECT * FROM " + TABLE_TRACKS;
-                     Cursor cursor1 = db1.rawQuery(selectQuery1, null);
-                     if (cursor1.getColumnCount() == 6) {
-                         cursor1.close();
-                         db1.execSQL("ALTER TABLE " + TABLE_TRACKS + " ADD COLUMN " + KEY_MINLONG + " REAL");
-                         db1.execSQL("UPDATE " + TABLE_TRACKS + " SET " + KEY_MINLONG + " = -1.0");
-                         db1.execSQL("ALTER TABLE " + TABLE_TRACKS + " ADD COLUMN " + KEY_MAXLONG + " REAL");
-                         db1.execSQL("UPDATE " + TABLE_TRACKS + " SET " + KEY_MAXLONG + " = -1.0");
-                         db1.execSQL("ALTER TABLE " + TABLE_TRACKS + " ADD COLUMN " + KEY_MINLAT + " REAL");
-                         db1.execSQL("UPDATE " + TABLE_TRACKS + " SET " + KEY_MINLAT + " = -1.0");
-                         db1.execSQL("ALTER TABLE " + TABLE_TRACKS + " ADD COLUMN " + KEY_MAXLAT + " REAL");
-                         db1.execSQL("UPDATE " + TABLE_TRACKS + " SET " + KEY_MAXLAT + " = -1.0");
-                     }
+                     // add columns to Tracks table: min max lat long and dist
+                     version5Updates(db1);
+                     version6Updates(db1);
+                 case 5:
+                     // add columns to Tracks table: dist
+                     version6Updates(db1);
              }
+        }
+    }
+
+    private void version5Updates(SQLiteDatabase db1) {
+        // Version 5 new stuff
+        String selectQuery1 = "SELECT * FROM " + TABLE_TRACKS;
+        Cursor cursor1 = db1.rawQuery(selectQuery1, null);
+        if (cursor1.getColumnCount() == 6) {
+            cursor1.close();
+            db1.execSQL("ALTER TABLE " + TABLE_TRACKS + " ADD COLUMN " + KEY_MINLONG + " REAL");
+            db1.execSQL("UPDATE " + TABLE_TRACKS + " SET " + KEY_MINLONG + " = -1.0");
+            db1.execSQL("ALTER TABLE " + TABLE_TRACKS + " ADD COLUMN " + KEY_MAXLONG + " REAL");
+            db1.execSQL("UPDATE " + TABLE_TRACKS + " SET " + KEY_MAXLONG + " = -1.0");
+            db1.execSQL("ALTER TABLE " + TABLE_TRACKS + " ADD COLUMN " + KEY_MINLAT + " REAL");
+            db1.execSQL("UPDATE " + TABLE_TRACKS + " SET " + KEY_MINLAT + " = -1.0");
+            db1.execSQL("ALTER TABLE " + TABLE_TRACKS + " ADD COLUMN " + KEY_MAXLAT + " REAL");
+            db1.execSQL("UPDATE " + TABLE_TRACKS + " SET " + KEY_MAXLAT + " = -1.0");
+        }
+    }
+
+    private void version6Updates(SQLiteDatabase db1){
+        // Database Version 6 new stuff
+        String selectQuery2 = "SELECT * FROM " + TABLE_TRACKS;
+        Cursor cursor2 = db1.rawQuery(selectQuery2, null);
+        if (cursor2.getColumnCount() == 10) {
+            cursor2.close();
+            db1.execSQL("ALTER TABLE " + TABLE_TRACKS + " ADD COLUMN " + KEY_DIST + " REAL");
+            db1.execSQL("UPDATE " + TABLE_TRACKS + " SET " + KEY_DIST + " = 0.0");
         }
     }
 
@@ -555,11 +576,12 @@ public class DBHandler extends SQLiteOpenHelper {
                 + KEY_DESC + " TEXT, " + KEY_LINE_SEGMENTS + " TEXT, "
                 + KEY_COLOR + " TEXT, " + KEY_TIME + " TEXT, "
                 + KEY_MINLONG + " REAL, " + KEY_MAXLONG + " REAL, "
-                + KEY_MINLAT + " REAL, " + KEY_MAXLAT + " REAL)";
+                + KEY_MINLAT + " REAL, " + KEY_MAXLAT + " REAL, "
+                + KEY_DIST + " REAL)";
         db1.execSQL(CREATE_TRACKS_TABLE);
     }
 
-    public synchronized void updateTrack(double latitude, double longitude, double minLong, double maxLong, double minLat, double maxLat, long currentDBId){
+    public synchronized void updateTrack(double latitude, double longitude, double minLong, double maxLong, double minLat, double maxLat, double dist, long currentDBId){
         // save the line segments when app is in the background and foreground
         // Called by TrackingService
         String lineSegments = "";
@@ -580,14 +602,15 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(KEY_MAXLONG,maxLong);
         values.put(KEY_MINLAT,minLat);
         values.put(KEY_MAXLAT,maxLat);
+        values.put(KEY_DIST,dist);
 
         // Update line segments
         db.update(TABLE_TRACKS, values,KEY_ID + " = ?",
                 new String[]{ String.valueOf(currentDBId) });
-        Log.d("updateTrack", "minLong="+minLong+" maxLong="+maxLong);
+        //Log.d("updateTrack", "minLong="+minLong+" maxLong="+maxLong);
     }
 
-    public long addTrack(Track track) throws SQLException {
+    public int addTrack(Track track) throws SQLException {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_MAPNAME, track.getMapName()); // Name of map
@@ -595,12 +618,13 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(KEY_LINE_SEGMENTS, track.getLineSegments()); // String of x1,y1,x2,y2,x3,y3,... line segments in long, lat
         values.put(KEY_COLOR, track.getColorName()); // Color name of pushpin image
         values.put(KEY_TIME, track.getTime()); // Date and time of creation of track
-        values.put(KEY_MINLONG,-1.0);
-        values.put(KEY_MAXLONG,-1.0);
-        values.put(KEY_MINLAT,-1.0);
-        values.put(KEY_MAXLAT,-1.0);
+        values.put(KEY_MINLONG,track.getMinLong());
+        values.put(KEY_MAXLONG,track.getMaxLong());
+        values.put(KEY_MINLAT,track.getMinLat());
+        values.put(KEY_MAXLAT,track.getMaxLat());
+        values.put(KEY_DIST,track.getDist());
         // Inserting Row
-        return db.insertOrThrow(TABLE_TRACKS, null, values);
+        return Math.toIntExact(db.insertOrThrow(TABLE_TRACKS, null, values));
     }
 
     public int updateTrack(Track track){
@@ -615,6 +639,7 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(KEY_MAXLONG,track.getMaxLong());
         values.put(KEY_MINLAT,track.getMinLat());
         values.put(KEY_MAXLAT,track.getMaxLat());
+        values.put(KEY_DIST,track.getDist());
 
         // updating row
         return db.update(TABLE_TRACKS, values, KEY_ID + " = ?",
@@ -688,7 +713,8 @@ public class DBHandler extends SQLiteOpenHelper {
                         Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(KEY_MINLONG))),
                         Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(KEY_MAXLONG))),
                         Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(KEY_MINLAT))),
-                        Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(KEY_MAXLAT))));
+                        Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(KEY_MAXLAT))),
+                            Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(KEY_DIST))));
                 }
             } while (cursor.moveToNext());
         }

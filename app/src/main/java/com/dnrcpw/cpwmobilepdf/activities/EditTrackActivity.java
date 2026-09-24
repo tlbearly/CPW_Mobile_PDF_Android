@@ -31,6 +31,7 @@ public class EditTrackActivity extends AppCompatActivity{
     private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor(); // for database calls
     EditText editTxt;
     TextView timeStamp;
+    TextView distance;
     ImageView trackImg;
     RadioGroup trackColorGrp;
     RadioButton cyanBtn, redBtn, blueBtn;
@@ -66,6 +67,7 @@ public class EditTrackActivity extends AppCompatActivity{
         editTxt = findViewById(R.id.trackName);
         trackImg = findViewById(R.id.track_img);
         timeStamp = findViewById(R.id.trackTime);
+        distance = findViewById(R.id.trackDist);
         trackColorGrp = findViewById(R.id.trackColor);
         cyanBtn = findViewById(R.id.cyanTrack);
         redBtn = findViewById(R.id.redTrack);
@@ -125,6 +127,9 @@ public class EditTrackActivity extends AppCompatActivity{
                 prevName = track.getDesc();
                 editTxt.setText(prevName);
                 timeStamp.setText(track.getTime());
+                double miles = track.getDist() * 0.000621371; // convert from meters to miles
+                String dist = String.format("%.1f", miles)+"mi ";
+                distance.setText(dist);
                 String trackColor = track.getColorName();
                 if (trackColor.equals("cyan")) {
                     cyanBtn.setChecked(true);

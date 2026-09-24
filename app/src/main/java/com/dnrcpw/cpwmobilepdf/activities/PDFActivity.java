@@ -1924,6 +1924,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     currentTrack.setMaxLong(intent.getDoubleExtra("extra_maxLong", -1.0));
                     currentTrack.setMinLat(intent.getDoubleExtra("extra_minLat", -1.0));
                     currentTrack.setMaxLat(intent.getDoubleExtra("extra_maxLat", -1.0));
+                    currentTrack.setDist(intent.getDoubleExtra("extra_dist", 0.0));
                 }
 
                 //bearing = location.getBearing(); // 0-360 degrees 0 at North
@@ -2772,7 +2773,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             while ((entry = zis.getNextEntry()) != null) {
                 // Look for the main KML file (usually ends with .kml)
                 if (entry.getName().toLowerCase().endsWith(".kml")) {
-                    System.out.println("Found KML file: " + entry.getName());
+                    Log.d("KML","Found KML file: " + entry.getName());
 
                     // Parse the KML input stream using Java's built-in DOM parser
                     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -2784,7 +2785,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     doc.getDocumentElement().normalize();
 
                     // Print out the root XML tag to verify success
-                    System.out.println("Root element: " + doc.getDocumentElement().getNodeName());
+                    Log.d("KML","Root element: " + doc.getDocumentElement().getNodeName());
 
                     NodeList nodeList = doc.getElementsByTagName("Placemark");
 
@@ -2801,6 +2802,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             // Read inner text values of child tags
                             String name;
                             String color;
+                            String dist;
                             if (element.getElementsByTagName("name").getLength() > 0){
                                 name = element.getElementsByTagName("name").item(0).getTextContent();
                             } else {
@@ -2812,6 +2814,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             } else {
                                 // Missing styleUrl tag, use default
                                 color = "cyan";
+                            }
+                            if (element.getElementsByTagName("dist").getLength() != 0){
+                                dist = element.getElementsByTagName("dist").item(0).getTextContent();
+                            }
+                            else{
+                                // Missing dist tag
+                                dist = "0.0";
                             }
                             // Waypoints
                             Node ptNode = element.getElementsByTagName("Point").item(0);
@@ -2863,7 +2872,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                     // Convert 2026-06-18T23:35:00Z to MM/dd/yyyy hh:mm aa
                                     tim = convertKmzDateToNormal(timeStamp);
 
-                                    Track track = tracks.add(mapName,name,color,null, -1.0, -1.0, -1.0, -1.0);
+                                    Track track = tracks.add(mapName,name,color,null,-1.0, -1.0, -1.0, -1.0, Double.parseDouble(dist));
+                                    track.setTime(tim);
                                     // Get Coordinates
                                     double lastLat = -1.0;
                                     double lastLong = -1.0;
@@ -2878,12 +2888,16 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                                                 lastLat = Double.parseDouble(segment[1]);
                                                 continue;
                                             }
+                                            // add track segment and calculate min/max lat,long
                                             track.addTrackSegment(lastLong, lastLat, Double.parseDouble(segment[0]),Double.parseDouble(segment[1]));
+                                            lastLong = Double.parseDouble(segment[0]);
+                                            lastLat = Double.parseDouble(segment[1]);
                                         }
                                     }
+                                    track.setDist(Double.parseDouble(dist));
                                     dbExecutor.execute(() -> {
                                         DBHandler db = DBHandler.getInstance(PDFActivity.this);
-                                        long newId = db.addTrack(track);
+                                        int newId = db.addTrack(track);
                                         track.setId(newId);
                                     });
                                 }
@@ -2897,8 +2911,8 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 zis.closeEntry();
             }
         } catch (Exception e) {
-            ToastUtils.showExtendedToast(PDFActivity.this, "Import KMZ file failed. "+e.getMessage());
-            e.printStackTrace();
+            if (e.getMessage() != "Stream closed")
+                ToastUtils.showExtendedToast(PDFActivity.this, "Import KMZ file failed. "+e.getMessage());
         }
     }
 
@@ -2972,6 +2986,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                        }
                    }
                    kml.append("      </gx:Track>\n");
+                   kml.append("      <dist>")
+                                   .append(tracks.get(i).getDist())
+                                   .append("</dist>\n");
                    kml.append("    </Placemark>\n");
                }
            }
@@ -3172,11 +3189,11 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     private void turnTrackingOn(){
         passedPermissions = true; // user allowed tracks to run in the background
         int num = findAUniqueTrackName();
-        tracks.add(mapName,"Track "+num, "cyan", null, -1.0, -1.0, -1.0, -1.0);
+        tracks.add(mapName,"Track "+num, "cyan", null, -1.0, -1.0, -1.0, -1.0, 0.0);
         currentTrackID = tracks.size()-1;
         dbExecutor.execute(() -> {
             DBHandler db = DBHandler.getInstance(PDFActivity.this);
-            long newId = -1;
+            int newId = -1;
             try{
                 newId = db.addTrack(tracks.get(currentTrackID));
             } catch (SQLException e) {
@@ -3185,7 +3202,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 });
             }
             // Switch to main thread to push the data to your UI
-            long finalNewId = newId;
+            int finalNewId = newId;
             runOnUiThread(() -> {
                 tracks.get(currentTrackID).setId(finalNewId);
                 addTrackFlag = true; // tracking icon is active

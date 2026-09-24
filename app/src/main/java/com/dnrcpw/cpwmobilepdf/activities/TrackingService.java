@@ -142,6 +142,7 @@ public class TrackingService extends Service {
                             if (latitude > maxLat) {
                                 maxLat = latitude;
                             }
+                            dist = dist + calculateDistance(latitude_before,longitude_before,latitude,longitude); // update total distance in meters
                             dbHelper.updateTrack(
                                     latitude,
                                     longitude,
@@ -149,9 +150,9 @@ public class TrackingService extends Service {
                                     maxLong,
                                     minLat,
                                     maxLat,
+                                    dist,
                                     currentDBId
                             );
-                            dist = dist + calculateDistance(latitude_before,longitude_before,latitude,longitude);
 
                         } else {
                             latitude = location.getLatitude();
@@ -172,6 +173,7 @@ public class TrackingService extends Service {
                         intent.putExtra("extra_maxLong", maxLong);
                         intent.putExtra("extra_minLat", minLat);
                         intent.putExtra("extra_maxLat", maxLat);
+                        intent.putExtra("extra_dist", dist);
 
                         // Broadcast to the system (restricted to your app package for security)
                         intent.setPackage(getPackageName());
@@ -205,7 +207,6 @@ public class TrackingService extends Service {
         return EARTH_RADIUS * c; // Returns distance in meters
     }
 
-    // Example public method your second activity might want to call
     public String getTotalDistance() {
         // return totalDistanceTraveled in meters
         double miles = dist * 0.000621371;

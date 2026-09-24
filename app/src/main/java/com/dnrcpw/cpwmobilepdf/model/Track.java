@@ -1,5 +1,7 @@
 package com.dnrcpw.cpwmobilepdf.model;
 
+import com.dnrcpw.cpwmobilepdf.activities.TrackingService;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,7 +12,7 @@ import java.util.Locale;
 
 public class Track {
     // Array of Track objects for a given map
-    private long id;
+    private int id;
     public String mapName; // filename minus the path
     public String desc; // label or description
     public String colorName; // cyan, blue, red
@@ -21,9 +23,10 @@ public class Track {
     private double maxLong;
     private double minLat;
     private double maxLat;
+    private double dist;
     public Track(){}
 
-    public Track(String mapName, String desc, String colorName, List<TrackSegment> trackSegments, double minLong, double maxLong, double minLat, double maxLat ){
+    public Track(String mapName, String desc, String colorName, List<TrackSegment> trackSegments, double minLong, double maxLong, double minLat, double maxLat, double dist ){
         this.mapName = mapName;
         this.desc = desc;
         this.colorName = colorName;
@@ -32,13 +35,14 @@ public class Track {
         this.maxLong = maxLong;
         this.minLat = minLat;
         this.maxLat = maxLat;
+        this.dist = dist;
         Calendar cal = Calendar.getInstance();
         java.util.Date date = cal.getTime();
         DateFormat formattedDate = new SimpleDateFormat("MM/dd/yyyy hh:mm aa", Locale.US);
         this.time = formattedDate.format(date);
     }
 
-    public Track(int id, String mapName, String desc, String trackSegments, String colorName, String time, double minLong, double maxLong, double minLat, double maxLat){
+    public Track(int id, String mapName, String desc, String trackSegments, String colorName, String time, double minLong, double maxLong, double minLat, double maxLat, double dist){
         // Called by Tracks/add and DBTrackHandler/getTracks to read the tracks from the database and fill the tracks ArrayList
         if (trackSegments.equals("")){
             this.trackSegments = null;
@@ -64,6 +68,7 @@ public class Track {
         this.maxLong = maxLong;
         this.minLat = minLat;
         this.maxLat = maxLat;
+        this.dist = dist;
     }
     public String getLineSegments(){
         // DBTrackHandler calls this to store it in the database as a string of comma-delimited lat, long points
@@ -80,6 +85,24 @@ public class Track {
     public void addTrackSegment(double x1, double y1, double x2, double y2){
         TrackSegment trackSegment = new TrackSegment(x1,y1, x2, y2);
         this.trackSegments.add(trackSegment);
+        if (this.maxLat == -1.0) {
+            this.minLong = x1;
+            this.maxLong = x1;
+            this.minLat = y1;
+            this.maxLat = y1;
+        }
+        if (x2 < this.minLong) {
+            this.minLong = x2;
+        }
+        if (x2 > this.maxLong) {
+            this.maxLong = x2;
+        }
+        if (y2 < this.minLat) {
+            this.minLat = y2;
+        }
+        if (y2 > this.maxLat) {
+            this.maxLat = y2;
+        }
     }
     public List<TrackSegment> getTrackSegments(){
         return this.trackSegments;
@@ -103,6 +126,15 @@ public class Track {
     public double getMaxLat() {
         return maxLat;
     }
+    public double getDist() {
+        if (this.dist == 0){
+            List<TrackSegment> segment = this.getTrackSegments();
+            for (int s=0; s<segment.size(); s++ ){
+                this.dist = this.dist + TrackingService.calculateDistance(segment.get(s).getY1(),segment.get(s).getX1(),segment.get(s).getY2(),segment.get(s).getX2());
+            }
+        }
+        return this.dist;
+    }
 
     public void setMinLong(double minLong) {
         this.minLong = minLong;
@@ -119,14 +151,17 @@ public class Track {
     public void setMaxLat(double maxLat) {
         this.maxLat = maxLat;
     }
+    public void setDist(double dist) { this.dist = dist; }
 
-    public long getId() {
+    public void setTime(String time){
+        this.time = time;
+    }
+    public int getId() {
         return this.id;
     }
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
-
     public String getMapName(){
         return this.mapName;
     }

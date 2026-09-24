@@ -69,15 +69,31 @@
       android:layout_margin="5dp"
       android:layout_marginTop="20dp"
       android:orientation="horizontal">
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/wayTime"
         android:textStyle="bold" />
-
     <TextView
         android:id="@+id/trackTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="" />
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_margin="5dp"
+      android:layout_marginTop="20dp"
+      android:orientation="horizontal">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/distance"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/trackDist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="" />

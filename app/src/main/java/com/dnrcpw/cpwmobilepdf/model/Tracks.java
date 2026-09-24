@@ -11,19 +11,19 @@ public class Tracks {
         this.tracks = new ArrayList<>();
     }
 
-    public Track add(String name, String desc, String colorName, List<TrackSegment> trackSegment, double minLong, double maxLong, double minLat, double maxLat){
+    public Track add(String name, String desc, String colorName, List<TrackSegment> trackSegment, double minLong, double maxLong, double minLat, double maxLat, double dist){
         // Add a track to the list.
         if (trackSegment == null)
-            trackSegment =  new ArrayList<>();
-        Track obj = new Track(name, desc, colorName, trackSegment, minLong, maxLong, minLat, maxLat);
+            trackSegment = new ArrayList<>();
+        Track obj = new Track(name, desc, colorName, trackSegment, minLong, maxLong, minLat, maxLat, dist);
         tracks.add(obj); // add to ArrayList
         return obj;
     }
 
-    public void add(int id, String name, String desc, String trackSegment, String colorName, String time, double minLong, double maxLong, double minLat, double maxLat){
+    public void add(int id, String name, String desc, String trackSegment, String colorName, String time, double minLong, double maxLong, double minLat, double maxLat, double dist){
         // Add a track to tracks array.
         // Called in DBHandler getTracks
-        Track obj = new Track(id, name, desc, trackSegment, colorName, time, minLong, maxLong, minLat, maxLat);
+        Track obj = new Track(id, name, desc, trackSegment, colorName, time, minLong, maxLong, minLat, maxLat, dist);
         // Make sure this track has segments
         if (obj.getTrackSegments() != null)
             tracks.add(obj); // add to ArrayList
@@ -31,17 +31,18 @@ public class Tracks {
 
     public void removeAllFromMap(String mapName){
         // Remove all tracks in a map
-        for (int i=0; i<tracks.size(); i++){
+        for (int i=tracks.size()-1; i>-1; i--){
             // used to be == mapName))
             if ((tracks.get(i).getMapName().equals(mapName))) {
                 tracks.remove(i);
             }
         }
     }
+
     public void remove(Track track){
         // Remove a track from tracks
         long id = track.getId();
-        for (int i=0; i<tracks.size(); i++){
+        for (int i=tracks.size()-1; i>-1; i--){
             // used to be == mapName))
             if ((tracks.get(i).getId() == id)) {
                 tracks.remove(i);
