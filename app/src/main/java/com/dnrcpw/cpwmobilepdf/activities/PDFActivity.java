@@ -82,6 +82,7 @@ import com.dnrcpw.cpwmobilepdf.model.TrackSegment;
 import com.dnrcpw.cpwmobilepdf.model.Track;
 import com.dnrcpw.cpwmobilepdf.model.Tracks;
 import com.github.barteksc.pdfviewer.PDFView;
+import com.github.barteksc.pdfviewer.util.Constants;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -328,6 +329,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         }
         // debug text view
         distanceTextView = findViewById(R.id.distance_text_view); // display distance traveled on current track
+        distanceTextView.setVisibility(View.GONE);
 
         wait = findViewById(R.id.loadingPanel);
         wait.setVisibility(View.VISIBLE);
@@ -845,12 +847,12 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         }
                     }
 
-                    // If clicked on a track show balloon
-                    if (tracks != null && tracks.size()>0) {
-                        clickedTrack = -1; // tracks index
+                    clickedTrack = -1; // tracks index
+                    // If clicked on a track show balloon. If clicked on waypoint, show that.
+                    if (clickedWP == -1 && tracks != null && tracks.size()>0) {
                         clickTrackX = -1.0;
                         clickTrackY = -1.0;
-                        double shortestDist = -1.0;
+                        double shortestDist = 99999;
                         // convert x,y in pixels to long, lat
                         double xLong = (double) (( ((x - marginL) / ((optimalPageWidth.get() * zoom) - marginx)) * longDiff) + long1);
                         double yLat = (double) (-1 * (( ((y - marginT) / ((optimalPageHeight.get() * zoom) - marginy)) * latDiff) - lat2));
@@ -858,36 +860,34 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         // search through every track and segment to find the closest track that is less than checkDistance in pixels
                         for (var t = 0; t < tracks.size(); t++) {
                             Track track = tracks.get(t);
-
                             //Log.d("latlong", "bounds: "+track.getMinLong()+" < "+xLong+" < "+track.getMaxLong()+" && "+track.getMinLat()+" < "+yLat+" < "+track.getMaxLat());
 
-                            // see if map click is inside bounding box of track
-                            if (xLong >= track.getMinLong() && xLong <= track.getMaxLong() &&
-                                yLat >= track.getMinLat() && yLat <= track.getMaxLat()) {
+                            // see if map click is inside bounding box of track + 1/10 of a mile
+                            double tenthOfAMileInDegrees = 0.00145;
+                            if (xLong >= track.getMinLong() - tenthOfAMileInDegrees
+                                    && xLong <= track.getMaxLong() + tenthOfAMileInDegrees
+                                    && yLat >= track.getMinLat() - tenthOfAMileInDegrees
+                                    && yLat <= track.getMaxLat() + tenthOfAMileInDegrees)  {
 
-                                // loop through each segment of this track
+                                // loop through each segment of this track and see if map click is less than 50 meters away.
+                                // 50 meters of latitude is 0.00045;
+                                // 50 meters of longitude is 0.0004 at the equator and 0.0008 at Alaska
+                                //double checkDistance = 0.00045; // degrees
+                                double checkDistance = 50; // meters
                                 for (var s = 0; s < tracks.get(t).getTrackSegments().size(); s++) {
                                     TrackSegment segment = track.getTrackSegments().get(s);
                                     if (segment != null) {
-                                        // Check if clicked point is on the line segment using the distance of a point to a line
-                                        double dist = distToSegmentSquared((double) x, (double) y,
-                                                segment.getX1(zoom, marginx, marginL, long1, longDiff, optimalPageWidth.get()),
-                                                segment.getY1(zoom, marginx, marginL, lat2, latDiff, optimalPageHeight.get()),
-                                                segment.getX2(zoom, marginx, marginL, long1, longDiff, optimalPageWidth.get()),
-                                                segment.getY2(zoom, marginx, marginL, lat2, latDiff, optimalPageHeight.get()));
-                                        dist = (double) Math.sqrt(dist); // square root
+                                        // Check if clicked point is on the line segment using the distance of a point to a line.
+                                        // Return distance in degrees squared. Take the square root to get degrees.
+                                        //double dist = distToSegmentSquared(xLong,yLat,segment.getX1(),segment.getY1(),segment.getX2(),segment.getY2());
+                                        //dist = (double) Math.sqrt(dist); // square root
 
-                                        int checkDistance = 100;
-                                        if (zoom <= 2.0) checkDistance = 100;
-                                        else if (zoom <= 5.0) checkDistance = 200;
-                                        else if (zoom <= 10.0) checkDistance = 300;
-                                        else if (zoom <= 15.0) checkDistance = 400;
-                                        else if (zoom <= 25.0) checkDistance = 500;
+                                        // Return distance between 2 points in meters.
+                                        double dist = TrackingService.calculateDistance(yLat,xLong,segment.getY2(),segment.getX2());
 
-                                        if (dist < checkDistance) {
+                                        Log.d("trackdistance", "dist " + dist + " tk "+(t+1)+" zoom=" + zoom);
+                                        if (dist < checkDistance && dist < shortestDist) {
                                             // show popup for track
-                                            // check if last one found was closer
-                                            if (shortestDist != -1.0 && dist > shortestDist) continue;
                                             clickedTrack = t; // tracks index
                                             numWayPtsTracksClicked++;
                                             // convert screen coordinates to lat, long
@@ -988,8 +988,9 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     double marginx = toScreenCordX * marginXworld;
                     double marginy = toScreenCordY * marginYworld;
 
-                    //if (debug ) {
-                    /*    Log.d("MediaBox","0 0 "+mediaBoxX2+" "+mediaBoxY2);
+
+                    /*if (debug ) {
+                        Log.d("MediaBox","0 0 "+mediaBoxX2+" "+mediaBoxY2);
                         Log.d("BBox",bBoxX1+" "+bBoxY1+" "+bBoxX2+" "+bBoxY2);
                         Log.d("Margins","Left="+marginLeft+" Right="+marginRight+" Top="+marginTop+" Bottom="+marginBottom);
                         Log.d("PageWidth",""+(optimalPageWidth.get()*zoom));
@@ -1003,14 +1004,14 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         Log.d("Lat2",""+lat2);
                         Log.d("latDiff",""+latDiff);
                         Log.d("marginy",""+marginy);
-                        Log.d("marginT",""+marginT);*/
+                        Log.d("marginT",""+marginT);
                         // debug: blue dots at lat long bounds
                         //currentLocationX = (((longNow + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
                         //currentLocationY = ((((90 - latNow) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
 
                         //double x1,x2, y1, y2;
                         // long1, lat1
-                        /*x1 = (((LatLong[1] + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                        x1 = (((LatLong[1] + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
                          y1 = ((((90 - LatLong[0]) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
                         canvas.drawCircle((float) x1+9f, (float) y1+9f, 18f, blue);
                         // long2, lat2
@@ -1024,15 +1025,15 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         // long4, lat4
                         x1 = (((LatLong[7] + 180) - (long1 + 180)) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
                         y1 = ((((90 - LatLong[6]) - (90 - lat2)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
-                        canvas.drawCircle((float) x1+9f, (float) y1+9f, 18f, blue);*/
+                        canvas.drawCircle((float) x1+9f, (float) y1+9f, 18f, blue);
 
                         // debug:  place black dots at page width/height
-                        /*canvas.translate(0, 0);
+                        canvas.translate(0, 0);
                         canvas.drawCircle(5, 0, 5f, black);
                         canvas.drawCircle((float) (optimalPageWidth.get() * zoom)-5f, (float) (optimalPageHeight.get() * zoom)-5f, 5f, black);
-                        */
+
                         // debug: green dots at bbox Viewport
-                        /*canvas.translate(0, 0);
+                        canvas.translate(0, 0);
                         x1 = toScreenCordX * bBoxX1;
                         y1 = (optimalPageHeight.get() * zoom) - toScreenCordY * bBoxY1;
                         canvas.drawCircle((float)x1+5f,(float)y1+5f,14f, green);
@@ -1044,25 +1045,25 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                         canvas.drawCircle((float)x1-5f,(float)y1+5f,14f, green);
                         x2 = toScreenCordX * bBoxX1;
                         y2 = (optimalPageHeight.get() * zoom) - toScreenCordY * bBoxY2;
-                        canvas.drawCircle((float)x2+5f,(float)y2-5f,14f, green);*/
+                        canvas.drawCircle((float)x2+5f,(float)y2-5f,14f, green);
 
                         // debug: purple dots at MediaBox
-                        /*canvas.drawCircle((float)8f,(float)-8f,16f, purple);
+                        canvas.drawCircle((float)8f,(float)-8f,16f, purple);
                         x2 = toScreenCordX * mediaBoxX2;
                         y2 = toScreenCordY * mediaBoxY2;
-                        canvas.drawCircle((float)x2-8f,(float)y2-8f,16f, purple);*/
+                        canvas.drawCircle((float)x2-8f,(float)y2-8f,16f, purple);
 
 
                         // debug: red dots at page margins, works for NREL maps, not for USFS maps
-                      /* canvas.drawCircle((float) marginL+5f, (float) marginT+5f, 10f, red);
+                       canvas.drawCircle((float) marginL+5f, (float) marginT+5f, 10f, red);
                         // Toast.makeText(PDFActivity.this, "xRatio="+xRatio+"  left=" + x1+"  top="+y1+"  width="+pdfView.getOptimalPageWidth(), Toast.LENGTH_SHORT).show();
                         x1 = ((optimalPageWidth.get() * zoom) - (toScreenCordX * marginRight));
                         y1 = ((optimalPageHeight.get() * zoom) - (toScreenCordY * marginBottom));
                         canvas.drawCircle((float) x1-5f, (float) y1-5f, 10f, red);
                         canvas.drawCircle((float) marginL+5f, (float) y1-5f, 10f, red);
                         canvas.drawCircle((float) x1-5f, (float) marginT+5f, 10f, red);
-                        */
-                    //}
+                    }*/
+
                     // debug lat/long at corners for Poudre Park FS
                     //x1 = (((-105.37499 + 180) - (long1 + 180)) / longDiff) * ((pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
                     //y1 = ((((90 - 40.75) - (90 - lat2)) / latDiff) * ((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
@@ -1076,8 +1077,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //x1 = (((-105.37499 + 180) - (long1 + 180)) / longDiff) * ((pdfView.getOptimalPageWidth() * zoom) - marginx) + marginL;
                     //y1 = ((((90 - 40.625) - (90 - lat2)) / latDiff) * ((pdfView.getOptimalPageHeight() * zoom) - marginy)) + marginT;
                     //canvas.drawCircle((float) x1-5, (float) y1-5, 10f, red);
-
-
 
                     // count++;
                     // Log.d("border","zoom="+zoom);
@@ -1103,25 +1102,19 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             }
 
                             // debug draw min max lat long. Convert lat long to screen pixels
-                            double minlong = ((currentTrack.getMinLong() - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
-                            double minlat = (((lat2 - currentTrack.getMinLat()) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
-                            double maxlong = ((currentTrack.getMaxLong() - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
-                            double maxlat = (((lat2 - currentTrack.getMaxLat()) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
+                            /*double tenthOfAMileInDegrees = 0.00145;
+                            double minlong = (((currentTrack.getMinLong() - tenthOfAMileInDegrees) - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                            double minlat = (((lat2 - (currentTrack.getMinLat() - tenthOfAMileInDegrees)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
+                            double maxlong = (((currentTrack.getMaxLong() + tenthOfAMileInDegrees) - long1) / longDiff) * ((optimalPageWidth.get() * zoom) - marginx) + marginL;
+                            double maxlat = (((lat2 - (currentTrack.getMaxLat() + tenthOfAMileInDegrees)) / latDiff) * ((optimalPageHeight.get() * zoom) - marginy)) + marginT;
                             canvas.translate(0, 0);
                             canvas.drawCircle((float)minlong+5f,(float)minlat+5f,14f, green);
                             canvas.drawCircle((float)maxlong+5f,(float)maxlat+5f,14f, green);
                             canvas.drawCircle((float)minlong+5f,(float)maxlat+5f,14f, green);
                             canvas.drawCircle((float)maxlong+5f,(float)minlat+5f,14f, green);
-                            canvas.translate(0, 0);
+                            canvas.translate(0, 0);*/
 
-                            // Add to the current track's path with current location if on map
-                            /*if (latBefore != -1 && currentTrackID != -1 && t == currentTrackID &&
-                                    (latNow >= lat1 && latNow <= lat2) &&
-                                    (longNow >= long1 && longNow <= long2)) {
-                                currentTrack.addTrackSegment((float) longBefore, (float) latBefore, (float) longNow, (float) latNow);
-                            }*/
                             // Draw all tracks
-
                             List<TrackSegment> segments = currentTrack.getTrackSegments();
                             for (int i = 0; i < currentTrack.getTrackSegments().size(); i++) {
                                 canvas.drawLine((float)(segments.get(i).getX1(zoom, marginx, marginL, long1, longDiff, optimalPageWidth.get())),
@@ -1207,7 +1200,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                             // Show all Waypoint Labels
                             if (showAllWayPtLabels && (adjustWP != i12)) {
                                 String desc = wayPts.get(i12).getDesc();
-                                //drawPopup(canvas, x, y, boxWidth, desc);
                                 drawLabels(canvas, x, y, boxWidth, desc);
                             }
                         }
@@ -1233,7 +1225,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     }
 
                     // Draw popup if track was clicked on
-                    if (tracks != null && tracks.size()>0 && (clickTrackX != -1.0) && showTracks && clickedTrack != -1 && clickedTrack < tracks.size()) {
+                    if (tracks != null && tracks.size()>0 && clickedTrack != -1.0 && clickTrackX != -1.0 && showTracks &&  clickedTrack < tracks.size()) {
                         //Log.d("PDFActivity", "onDraw: draw track and popup balloon. newWP="+newWP+" clickedWP="+clickedWP);
                      //   showOverlayMenu(new View(PDFActivity.this)); //TODO display multiple tracks and waypoints to edit
                         String desc = tracks.get(clickedTrack).getDesc();
@@ -1271,6 +1263,10 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
 
                         //Log.d("latlong", "long="+longDiff+"    "+(int)Math.round(currentLocationY)+" long="+(int)Math.round(currentLocationX));
 
+                        // if bad accuracy draw transparent circle around
+                        if (accuracy > 10){
+                            canvas.drawCircle(0, 0, 80f, cyanTrans); // transparent blue circle
+                        }
                         // DRAW POINT AT CURRENT LOCATION drawCircle(x,y,radius,paint)
                         // drawCircle(centerX,centerY,radius,paint)
                         canvas.drawCircle(0, 0, 20f, cyan); // final blue outline
@@ -1289,11 +1285,13 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                     //Toast.makeText(PDFActivity.this,"Re-Draw "+count, Toast.LENGTH_SHORT).show();
             }).onLoad(nbPages -> {
                 // SET LEVELS TO ZOOM TO WHEN DOUBLE CLICK, 34x44=3168, 22x34=2448
+                // Force the global gesture engine to allow zooming up to 5x (or your target)
+                Constants.Pinch.MAXIMUM_ZOOM = 25.0f;
                 if (mediaBoxWidth > 1500) {
-                    pdfView.setMaxZoom(50f);// 25f // used to be 3.0f, 7, 20
+                    pdfView.setMaxZoom(25f);// 25f // used to be 3.0f, 7, 20
                     pdfView.setMidZoom(7f);// 7f // used to be 1.75f 3.5
                 } else {
-                    pdfView.setMaxZoom(25f);//15f // used to be 3.0f, 7, 20
+                    pdfView.setMaxZoom(15f);//15f // used to be 3.0f, 7, 20
                     pdfView.setMidZoom(3.5f);// used to be 1.75f 3.5
                 }
                 pdfView.setMinZoom(1f); // default is 1 (full document, no zoom)
@@ -1324,7 +1322,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
     }*/
 
     // find distance from a point to a line, used to determine if click on a track
-    private double sqr(double x) { return x * x; }
+    /*private double sqr(double x) { return x * x; }
     private double dist_sq(double x1, double y1, double x2, double y2) {
         // a^2 + b^2 = c^2 distance of a right angle triangle
         return sqr(x1 - x2) + sqr(y1 - y2); }
@@ -1341,7 +1339,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         double x = x1 + t * (x2 - x1);
         double y = y1 + t * (y2 - y1);
         return dist_sq(ptX, ptY, x, y);
-    }
+    }*/
 
 
     private int findAUniqueName(){
@@ -1897,7 +1895,6 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent != null && "ACTION_LOCATION_UPDATE".equals(intent.getAction())) {
-
                 latNow = intent.getDoubleExtra("extra_latitude", 0.0);
                 longNow = intent.getDoubleExtra("extra_longitude", 0.0);
                 // save last location so we can see how much they moved
@@ -1906,19 +1903,21 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
                 accuracy = intent.getFloatExtra("extra_accuracy", 0.0f);
                 double speed = intent.getFloatExtra("extra_speed", 0.0f);
 
-
+                // If tracking, show stats
+                if (currentTrackID != -1) distanceTextView.setVisibility(View.VISIBLE);
+                else distanceTextView.setVisibility(View.GONE);
                 // Add to the current track's path with current location if on map
-                // and if accuracy is less than 10 meters. Change in TrackingService aslo!
+                // and if accuracy is less than 10 meters. Change in TrackingService also!
                 if (accuracy < 10 && latBefore != -1 && currentTrackID != -1 &&
                     (latNow >= lat1 && latNow <= lat2) &&
                     (longNow >= long1 && longNow <= long2)) {
 
                     // DEBUG display speed and accuracy
                     speed = speed * 2.23694;
-                    distanceTextView.setText(String.format("%.0f", speed)+"mph, accuaracy "+String.format("%.0f",accuracy)+"m");
+                    distanceTextView.setText("Distance: "+trackingService.getTotalDistance()+String.format("%.0f", speed)+"mph, accuaracy "+String.format("%.0f",accuracy)+"m");
 
                     Track currentTrack = tracks.get(currentTrackID);
-                    Log.d("TrackingService", "currentTrackID=" + currentTrackID + " " + longBefore + " " + latBefore + " " + longNow + " " + latNow);
+                    //Log.d("TrackingService", "currentTrackID=" + currentTrackID + " vis="+distanceTextView.getVisibility() + " " + longBefore + " " + latBefore + " " + longNow + " " + latNow);
                     currentTrack.addTrackSegment((float) longBefore, (float) latBefore, (float) longNow, (float) latNow);
                     // update min, max, lat and long
                     currentTrack.setMinLong(intent.getDoubleExtra("extra_minLong", -1.0));
@@ -3222,7 +3221,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         intent.setAction(TrackingService.ACTION_TOGGLE_RECORDING);
         intent.putExtra(TrackingService.EXTRA_IS_RECORDING, false);
         intent.putExtra(TrackingService.EXTRA_CURRENT_TRACK_ID, -1);
-        intent.putExtra(TrackingService.EXTRA_CURRENT_DB_ID, -1);
+        intent.putExtra(TrackingService.EXTRA_CURRENT_DB_ID, Long.valueOf(-1));
         startService(intent);
     }
     // ADJUST WAYPOINT MENU

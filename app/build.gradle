@@ -52,8 +52,8 @@ android {
         applicationId 'com.dnrcpw.cpwmobilepdf'
         minSdkVersion 23
         targetSdkVersion 36
-        versionCode 78
-        versionName "1.9.6"
+        versionCode 80
+        versionName "1.9.8"
         // History
         // v1.3.01 Removed asynctask
         // v1.3.02 Adjust waypoint on long click, added edit, move, delete buttons to top menu
@@ -113,6 +113,7 @@ android {
         // v 1.9 6/5/26 Add more permissions, only ask for background permissions if user clicks on add track icon.
         // v 1.9.2 6/18/26 save kmz file of tracks and waypoints bug fixes, fine tune click on track, thumbnails were overwritten, save lat, long track segments as double not float,
         // v 1.9.3 6/23/26 Remove tracks configuration menu, stop and start tracking when switch to an adjacent map
+        // v 1.9.8 9/24/26 Tracking bug fixes
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /* to use Java 8 Lambda expressions. This overrides Gradle Settings for JDK */
@@ -191,7 +192,8 @@ dependencies {
     //implementation 'com.github.barteksc:android-pdf-viewer:2.8.2'
     // this one has been migrated to androidx jitpack and includes pdfium-android
     // https://github.com/TalbotGooday/AndroidPdfViewer
-    implementation 'com.github.TalbotGooday:AndroidPdfViewer:3.1.0-beta.3'  // causes errors 3.2.0-beta.1'
+    //implementation 'com.github.TalbotGooday:AndroidPdfViewer:3.1.0-beta.3' // works except 16kb alignment problem with pdfium
+    implementation "io.github.oothp:android-pdf-viewer:3.2.0-beta06" // fixes 16kb misalignment error
 
     // this fails
     //implementation 'com.github.barteksc:android-pdf-viewer:3.2.0-beta.1'

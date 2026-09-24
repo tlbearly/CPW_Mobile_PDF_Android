@@ -16,7 +16,7 @@ import androidx.annotation.NonNull;import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import com.dnrcpw.cpwmobilepdf.data.DBHandler;
-import com.dnrcpw.cpwmobilepdf.model.Tracks;import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
@@ -53,7 +53,8 @@ public class TrackingService extends Service {
     private double  longitude = -1.0;
     private double latitude_before = -1.0;
     private double longitude_before = -1.0;
-    private boolean debug = false;
+    private double dist = 0.0;
+    private final boolean debug = false;
 
     @Override
     public void onCreate() {
@@ -64,11 +65,6 @@ public class TrackingService extends Service {
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
-                if (locationResult == null) {
-                    Log.d("TrackingService", "LocationResult is null");
-                    return;
-                }
-
                 for (Location location : locationResult.getLocations()) {
                     // first time it is called use 1 second interval, then reset to walking speed and let it auto adjust
                     if (firstTime) {
@@ -91,9 +87,9 @@ public class TrackingService extends Service {
                     }
 
                     // Update location if accuracy is < 30 meters
-                    if (accuracy < 10) {
+                    //if (accuracy < 10) {
                         // Record Track: Conditionally save to SQLite database if track recording is toggled on
-                        if (isRecordingTracks && currentDBId != -1 && latitude != -1.0) {
+                        if (isRecordingTracks && currentDBId != -1 && accuracy < 10 && latitude != -1.0) {
                             if (latitude_before == -1) {
                                 latitude_before = latitude;
                                 longitude_before = longitude;
@@ -133,13 +129,17 @@ public class TrackingService extends Service {
                                 maxLong = longitude;
                                 minLat = latitude;
                                 maxLat = latitude;
-                            } else if (longitude < minLong) {
+                            }
+                            if (longitude < minLong) {
                                 minLong = longitude;
-                            } else if (longitude > maxLong) {
+                            }
+                            if (longitude > maxLong) {
                                 maxLong = longitude;
-                            } else if (latitude < minLat) {
+                            }
+                            if (latitude < minLat) {
                                 minLat = latitude;
-                            } else if (latitude > maxLat) {
+                            }
+                            if (latitude > maxLat) {
                                 maxLat = latitude;
                             }
                             dbHelper.updateTrack(
@@ -151,13 +151,12 @@ public class TrackingService extends Service {
                                     maxLat,
                                     currentDBId
                             );
-                            latitude_before = latitude;
-                            longitude_before = longitude;
+                            dist = dist + calculateDistance(latitude_before,longitude_before,latitude,longitude);
+
                         } else {
                             latitude = location.getLatitude();
                             longitude = location.getLongitude();
                         }
-
 
                         // Create an intent with a custom action string to update current location/distance to map
                         Intent intent = new Intent("ACTION_LOCATION_UPDATE");
@@ -177,7 +176,10 @@ public class TrackingService extends Service {
                         // Broadcast to the system (restricted to your app package for security)
                         intent.setPackage(getPackageName());
                         sendBroadcast(intent);
-                    }
+
+                        latitude_before = latitude;
+                        longitude_before = longitude;
+                    //}
                 }
             }
         };
@@ -204,9 +206,10 @@ public class TrackingService extends Service {
     }
 
     // Example public method your second activity might want to call
-    public float getTotalDistance() {
-        // TODO  Assuming you track totalDistanceTraveled globally here
-        return 1500.5f;
+    public String getTotalDistance() {
+        // return totalDistanceTraveled in meters
+        double miles = dist * 0.000621371;
+        return String.format("%.1f", miles)+"mi ";
     }
     public int getCurrentTrackId(){
         return currentTrackId;
@@ -248,10 +251,11 @@ public class TrackingService extends Service {
                 maxLat = -1.0;
                 latitude_before = -1;
                 longitude_before = -1;
+                dist = 0.0; // total distance
                 updateNotificationText();
             } else {
                 // Check if the Intent contains custom interval update instructions
-                if (intent != null && intent.hasExtra("update_interval")) {
+                if (intent.hasExtra("update_interval")) {
                     // User overridden via SeekBar: Disable auto-speed adjustment
                     isAutoAdjustEnabled = false;
                     long newInterval = intent.getLongExtra("update_interval", 10000);
@@ -259,7 +263,7 @@ public class TrackingService extends Service {
 
                     // Trigger the runtime change function
                     changeLocationInterval(newInterval, newFastestInterval);
-                } else if (intent != null && intent.hasExtra("enable_auto")) {
+                } else if (intent.hasExtra("enable_auto")) {
                     isAutoAdjustEnabled = intent.getBooleanExtra("enable_auto", true);
                 } else {
                     // First-time setup launch code
