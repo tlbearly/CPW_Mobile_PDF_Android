@@ -54,6 +54,7 @@ public class TrackingService extends Service {
     private double latitude_before = -1.0;
     private double longitude_before = -1.0;
     private double dist = 0.0;
+    private float accuracyLevel = 10.0f;
     private final boolean debug = false;
 
     @Override
@@ -86,10 +87,10 @@ public class TrackingService extends Service {
                         //Log.d("TrackingService", "speed="+speed+" milliseconds=" + currentIntervalMillis);
                     }
 
-                    // Update location if accuracy is < 30 meters
+                    // Update location. Update tracks if accuracy is < 10 meters
                     //if (accuracy < 10) {
                         // Record Track: Conditionally save to SQLite database if track recording is toggled on
-                        if (isRecordingTracks && currentDBId != -1 && accuracy < 10 && latitude != -1.0) {
+                        if (isRecordingTracks && currentDBId != -1 && accuracy < accuracyLevel && latitude != -1.0) {
                             if (latitude_before == -1) {
                                 latitude_before = latitude;
                                 longitude_before = longitude;
@@ -179,8 +180,10 @@ public class TrackingService extends Service {
                         intent.setPackage(getPackageName());
                         sendBroadcast(intent);
 
-                        latitude_before = latitude;
-                        longitude_before = longitude;
+                        if (accuracy < accuracyLevel) {
+                            latitude_before = latitude;
+                            longitude_before = longitude;
+                        }
                     //}
                 }
             }
@@ -245,7 +248,7 @@ public class TrackingService extends Service {
             if (ACTION_TOGGLE_RECORDING.equals(intent.getAction())) {
                 isRecordingTracks = intent.getBooleanExtra(EXTRA_IS_RECORDING, false);
                 currentTrackId = intent.getIntExtra(EXTRA_CURRENT_TRACK_ID, -1);
-                currentDBId = intent.getLongExtra(EXTRA_CURRENT_DB_ID, -1);
+                currentDBId = intent.getIntExtra(EXTRA_CURRENT_DB_ID, -1);
                 minLong = -1.0;
                 maxLong = -1.0;
                 minLat = -1.0;

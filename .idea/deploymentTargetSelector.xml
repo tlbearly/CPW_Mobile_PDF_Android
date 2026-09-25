@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="CPW_Mobile_PDF_Android.CPWMobilePDF.app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-09-24T18:37:14.852727800Z">
+        <DropdownSelection timestamp="2026-09-24T23:36:35.075726Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\tbearly\.android\avd\Small_Phone.avd" />

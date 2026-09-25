@@ -92,6 +92,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -547,8 +548,22 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
         // lat1 and long1 are the smallest values SW corner
         // lat2 and long2 are the largest NE corner
         String[] arrLatLong = bounds.split(" ");
+
+        List<Double> longs = new ArrayList<>();
+        List<Double> lats = new ArrayList<>();
+        for (int i = 0; i < arrLatLong.length; i += 2) {
+            lats.add(Double.parseDouble(arrLatLong[i]));
+            longs.add(Double.parseDouble(arrLatLong[i + 1]));
+        }
+        //Get min max lat longs
+        lat1 = Collections.min(lats);
+        lat2 = Collections.max(lats);
+        long1 = Collections.min(longs);
+        long2 = Collections.max(longs);
+
+        // old way
         // convert strings to double
-        LatLong = new Double[arrLatLong.length];
+        /*LatLong = new Double[arrLatLong.length];
         for (int l=0; l<arrLatLong.length; l++) {
             LatLong[l] = Double.parseDouble(arrLatLong[l]);
         }
@@ -601,7 +616,7 @@ public class PDFActivity extends AppCompatActivity implements SensorEventListene
             lat2 = (lat2 + lat2a) / 2;
             long1 = (long1 + long1a) / 2;
             long2 = (long2 + long2a) / 2;
-        }
+        }*/
 
         longDiff = long2 - long1;
         latDiff = lat2 - lat1;

@@ -21,7 +21,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -176,81 +179,87 @@ public class PDFMap {
                 viewport = viewport.substring(1, viewport.length() - 1);
                 viewport = viewport.replaceAll(",", "");
 
-                String[] bboxArr = viewport.split(" ");
                 //---------------------------------------------
                 // Get Lat Long from /Measure dictionary /GPTS
                 //---------------------------------------------
                 PdfDictionary measure = vpDict.getAsDict(PdfName.MEASURE);
                 // Measure subtype=GEO
-                // get unit box correction for BBox if [0,1, 0,0, 1,0, 1,1] needs no correction
-                /*String unitBox = measure.get(PdfName.BOUNDS).toString();
-                unitBox = unitBox.trim();
-                unitBox = unitBox.substring(1,unitBox.length() -1);
-                unitBox = unitBox.replaceAll(",", ""); // remove commas
-                String [] units = unitBox.split(" ");
-
-
-                // adjust bbox by unitBox
-                // top-left
-                Double bboxX1 = Double.valueOf(bboxArr[0]) + (Double.valueOf(bboxArr[2]) - Double.valueOf(bboxArr[0])) * (Double.valueOf(units[6]) - 1);
-                Double bboxY1 = Double.valueOf(bboxArr[1]) + (Double.valueOf(bboxArr[3]) - Double.valueOf(bboxArr[1])) * Double.valueOf(units[5]);
-                // bottom-left map boundary * unit square
-                Double bboxX2 = Double.valueOf(bboxArr[2]) + (Double.valueOf(bboxArr[2]) - Double.valueOf(bboxArr[0])) * Double.valueOf(units[2]);
-                Double bboxY2 = Double.valueOf(bboxArr[3]) + (Double.valueOf(bboxArr[3]) - Double.valueOf(bboxArr[1])) * (Double.valueOf(units[1]) - 1);*/
-
-                // using this one
-                /*
-                double bboxX1 = Double.parseDouble(bboxArr[0]) + ((Double.parseDouble(units[0]) - 0) * Double.parseDouble(bboxArr[0]));
-                double bboxY1 = Double.parseDouble(bboxArr[1]) + ((Double.parseDouble(units[1]) - 1) * Double.parseDouble(bboxArr[1]));
-                // bottom-right map boundary * unit square
-                double bboxX2 = Double.parseDouble(bboxArr[2]) + ((Double.parseDouble(units[4]) - 1) * Double.parseDouble(bboxArr[2]));
-                double bboxY2 = Double.parseDouble(bboxArr[3]) + ((Double.parseDouble(units[5]) - 0) * Double.parseDouble(bboxArr[3]));
-                */
-
-                // No adjustment with unit box
-
-                double bboxX1 = Double.parseDouble(bboxArr[0]);
-                double bboxY1 = Double.parseDouble(bboxArr[1]);
-                // bottom-right map boundary * unit square
-                double bboxX2 = Double.parseDouble(bboxArr[2]);
-                double bboxY2 = Double.parseDouble(bboxArr[3]);
-
-
-
-                //Log.d("viewport", viewport);
-
-                // Adjust view port by unit box???????
-                viewport = bboxX1+" "+bboxY1+" "+bboxX2+" "+bboxY2;
-                //Log.d("adjusted viewport", viewport);
-
-                bounds = measure.get(PdfName.GPTS).toString();
-                if (bounds.equals("")) {
+                // get unit box correction for GPTS. if [0,1, 0,0, 1,0, 1,1] needs no correction
+                String subtype = measure.get(PdfName.SUBTYPE).toString();
+                if (!subtype.equals("/GEO")){
                     reader.close();
-                    pdfMap.setName("Import Failed");
+                    pdfMap.setName("Import Failed: Measure Subtype is not /GEO");
                     return pdfMap; //("Import Failed");
                 }
-                bounds = bounds.trim();
-                bounds = bounds.substring(1, bounds.length() - 1);
-                bounds = bounds.replaceAll(",", "");
-                //String[] latlong;
-                //latlong = bounds.split(" ");
-                // Test - not working! adjusted with the unit square - gives the correct lat long for BBox
-                // bottom-left lat/long (given long + (height or width in decimal degrees) * unit square value
-               /* double lat1 = Double.parseDouble(latlong[0]) + (Double.parseDouble(latlong[2]) - Double.parseDouble(latlong[0])) * Double.parseDouble(units[0]);
-                double long1 = Double.parseDouble(latlong[1]) + (Double.parseDouble(latlong[7]) - Double.parseDouble(latlong[1])) * (Double.parseDouble(units[1]) - 1);
-                // top-left lat/long (given lat + (height or width in decimal degrees) * unit square value
-                double lat2 = Double.parseDouble(latlong[2]) + (Double.parseDouble(latlong[2]) - Double.parseDouble(latlong[0])) * Double.parseDouble(units[2]);
-                double long2 = Double.parseDouble(latlong[3]) + (Double.parseDouble(latlong[5]) - Double.parseDouble(latlong[3])) * Double.parseDouble(units[3]);
+                // lpts defines a 2D unit square. Adjust lat long bounds by lpts
+                String lpts = measure.get(PdfName.LPTS).toString();
+                if (lpts != ""){
+                    String gpts = measure.get(PdfName.GPTS).toString();
+                    gpts = gpts.toString().trim();
+                    gpts = gpts.substring(1,gpts.length()-1);
+                    lpts = lpts.toString().trim();
+                    lpts = lpts.substring(1, lpts.length() - 1);
 
-                // top-right lat/long (given lat + (height or width in decimal degrees) * unit square value
-                double lat3 = Double.parseDouble(latlong[4]) + (Double.parseDouble(latlong[4]) - Double.parseDouble(latlong[6])) * Double.parseDouble(units[4]);
-                double long3 = Double.parseDouble(latlong[5]) + (Double.parseDouble(latlong[5]) - Double.parseDouble(latlong[3])) * Double.parseDouble(units[5]);
-                // bottom-right lat/long (given lat + (height or width in decimal degrees) * unit square value
-                double lat4 = Double.parseDouble(latlong[6]) + (Double.parseDouble(latlong[4]) - Double.parseDouble(latlong[4])) * (Double.parseDouble(units[6]) - 1);
-                double long4 = Double.parseDouble(latlong[7]) + (Double.parseDouble(latlong[1]) - Double.parseDouble(latlong[5])) * Double.parseDouble(units[7]);
-                Log.d("adjusted lat/long", lat1+", "+long1+ "  "+lat2+", "+long2+"  "+lat3+", "+long3+"  "+lat4+", "+long4);
+                    String[] lptsRaw = lpts.split(",");
+                    String[] gptsRaw = gpts.split(",");
 
-                */
+                    // 1. Separate the flat arrays into structured coordinate lists
+                    List<Double> lptsX = new ArrayList<>();
+                    List<Double> lptsY = new ArrayList<>();
+                    List<Double> gptsLat = new ArrayList<>();
+                    List<Double> gptsLon = new ArrayList<>();
+
+                    for (int i = 0; i < lptsRaw.length; i += 2) {
+                        lptsX.add(Double.parseDouble(lptsRaw[i]));
+                        lptsY.add(Double.parseDouble(lptsRaw[i + 1]));
+                        gptsLat.add(Double.parseDouble(gptsRaw[i]));
+                        gptsLon.add(Double.parseDouble(gptsRaw[i + 1]));
+                    }
+
+                    // 2. Compute Inner Window Bounds (min/max of existing entries)
+                    double minLat = Collections.min(gptsLat);
+                    double maxLat = Collections.max(gptsLat);
+                    double minLon = Collections.min(gptsLon);
+                    double maxLon = Collections.max(gptsLon);
+
+                    //System.out.println("=== Inner Map Window Extents ===");
+                    //System.out.printf("Latitude Range : %.6f to %.6f%n", minLat, maxLat);
+                    //System.out.printf("Longitude Range: %.6f to %.6f%n%n", minLon, maxLon);
+
+                    // 3. Extrapolate to find true parent image outer bounds (0.0 and 1.0)
+                    // Using points 0 and 2 to establish scale factors across the layout diagonal
+                    double deltaX = lptsX.get(1) - lptsX.get(0);
+                    double deltaY = lptsY.get(1) - lptsY.get(0);
+                    double deltaLat = gptsLat.get(1) - gptsLat.get(0);
+                    double deltaLon = gptsLon.get(1) - gptsLon.get(0);
+
+                    // Degrees per 1.0 normalized unit scale
+                    double latPerUnit = deltaLat / deltaY;
+                    double lonPerUnit = deltaLon / deltaX;
+
+                    // Calculate absolute map anchor origins (0,0)
+                    double baseLat = gptsLat.get(0) - (lptsY.get(0) * latPerUnit);
+                    double baseLon = gptsLon.get(0) - (lptsX.get(0) * lonPerUnit);
+
+                    double topLat = baseLat + latPerUnit;
+                    double rightLong = baseLon + lonPerUnit;
+                    bounds = baseLat + " " + baseLon + " " + topLat + " " + rightLong;
+                    //System.out.println("=== Extrapolated Full Outer Image Bounds (0.0 to 1.0) ===");
+                    //System.out.printf("Outer Bottom-Left (0,0): Lat %.6f, Lon %.6f%n", baseLat, baseLon);
+                    //System.out.printf("Outer Top-Right   (1,1): Lat %.6f, Lon %.6f%n", baseLat + latPerUnit, baseLon + lonPerUnit);
+
+                }else {
+                    bounds = measure.get(PdfName.GPTS).toString();
+
+                    if (bounds.equals("")) {
+                        reader.close();
+                        pdfMap.setName("Import Failed");
+                        return pdfMap; //("Import Failed");
+                    }
+                    bounds = bounds.trim();
+                    bounds = bounds.substring(1, bounds.length() - 1);
+                    bounds = bounds.replaceAll(",", "");
+                }
             }
             // View port not found geoPDF
             else{
